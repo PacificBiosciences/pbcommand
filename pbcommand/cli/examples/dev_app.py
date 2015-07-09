@@ -4,8 +4,7 @@ import logging
 import sys
 
 from pbcommand.cli.core import pacbio_args_or_contract_runner_emit
-from pbcommand.models.common import TaskTypes, FileTypes
-from pbcommand.models.parser import get_default_contract_parser
+from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
 from pbcommand.utils import setup_log
 
 
@@ -19,7 +18,7 @@ __version__ = '0.2.0'
 # Used for the tool contract id. Must have the form {namespace}.tools.{name}
 # to prevent namespace collisions. For python tools, the namespace should be
 # the python package name.
-TOOL_ID = "pbsystem.tools.dev_app"
+TOOL_ID = "pbcommand.tools.dev_app"
 
 
 def add_args_and_options(p):

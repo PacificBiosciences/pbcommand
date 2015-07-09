@@ -13,7 +13,6 @@ import functools
 #import jsonschema
 
 from pbcommand.cli.common_options import add_base_options_with_emit_tool_contract
-from .common import (ResourceTypes, TaskTypes, SymbolTypes, FileTypes)
 from .tool_contract import ToolDriver
 
 log = logging.getLogger(__name__)

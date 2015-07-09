@@ -55,7 +55,6 @@ class ResolvedToolContractTask(object):
         return "<{k} id:{i} >".format(**_d)
 
 
-
 class ToolContract(object):
     def __init__(self, task, driver):
         """
