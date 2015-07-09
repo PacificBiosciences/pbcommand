@@ -1,0 +1,20 @@
+{
+  "_comment": "Example Tool Contract Interface using Pbsystem",
+  "driver": {
+    "_comment": "The execution layer will call '${exe} manifest.json' as the to_cmd",
+    "exe": "python -m pbsystem.common.cmdline.dev_app --resolved-tool-contract",
+    "env": {}
+  },
+  "tool_contract": {
+    "tool_contract_id": "pbsystem.common.cmdline.dev_app",
+    "name": "Pbsystem Sample Dev Task",
+    "tool_type": "pbsmrtpipe.constants.local_task",
+    "version": "0.2.1",
+    "description": "Pbsystem that does awesome things.",
+    "input_types": ["PacBio.FileTypes.Fasta"],
+    "output_types": ["PacBio.FileTypes.Fasta"],
+    "schema_options": {},
+    "nproc": 1,
+    "resource_types": ["$tmpdir", "$logfile"]
+  }
+}

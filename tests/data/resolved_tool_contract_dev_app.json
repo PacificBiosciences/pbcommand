@@ -1,0 +1,19 @@
+{
+  "_comment": "Example of a Resolved Tool Contract.",
+  "tool_contract": {
+    "tool_contract_id": "pbsmrtpipe.tools.dev_app",
+    "tool_type": "pbsmrtpipe.constants.local_task",
+    "input_files": ["/tmp/file.fasta"],
+    "output_files": ["/tmp/file2.filtered.fasta"],
+    "options": {"pbsmrtpipe.options.dev_read_length": 50},
+    "nproc": 1,
+    "resources": [
+      ["$tmpdir", "/tmp/tmpdir"],
+      ["$logfile", "/tmp/task-dir/file.log"]]
+  },
+  "driver": {
+    "_comment": "This is the driver exe. The workflow will call ${exe} config.json",
+    "exe": "python -m pbsystem.common.cmdline.examples.dev_app --resolved-tool-contract",
+    "env": {}
+  }
+}

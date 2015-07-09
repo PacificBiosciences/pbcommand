@@ -1,0 +1,20 @@
+{
+  "_comment": "Example Tool Contract Interface",
+  "driver": {
+    "_comment": "The execution layer will call '${exe} manifest.json' as the to_cmd",
+    "exe": "mapping_stats.py --resolved-tool-contract",
+    "env": {}
+  },
+  "tool_contract": {
+    "tool_contract_id": "pbreports.tools.mapping_stats",
+    "name": "Mapping Stats",
+    "tool_type": "pbsmrtpipe.constants.local_task",
+    "version": "0.2.1",
+    "description": "Mapping Stats Report that does awesome things.",
+    "input_types": ["PacBio.FileTypes.bam"],
+    "output_types": ["PacBio.FileTypes.JsonReport"],
+    "schema_options": {},
+    "nproc": "$max_nproc",
+    "resource_types": ["$tmpdir", "$logfile"]
+  }
+}
