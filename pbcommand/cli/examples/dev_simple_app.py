@@ -8,13 +8,11 @@ import logging
 import sys
 import warnings
 
-from pbcommand.cli.common_options import add_resolved_tool_contract_option
-from pbcommand.cli.core import pacbio_args_or_contract_runner
-from pbcommand.cli.parser import get_default_argparser
-
 from pbcommand.utils import setup_log
 from pbcommand.validators import validate_file
-from pbcommand.models.tool_contract import ResolvedToolContract
+from pbcommand.models import ResolvedToolContract
+from pbcommand.common_options import add_resolved_tool_contract_option
+from pbcommand.cli import pacbio_args_or_contract_runner_emit, get_default_argparser
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +32,8 @@ def get_parser():
     p.add_argument("fasta_out", type=str, help="Output Fasta")
     p.add_argument('--read-length', type=int, default=25, help="Min Sequence length to filter")
     add_resolved_tool_contract_option(p)
+    # this parser cannot emit a tool contract, but can run from a resolved
+    # contract via --resolved-tool-contract /path/to/resolved-tool-contract.json
     return p
 
 
@@ -79,14 +79,14 @@ def resolved_tool_contract_runner(resolved_tool_contract):
 
 def main(argv=sys.argv):
     # New interface that supports running resolved tool contracts
-    log.info("Starting {f} version {v} pbsystem example dev app".format(f=__file__, v=__version__))
+    log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
+
     p = get_parser()
-    return pacbio_args_or_contract_runner(argv[1:],
-                                          p,
-                                          args_runner,
-                                          resolved_tool_contract_runner,
-                                          log,
-                                          setup_log)
+    return pacbio_args_or_contract_runner_emit(argv[1:], p,
+                                               args_runner,
+                                               resolved_tool_contract_runner,
+                                               log,
+                                               setup_log)
 
 
 if __name__ == '__main__':

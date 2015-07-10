@@ -12,7 +12,7 @@ import functools
 # import error.
 #import jsonschema
 
-from pbcommand.cli.common_options import add_base_options_with_emit_tool_contract
+from pbcommand.common_options import add_base_options_with_emit_tool_contract
 from .tool_contract import ToolDriver
 
 log = logging.getLogger(__name__)

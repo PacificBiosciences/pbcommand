@@ -96,10 +96,11 @@ def add_args_and_options(p):
 Define Parser
 
 ```python
+from pbcommand.models import TaskTypes, ResourceTypes, SymbolTypes
 def get_contract_parser():
-    # Number of processors to use, can also be "$max_nproc"
+    # Number of processors to use, can also be SymbolTypes.MAX_NPROC
     nproc = 1
-    # Log file, tmp dir, tmp file. See ResourceTypes in models
+    # Log file, tmp dir, tmp file. See ResourceTypes in models, ResourceTypes.TMP_DIR
     resource_types = ()
     # Commandline exe to call "{exe}" /path/to/resolved-tool-contract.json
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
@@ -134,15 +135,19 @@ Add running layer
 import sys
 import logging
 import pbcommand.utils setup_log
+from pbcommand.cli import pacbio_args_or_contract_runner_emit
 
 log = logging.getLogger(__name__)
 
 def main(argv=sys.argv):
+    # New interface that supports running resolved tool contracts
+    log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
     p = get_parser()
-    return pacbio_args_or_contract_runner(argv[1:], p, _args_runner,
-                                          _resolved_tool_contract_runner,
-                                          log,
-                                          setup_log)
+    return pacbio_args_or_contract_runner_emit(argv[1:], p,
+                                               args_runner,
+                                               _resolved_tool_contract_runner,
+                                               log,
+                                               setup_log)
 if __name__ == '__main__':
     sys.exit(main())
 ```
@@ -160,3 +165,32 @@ And you can run the tool from a **Resolved Tool Contract**
 ```
 
 See the dev apps in ["pbcommand.cli.examples"](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/cli/examples/dev_app.py) for a complete application (They require pbcore to be installed).
+
+```sh
+(pbcommand_test)pbcommand $> python -m pbcommand.cli.examples.dev_app --help
+usage: dev_app.py [-h] [-v] [--emit-tool-contract]
+                  [--resolved-tool-contract RESOLVED_TOOL_CONTRACT]
+                  [--log-level LOG_LEVEL] [--debug]
+                  [--read-length READ_LENGTH]
+                  fasta_in fasta_out
+
+Dev app for Testing that supports emitting tool contracts
+
+positional arguments:
+  fasta_in              PacBio Spec'ed fasta file
+  fasta_out             Filtered Fasta file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  --emit-tool-contract  Emit Tool Contract to stdout (default: False)
+  --resolved-tool-contract RESOLVED_TOOL_CONTRACT
+                        Run Tool directly from a PacBio Resolved tool contract
+                        (default: None)
+  --log-level LOG_LEVEL
+                        Set log level (default: 10)
+  --debug               Debug to stdout (default: False)
+  --read-length READ_LENGTH
+                        Min Sequence Length filter (default: 25)
+```
+

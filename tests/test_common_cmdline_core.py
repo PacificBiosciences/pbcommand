@@ -1,13 +1,10 @@
 import unittest
 import logging
-import argparse
 import shlex
 
-
-import pbcommand.cli.common_options as CU
+import pbcommand.common_options as CU
 from pbcommand.cli.core import pacbio_args_runner
 from pbcommand.cli.parser import get_default_argparser
-
 from pbcommand.utils import setup_log
 
 log = logging.getLogger(__name__)

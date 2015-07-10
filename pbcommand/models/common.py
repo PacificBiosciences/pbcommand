@@ -46,6 +46,12 @@ to_pipeline_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_PIPELI
 
 
 class TaskTypes(object):
+    """Task types used in workflow engine. Local will run the task as a subprocess,
+    Distributed will run the process on a remote node if the workflow has been configured with a cluster manager.
+
+    Most tasks should be set to be Distributed, only extremely light weight tasks
+    should be set to LOCAL.
+    """
     # perhaps this should have it's own namespace
     # pbsmrtpipe.task_types.
     LOCAL = to_constant_ns('local_task')
@@ -53,6 +59,8 @@ class TaskTypes(object):
 
 
 class SymbolTypes(object):
+    """*Symbols* that are understood durning resolving, such as max number of
+    processors, Max Chunks"""
     MAX_NPROC = '$max_nproc'
     MAX_NCHUNKS = '$max_nchunks'
     TASK_TYPE = '$task_type'
@@ -64,6 +72,7 @@ class SymbolTypes(object):
 
 
 class ResourceTypes(object):
+    """Resources such as tmp dirs and files, log files"""
     TMP_DIR = '$tmpdir'
     TMP_FILE = '$tmpfile'
     LOG_FILE = '$logfile'
@@ -148,6 +157,7 @@ class FileType(object):
 
 
 class FileTypes(object):
+    """Registry of all PacBio Files types"""
     # generic Txt file
     TXT = FileType(to_file_ns('txt'), 'file', 'txt', 'text/plain')
 

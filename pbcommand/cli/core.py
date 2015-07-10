@@ -20,8 +20,8 @@ import time
 import traceback
 import sys
 
-from .constants import RESOLVED_TOOL_CONTRACT_OPTION, EMIT_TOOL_CONTRACT_OPTION
-from pbcommand.models.parser import PbParser
+from pbcommand.common_options import RESOLVED_TOOL_CONTRACT_OPTION, EMIT_TOOL_CONTRACT_OPTION
+from pbcommand.models import PbParser
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
 

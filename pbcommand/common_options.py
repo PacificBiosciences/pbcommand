@@ -2,7 +2,7 @@
 import logging
 
 from pbcommand.utils import compose
-from .constants import RESOLVED_TOOL_CONTRACT_OPTION, EMIT_TOOL_CONTRACT_OPTION
+from pbcommand.cli import RESOLVED_TOOL_CONTRACT_OPTION, EMIT_TOOL_CONTRACT_OPTION
 
 
 def add_debug_option(p):

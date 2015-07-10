@@ -1,11 +1,11 @@
-"""Simple CLI dev app for testing"""
+"""Simple CLI dev app for testing Emitting Tool Contracts and Running from Resolved Tool Contracts"""
 
 import logging
 import sys
 
-from pbcommand.cli.core import pacbio_args_or_contract_runner_emit
-from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
 from pbcommand.utils import setup_log
+from pbcommand.cli import pacbio_args_or_contract_runner_emit
+from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
 
 
 # This has the same functionality as the dev_simple_app
