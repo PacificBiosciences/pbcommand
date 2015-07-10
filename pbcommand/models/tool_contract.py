@@ -1,4 +1,8 @@
-"""Common models for Tool Contract and Resolved Tool Contract"""
+"""Common models for Tool Contract and Resolved Tool Contract
+
+
+Author: Michael Kocher
+"""
 
 
 class ToolDriver(object):

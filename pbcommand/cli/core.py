@@ -14,16 +14,32 @@ Going to do this in a new steps.
 
 
 """
+import argparse
 
 import json
 import time
 import traceback
 import sys
 
-from pbcommand.common_options import RESOLVED_TOOL_CONTRACT_OPTION, EMIT_TOOL_CONTRACT_OPTION
+from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
+                                      EMIT_TOOL_CONTRACT_OPTION)
 from pbcommand.models import PbParser
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
+
+def get_default_argparser(version, description):
+    """
+    Everyone MUST use this to create an instance on a argparser python parser.
+
+    :param version:
+    :param description:
+    :return:
+    :rtype: ArgumentParser
+    """
+    p = argparse.ArgumentParser(version=version,
+                                description=description,
+                                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    return p
 
 def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
     """

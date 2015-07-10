@@ -1,4 +1,8 @@
-"""Common PacBio Report model"""
+"""Common PacBio Report model
+
+
+Author: Johann Miller and Michael Kocher
+"""
 import abc
 import logging
 import json

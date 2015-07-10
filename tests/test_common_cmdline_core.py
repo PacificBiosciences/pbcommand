@@ -4,7 +4,7 @@ import shlex
 
 import pbcommand.common_options as CU
 from pbcommand.cli.core import pacbio_args_runner
-from pbcommand.cli.parser import get_default_argparser
+from pbcommand.cli import get_default_argparser
 from pbcommand.utils import setup_log
 
 log = logging.getLogger(__name__)
