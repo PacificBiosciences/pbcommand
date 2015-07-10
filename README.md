@@ -144,10 +144,11 @@ def main(argv=sys.argv):
     log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
     p = get_parser()
     return pacbio_args_or_contract_runner_emit(argv[1:], p,
-                                               args_runner,
-                                               _resolved_tool_contract_runner,
-                                               log,
-                                               setup_log)
+                                               _args_runner, # argparse runner func
+                                               _resolved_tool_contract_runner, # tool contract runner func
+                                               log, # log instance
+                                               setup_log # setup log func
+                                               )
 if __name__ == '__main__':
     sys.exit(main())
 ```
