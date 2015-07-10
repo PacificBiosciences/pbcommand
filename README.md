@@ -123,7 +123,7 @@ def _args_runner(args):
     
 def _resolved_tool_contract_runner(resolved_tool_contract):
     rtc = resolved_tool_contract
-    return run_my_main(rtc.inputs[0], rtc.outputs[0], rtc.options["pbcommand.task_options.dev_readlength"])
+    return run_my_main(rtc.inputs[0], rtc.outputs[0], rtc.options["pbcommand.task_options.dev_read_length"])
 ```
     
     
