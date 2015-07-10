@@ -142,7 +142,7 @@ log = logging.getLogger(__name__)
 def main(argv=sys.argv):
     # New interface that supports running resolved tool contracts
     log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
-    p = get_parser()
+    p = get_contract_parser()
     return pacbio_args_or_contract_runner_emit(argv[1:], p,
                                                _args_runner, # argparse runner func
                                                _resolved_tool_contract_runner, # tool contract runner func
