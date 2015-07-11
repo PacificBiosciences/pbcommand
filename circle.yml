@@ -9,4 +9,5 @@ dependencies:
 
 test:
   override:
-    - make test
+    - mkdir -p $CIRCLE_TEST_REPORTS
+    - nosetests -s --verbose --with-xunit --xunit-file=$CIRCLE_TEST_REPORTS/nosetests.xml --logging-config log_nose.cfg tests/test_*.py
