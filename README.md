@@ -121,10 +121,14 @@ Define a Wrapping layer to call your main from both the tool contract and raw ar
 
 ```python
 def _args_runner(args):
+    # this is the args from parser.parse_args()
+    # the properties of args are defined as "labels" in the add_args_and_options func.
     return run_my_main(args.fasta_in, fasta_out, args.read_length)
     
 def _resolved_tool_contract_runner(resolved_tool_contract):
     rtc = resolved_tool_contract
+    # all options are referenced by globally namespaced id. This allows tools to use other tools options
+    # e.g., pbalign to use blasr defined options.
     return run_my_main(rtc.inputs[0], rtc.outputs[0], rtc.options["pbcommand.task_options.dev_read_length"])
 ```
     
@@ -155,7 +159,7 @@ if __name__ == '__main__':
     sys.exit(main())
 ```
 
-Now you can emit a **Tool Contract** to stdout from the commandline interface.
+Now you can run your tool via the argparse standard interface as well as emitting a **Tool Contract** to stdout from the commandline interface.
 
 ```sh
 > my-tool --emit-tool-contract
@@ -168,6 +172,8 @@ And you can run the tool from a **Resolved Tool Contract**
 ```
 
 See the dev apps in ["pbcommand.cli.examples"](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/cli/examples/dev_app.py) for a complete application (They require pbcore to be installed).
+
+An example of **help** is shown below.
 
 ```sh
 (pbcommand_test)pbcommand $> python -m pbcommand.cli.examples.dev_app --help
