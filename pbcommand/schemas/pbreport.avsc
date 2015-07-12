@@ -1,0 +1,166 @@
+{
+  "namespace": "com.pacbio.common.models",
+  "type": "record",
+  "name": "Report",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "desc": "Pbreports style id, must only have [A-z][0-9]_"
+    },
+    {
+      "name": "attributes",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "ReportAttribute",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "value",
+              "type": [
+                "string",
+                "int",
+                "float"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "plotGroups",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "PlotGroup",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "title",
+              "type": "string"
+            },
+            {
+              "name": "legend",
+              "type": [
+                "string",
+                "null"
+              ],
+              "desc": "Not clear what the usecase is of this"
+            },
+            {
+              "name": "thumbnail",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            {
+              "name": "plots",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "ReportPlot",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": "string",
+                      "desc": "Plot Id"
+                    },
+                    {
+                      "name": "image",
+                      "type": "string",
+                      "desc": "Relative Path to Image"
+                    },
+                    {
+                      "name": "caption",
+                      "desc": "Caption of the Plot",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "thumbnail",
+                      "desc": "Relative path to thumbnail of the Plot",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "tables",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "ReportTable",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "desc": "Title of the Table"
+            },
+            {
+              "name": "columns",
+              "desc": "List of Columns",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "ReportTableColumn",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "header",
+                      "type": "string"
+                    },
+                    {
+                      "name": "value",
+                      "desc": "Column values. Attention to mixed-types attempting to represent 'NA'",
+                      "type": {
+                        "type": "array",
+                        "items": [
+                          "int",
+                          "float"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
