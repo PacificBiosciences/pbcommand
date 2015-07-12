@@ -61,4 +61,5 @@ target/
 
 # Custom logger for nose
 reports_unittests.log
+.DS_Store
 
