@@ -1,6 +1,8 @@
 pbcommand High Level Overview
 =============================
 
+# [![Circle CI](https://circleci.com/gh/PacificBiosciences/pbcommand.svg?style=svg)](https://circleci.com/gh/PacificBiosciences/pbcommand)
+
 PacBio library for common utils, models, and tools to interface with pbsmrtpipe workflow engine.
 
 To integrate with the pbsmrtpipe workflow engine you must to be able to generate a **Tool Contract** and to be able to run from a **Resolved Tool Contract**.
