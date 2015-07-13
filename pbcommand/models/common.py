@@ -21,6 +21,9 @@ class PacBioNamespaces(object):
     NEW_PBSMRTPIPE_FILE_PREFIX = "PacBio.FileTypes"
     # New DataSet Identifier Prefix
     DATASET_FILE_PREFIX = "PacBio.DataSet"
+
+    PB_INDEX = "PacBio.Index"
+
     # Task Ids
     PBSMRTPIPE_TASK_PREFIX = 'pbsmrtpipe.tasks'
     # Task Options
@@ -43,6 +46,7 @@ to_task_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TAS
 to_task_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_PREFIX)
 to_workflow_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_PREFIX)
 to_pipeline_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_PIPELINES)
+to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
 
 
 class TaskTypes(object):
@@ -157,7 +161,12 @@ class FileType(object):
 
 
 class FileTypes(object):
-    """Registry of all PacBio Files types"""
+    """Registry of all PacBio Files types
+
+    This needs to be cleaned up and solidified. The old pre-SA3 file types need to be deleted.
+
+    """
+
     # generic Txt file
     TXT = FileType(to_file_ns('txt'), 'file', 'txt', 'text/plain')
 
@@ -176,27 +185,52 @@ class FileTypes(object):
     MOVIE_FOFN = FileType(to_file_ns('movie_fofn'), "movie", "fofn", 'text/plain')
     RGN_FOFN = FileType(to_file_ns('rgn_fofn'), "region", "fofn", 'text/plain')
 
+    RS_MOVIE_XML = FileType(to_file_ns("rs_movie_metadata"), "file", "rs_movie.metadata.xml", "application/xml")
+    REF_ENTRY_XML = FileType(to_file_ns('reference_info_xml'), "reference.info.xml", "xml", 'application/xml')
+
     ALIGNMENT_CMP_H5 = FileType(to_file_ns('alignment_cmp_h5'), "alignments", "cmp.h5", 'application/octet-stream')
     # I am not sure this should be a first class file
     BLASR_M4 = FileType(to_file_ns('blasr_file'), 'blasr', 'm4', 'text/plain')
     BAM = FileType(to_file_ns('bam'), "alignments", "bam", 'application/octet-stream')
     BAMBAI = FileType(to_file_ns('bam_bai'), "alignments", "bam.bai", 'application/octet-stream')
+
     BED = FileType(to_file_ns('bed'), "file", "bed", 'text/plain')
     SAM = FileType(to_file_ns('sam'), "alignments", "sam", 'application/octet-stream')
     VCF = FileType(to_file_ns('vcf'), "file", "vcf", 'text/plain')
     GFF = FileType(to_file_ns('gff'), "file", "gff", 'text/plain')
     CSV = FileType(to_file_ns('csv'), "file", "csv", 'text/csv')
     XML = FileType(to_file_ns('xml'), "file", "xml", 'application/xml')
+    # Generic Json File
+    JSON = FileType(to_file_ns("json"), "file", "json", "application/json")
 
+    # ******************* NEW SA3 File Types ********************
     # DataSet Types
     DS_SUBREADS = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", "application/xml")
     DS_SUBREADS_H5 = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", "application/xml")
+    DS_CCS = FileType(to_ds_ns("CCSreadSet"), "file", "ccsread.dataset.xml", "application/xml")
     DS_REF = FileType(to_file_ns("ReferenceSet"), "file", "reference.dataset.xml", "application/xml")
-    DS_BAM = FileType(to_file_ns("AlignmentSet"), "file", "aligned", "application/xml")
+    DS_BAM = FileType(to_file_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
+    DS_CONTIG = FileType(to_file_ns("ContigSet"), "file", "contigset.dataset.xml", "application/xml")
+    DS_BARCODE = FileType(to_file_ns("BarcodeSet"), "file", "barcode.dataset.xml", "application/xml")
 
-    RS_MOVIE_XML = FileType(to_file_ns("rs_movie_metadata"), "file", "rs_movie.metadata.xml", "application/xml")
+    # Index Files
+    I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", "application/octet-stream")
+    I_SAW = FileType(to_index_ns("SaWriterIndex"), "file", "sa", "application/octet-stream")
 
-    # this needs to not be a directory
-    REF_ENTRY_XML = FileType(to_file_ns('reference_info_xml'), "reference.info.xml", "xml", 'application/xml')
+    # PacBio Defined Formats
+    FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", "text/plain")
+    # No ':' or '"' in the id
+    FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", "text/plain")
+
+    # FIXME. Add Bax/Bam Formats here. This should replace the exiting pre-SA3 formats.
+    BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", "application/octet-stream")
+    BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", "application/octet-stream")
+    BAM_CCS = FileType("PacBio.CCSreadFile.CCSreadBamFile", "file", "ccs.bam", "application/octet-stream")
+
+    BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", "application/octet-stream")
+
+    @staticmethod
+    def is_valid_id(file_type_id):
+        return file_type_id in REGISTERED_FILE_TYPES
 
 
