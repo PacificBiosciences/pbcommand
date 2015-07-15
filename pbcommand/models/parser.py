@@ -225,6 +225,15 @@ class ToolContractParser(PbParserBase):
 class PbParser(PbParserBase):
 
     def __init__(self, tool_contract_parser, arg_parser, *parsers):
+        """
+
+        :param tool_contract_parser:
+        :type tool_contract_parser: ToolContractParser
+        :param arg_parser:
+        :type arg_parser: PyParser
+        :param parsers:
+        :return:
+        """
 
         # Tool Contract Parser
         self.tool_contract_parser = tool_contract_parser
