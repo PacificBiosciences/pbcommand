@@ -12,7 +12,7 @@ from pbcommand.utils import setup_log
 from pbcommand.validators import validate_file
 from pbcommand.models import ResolvedToolContract
 from pbcommand.common_options import add_resolved_tool_contract_option
-from pbcommand.cli import pacbio_args_or_contract_runner_emit, get_default_argparser
+from pbcommand.cli import pacbio_args_or_contract_runner, get_default_argparser
 
 log = logging.getLogger(__name__)
 
@@ -82,11 +82,11 @@ def main(argv=sys.argv):
     log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
 
     p = get_parser()
-    return pacbio_args_or_contract_runner_emit(argv[1:], p,
-                                               args_runner,
-                                               resolved_tool_contract_runner,
-                                               log,
-                                               setup_log)
+    return pacbio_args_or_contract_runner(argv[1:], p,
+                                          args_runner,
+                                          resolved_tool_contract_runner,
+                                          log,
+                                          setup_log)
 
 
 if __name__ == '__main__':
