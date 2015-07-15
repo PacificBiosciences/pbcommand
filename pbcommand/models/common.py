@@ -203,6 +203,9 @@ class FileTypes(object):
     # Generic Json File
     JSON = FileType(to_file_ns("json"), "file", "json", "application/json")
 
+     # Generic H5 File
+    H5 = FileType(to_file_ns("h5"), "file", "h5", "application/octet-stream")
+
     # ******************* NEW SA3 File Types ********************
     # DataSet Types
     DS_SUBREADS = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", "application/xml")

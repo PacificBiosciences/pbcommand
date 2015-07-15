@@ -10,6 +10,10 @@ from pbcommand.models.tool_contract import (ToolDriver,
 
 log = logging.getLogger(__name__)
 
+__all__ = ['load_resolved_tool_contract_from',
+           'load_tool_contract_from',
+           'write_tool_contract']
+
 
 class Constants(object):
     TOOL_ID = "tool_contract_id"
@@ -81,3 +85,16 @@ def load_tool_contract_from(path):
 
     t = ToolContract(tool_task, driver)
     return t
+
+
+def write_tool_contract(p, output_json_file):
+    """
+    Write a Tool Contract from a PbParser instance
+
+    :param p:
+    :type p: pbcommand.models.parser.PbParser
+    :param output_json_file:
+    :return:
+    """
+    with open(output_json_file, 'w') as f:
+        f.write(json.dumps(p.to_contract()))
