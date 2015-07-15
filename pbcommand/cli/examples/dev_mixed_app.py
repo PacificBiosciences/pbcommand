@@ -66,7 +66,8 @@ def add_argparse_only(p):
     :type p: argparse.ArgumentParser
     :return:
     """
-    p.add_argument("stuff", type=int, default=1234, help="Example option")
+    p.add_argument("--output-h5", type=str, help="Optional output H5 file.")
+    p.add_argument("--beta", type=int, default=1234, help="Example option")
     return p
 
 
@@ -79,9 +80,9 @@ def get_contract_parser():
     return p
 
 
-def _fake_main(csv, report_json, alpha=1, beta=1234):
-    _d = dict(c=csv, r=report_json, a=alpha, b=beta)
-    log.info("Running main with {c} {r} alpha={a} beta={b}".format(**_d))
+def _fake_main(csv, report_json, alpha=1, beta=1234, output_h5=None):
+    _d = dict(c=csv, r=report_json, a=alpha, b=beta, h=output_h5)
+    log.info("Running main with {c} {r} alpha={a} beta={b} h5={h}".format(**_d))
     return 0
 
 
@@ -90,7 +91,8 @@ def args_runner(args):
 
     csv = args.csv
     report_json = args.rpt
-    return _fake_main(csv, report_json, alpha=args.alpha, beta=args.beta)
+    output_h5 = args.output_h5
+    return _fake_main(csv, report_json, alpha=args.alpha, beta=args.beta, output_h5=output_h5)
 
 
 def resolved_tool_contract_runner(rtc):
