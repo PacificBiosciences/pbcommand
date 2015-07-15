@@ -169,7 +169,7 @@ class PyParser(PbParserBase):
     def add_str(self, option_id, option_str, default, name, description):
         # Fixme
         opt = "--" + option_str
-        self.parser.add_argument(opt, type=str, help=description)
+        self.parser.add_argument(opt, type=str, help=description, default=default)
 
     def add_boolean(self, option_id, option_str, default, name, description):
         d = {True: "store_true", False: "store_false"}
