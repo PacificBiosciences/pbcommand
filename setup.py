@@ -39,7 +39,7 @@ setup(
     author='mpkocher',
     author_email='mkocher@pacificbiosciences.com',
     url="https://github.com/PacificBiosciences/pbcommand",
-    download_url='https://github.com/PacificBiosciences/pbcommand/tarball/0.1.4',
+    download_url='https://github.com/PacificBiosciences/pbcommand/tarball/{v}'.format(v=version),
     description='Library and Tools for interfacing to PacBio pbsmrtpipe workflow engine.',
     install_requires=_get_local_requirements(_REQUIREMENTS_FILE),
     tests_require=_get_local_requirements(_REQUIREMENTS_TEST_FILE),
