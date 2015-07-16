@@ -25,6 +25,7 @@ __all__ = ['PbReportError',
 
 import pbcommand
 
+
 class PbReportError(Exception):
     pass
 
@@ -577,11 +578,10 @@ class Report(BaseReportElement):
 
     def to_dict(self, id_parts=None):
         version = pbcommand.get_version()
-        changelist = pbcommand.get_changelist()
 
         d = BaseReportElement.to_dict(self, id_parts=id_parts)
         d['_version'] = version
-        d['_changelist'] = changelist
+        d['_changelist'] = "UNKNOWN"
         d['dataset_uuids'] = list(set(self._dataset_uuids))
         return d
 

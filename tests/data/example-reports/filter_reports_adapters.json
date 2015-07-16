@@ -1,0 +1,53 @@
+{
+  "tables": [],
+  "_version": "2.1",
+  "_changelist": 127707,
+  "attributes": [
+    {
+      "name": "Adapter Dimers",
+      "value": 0.0014104560030870359,
+      "id": "adapter.adapter_dimers"
+    },
+    {
+      "name": "Short Inserts",
+      "value": 0.000252817585458997,
+      "id": "adapter.short_inserts"
+    },
+    {
+      "name": "Medium Inserts",
+      "value": 0.0010911074740861974,
+      "id": "adapter.medium_inserts"
+    },
+    {
+      "name": "Adapter Dimers",
+      "value": 0.0033818058843422386,
+      "id": "adapter.hq_adapter_dimers"
+    },
+    {
+      "name": "Short Inserts",
+      "value": 0.00013527223537368956,
+      "id": "adapter.hq_short_inserts"
+    },
+    {
+      "name": "Medium Inserts",
+      "value": 0.002198173824822455,
+      "id": "adapter.hq_medium_inserts"
+    }
+  ],
+  "id": "adapter",
+  "plotGroups": [
+    {
+      "id": "adapter.observed_insert_length_distribution",
+      "thumbnail": "adapter_observed_insert_length_distribution_thumb.png",
+      "plots": [
+        {
+          "caption": null,
+          "image": "adapter_observed_insert_length_distribution.png",
+          "id": "adapter.observed_insert_length_distribution.plot1"
+        }
+      ],
+      "legend": null,
+      "title": "Observed Insert Length Distribution"
+    }
+  ]
+}

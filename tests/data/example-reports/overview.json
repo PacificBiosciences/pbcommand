@@ -1,0 +1,19 @@
+{
+  "tables": [],
+  "_version": "2.1",
+  "_changelist": 127707,
+  "attributes": [
+    {
+      "name": "SMRT Cells",
+      "value": 1,
+      "id": "overview.ncells"
+    },
+    {
+      "name": "Movies",
+      "value": 1,
+      "id": "overview.nmovies"
+    }
+  ],
+  "id": "overview",
+  "plotGroups": []
+}
