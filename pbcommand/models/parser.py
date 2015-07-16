@@ -136,6 +136,10 @@ class PbParserBase(object):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def add_float(self, option_id, option_str, default, name, description):
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def add_str(self, option_id, option_str, default, name, description):
         raise NotImplementedError
 
@@ -165,6 +169,11 @@ class PyParser(PbParserBase):
         # Fixme
         opt = "--" + option_str
         self.parser.add_argument(opt, type=int, help=description, default=default)
+
+    def add_float(self, option_id, option_str, default, name, description):
+        opt = "--" + option_str
+        self.parser.add_argument(opt, type=float, help=description,
+            default=default)
 
     def add_str(self, option_id, option_str, default, name, description):
         # Fixme
@@ -199,6 +208,10 @@ class ToolContractParser(PbParserBase):
 
     def add_int(self, option_id, option_str, default, name, description):
         self.options.append(to_option_schema(option_id, JsonSchemaTypes.INT, name, description, default))
+
+    def add_float(self, option_id, option_str, default, name, description):
+        self.options.append(to_option_schema(option_id, JsonSchemaTypes.NUM, name, description, default))
+
 
     def add_str(self, option_id, option_str, default, name, description):
         self.options.append(to_option_schema(option_id, JsonSchemaTypes.STR, name, description, default))
@@ -274,6 +287,10 @@ class PbParser(PbParserBase):
     def add_int(self, option_id, option_str, default, name, description):
         args = option_id, option_str, default, name, description
         self._dispatch("add_int", args)
+
+    def add_float(self, option_id, option_str, default, name, description):
+        args = option_id, option_str, default, name, description
+        self._dispatch("add_float", args)
 
     def add_str(self, *args):
         self._dispatch("add_str", args)
