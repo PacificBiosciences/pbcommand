@@ -11,6 +11,7 @@ import functools
 # there's a problem with functools32 and jsonschema. This import raise an
 # import error.
 #import jsonschema
+import datetime
 
 from pbcommand.common_options import add_base_options_with_emit_tool_contract
 from .tool_contract import ToolDriver
@@ -219,13 +220,15 @@ class ToolContractParser(PbParserBase):
         self.options.append(to_option_schema(option_id, JsonSchemaTypes.BOOL, name, description, default))
 
     def to_tool_contract(self):
+
+        created_at = datetime.datetime.now()
         _t = dict(input_types=self.input_types,
                   output_types=self.output_types,
                   task_type=self.task_type,
                   schema_options=self.options,
                   nproc=self.nproc_symbol,
                   resource_types=self.resource_types,
-                  _comment="Created by v{v}".format(v=__version__))
+                  _comment="Created by v{v} at {d}".format(v=__version__, d=created_at.isoformat()))
 
         _d = dict(version=self.version,
                   tool_contract_id=self.tool_id,

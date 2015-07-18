@@ -1,7 +1,9 @@
 """IO Layer for creating models from files"""
 import json
 import logging
+import datetime
 
+import pbcommand
 from pbcommand.models.tool_contract import (ToolDriver,
                                             ToolContractTask,
                                             ToolContract,
@@ -14,7 +16,8 @@ log = logging.getLogger(__name__)
 
 __all__ = ['load_resolved_tool_contract_from',
            'load_tool_contract_from',
-           'write_tool_contract']
+           'write_tool_contract',
+           'write_resolved_tool_contract']
 
 
 class Constants(object):
@@ -154,6 +157,9 @@ def write_resolved_tool_contract(rtc, output_json_file):
     :param output_json_file:
     :return:
     """
+    created_at = datetime.datetime.now()
+    comment = "Created by pbcommand v{v} at {d}".format(v=pbcommand.get_version(), d=created_at.isoformat())
+
     # FIXME. there's a lot of assumptions here.
     tc = dict(input_files=rtc.task.input_files,
               output_files=rtc.task.output_files,
@@ -161,7 +167,8 @@ def write_resolved_tool_contract(rtc, output_json_file):
               tool_contract_id=rtc.task.task_id,
               nproc=rtc.task.nproc,
               resources=rtc.task.resources,
-              options=rtc.task.options)
+              options=rtc.task.options,
+              _comment=comment)
 
     d = dict(tool_contract=tc,
              driver=rtc.driver.to_dict())
