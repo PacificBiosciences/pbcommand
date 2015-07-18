@@ -50,10 +50,8 @@ def load_or_raise(ex_type):
     return loader_wrap
 
 
-@load_or_raise(MalformedResolvedToolContractError)
-def load_resolved_tool_contract_from(path):
-    with open(path, 'r') as f:
-        d = json.loads(f.read())
+def resolved_tool_contract_from_d(d):
+    """Convert a dict to Resolved Tool Contract"""
 
     driver_exe = d['driver']['exe']
     driver_env = d['driver'].get('env', {})
@@ -79,22 +77,31 @@ def load_resolved_tool_contract_from(path):
     # int
     nproc = _get("nproc")
     resource_types = _get("resources")
-    resolved_tool_task = ResolvedToolContractTask(tool_contract_id, tool_type, input_files, output_files, tool_options, nproc, resource_types)
 
-    dm = ResolvedToolContract(resolved_tool_task, driver)
-    return dm
+    resolved_tool_task = ResolvedToolContractTask(tool_contract_id, tool_type,
+                                                  input_files, output_files,
+                                                  tool_options, nproc, resource_types)
+
+    rtc = ResolvedToolContract(resolved_tool_task, driver)
+    return rtc
 
 
-@load_or_raise(MalformedToolContractError)
-def load_tool_contract_from(path):
-
+@load_or_raise(MalformedResolvedToolContractError)
+def load_resolved_tool_contract_from(path):
     with open(path, 'r') as f:
         d = json.loads(f.read())
 
+    return resolved_tool_contract_from_d(d)
+
+
+def tool_contract_from_d(d):
+    """Load tool contract from dict"""
     def _to_a(x):
         return x.encode('ascii', 'ignore')
 
     def _get(x_):
+        if x_ not in d[Constants.TOOL]:
+            raise MalformedToolContractError("Unable to find key '{x}'".format(x=x_))
         return d[Constants.TOOL][x_]
 
     def _get_ascii(x_):
@@ -125,10 +132,20 @@ def load_tool_contract_from(path):
     mutable_files = []
 
     driver = ToolDriver(d['driver']['exe'], env=d['driver']['env'])
-    tool_task = ToolContractTask(task_id, display_name, description, version, task_type, input_types, output_types, tool_options, nproc, resource_types)
+    tool_task = ToolContractTask(task_id, display_name, description, version,
+                                 task_type, input_types,
+                                 output_types,
+                                 tool_options, nproc, resource_types)
 
     t = ToolContract(tool_task, driver)
     return t
+
+
+@load_or_raise(MalformedToolContractError)
+def load_tool_contract_from(path):
+    with open(path, 'r') as f:
+        d = json.loads(f.read())
+    return tool_contract_from_d(d)
 
 
 def _write_json(s, output_file):
