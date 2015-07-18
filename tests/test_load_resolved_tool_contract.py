@@ -1,28 +1,26 @@
+import os
 import pprint
 import unittest
 import logging
+import subprocess
+import tempfile
 
-from base_utils import get_data_file
+from base_utils import get_data_file, HAS_PBCORE, pbcore_skip_msg, get_temp_file, \
+    get_temp_dir
 
 from pbcommand.cli.resolver import resolve_tool_contract
 from pbcommand.pb_io.tool_contract_io import (load_resolved_tool_contract_from,
-                                              load_tool_contract_from)
+                                              load_tool_contract_from,
+                                              write_resolved_tool_contract)
 
 log = logging.getLogger(__name__)
-
-_HAS_PBCORE = False
-
-try:
-    import pbcore
-    _HAS_PBCORE = True
-except ImportError:
-    pass
 
 
 class _TestUtil(unittest.TestCase):
     FILE_NAME = "resolved_contract_01"
 
     def _to_object(self, path):
+        log.debug("Loading from {p}".format(p=path))
         return load_tool_contract_from(path)
 
     def test_sanity(self):
@@ -36,13 +34,6 @@ class TestLoadResolvedToolContract(_TestUtil):
 
     def _to_object(self, path):
         return load_resolved_tool_contract_from(path)
-
-
-class TestLoadToolContract(_TestUtil):
-    FILE_NAME = "tool_contract_01.json"
-
-    def _to_object(self, path):
-        return load_tool_contract_from(path)
 
 
 class TestLoadResolvedContract(unittest.TestCase):
@@ -70,12 +61,34 @@ class TestResolveContract(unittest.TestCase):
 
 
 class TestRunDevApp(unittest.TestCase):
-    file_name = "dev_example_tool_contact.json"
+    file_name = "dev_example_tool_contract.json"
     path = get_data_file(file_name)
 
-    @unittest.skipIf(_HAS_PBCORE, "pbcore is not installed. Not running dev_app from resolved contract.")
+    @unittest.skipUnless(HAS_PBCORE, pbcore_skip_msg("Not running dev_app from resolved contract."))
     def test_01(self):
-        exe = "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract {p}".format(p=self.path)
+
+        d = get_temp_dir(suffix="rtc-test")
+        log.debug("Running E-2-E in dev-app in {p}".format(p=d))
+
+        tmp_fasta_file = get_temp_file("fasta", d)
+        with open(tmp_fasta_file, 'w') as f:
+            f.write(">record_48\nAACTTTCGGACCCGTGGTAGGATTGTGGGAGAATACTGTTGATGTTTTCAC\n")
+
+        tc = load_tool_contract_from(self.path)
+
+        log.info("Resolving tool contract to RTC")
+        task_opts = {"pbcommand.task_options.dev_read_length": 27}
+        rtc = resolve_tool_contract(tc, [tmp_fasta_file], d, d, 1, task_opts)
+
+        output_json_rtc = os.path.join(d, "resolved_tool_contract.json")
+        write_resolved_tool_contract(rtc, output_json_rtc)
+        # sanity
+        _ = load_resolved_tool_contract_from(output_json_rtc)
+
         log.info("running resolved contract {r}".format(r=self.path))
-        log.info(exe)
-        self.assertTrue(True)
+
+        exe = "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract {p}".format(p=output_json_rtc)
+        log.info("Running exe {e}".format(e=exe))
+        rcode = subprocess.call([exe], shell=True)
+        self.assertEqual(rcode, 0, "Running from resolved tool contract failed")
+

@@ -2,7 +2,7 @@
   "_comment": "Example of a Resolved Tool Contract.",
   "tool_contract": {
     "tool_contract_id": "pbsystem.tools.dev_app",
-    "tool_type": "pbsmrtpipe.constants.local_task",
+    "task_type": "pbsmrtpipe.constants.local_task",
     "input_files": ["/tmp/file.dataset.txt"],
     "output_files": ["/tmp/output.txt"],
     "options": {},

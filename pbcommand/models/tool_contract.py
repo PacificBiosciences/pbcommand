@@ -5,6 +5,32 @@ Author: Michael Kocher
 """
 
 
+class _IOFileType(object):
+    def __init__(self, file_type_id, label, display_name, description):
+        self.file_type_id = file_type_id
+        self.label = label
+        self.display_name = display_name
+        # short description
+        self.description = description
+
+    def __repr__(self):
+        _d = dict(i=self.label,
+                  n=self.display_name,
+                  f=self.file_type_id,
+                  k=self.__class__.__name__)
+        return "<{k} {f} {i} >".format(**_d)
+
+
+class InputFileType(_IOFileType):
+    pass
+
+
+class OutputFileType(_IOFileType):
+    def __init__(self, file_type, label, display_name, description, default_name):
+        super(OutputFileType, self).__init__(file_type, label, display_name, description)
+        self.default_name = default_name
+
+
 class ToolDriver(object):
     def __init__(self, driver_exe, env=None):
         """
@@ -26,6 +52,23 @@ class ToolDriver(object):
 
 class ToolContractTask(object):
     def __init__(self, task_id, name, description, version, task_type, input_types, output_types, tool_options, nproc, resources):
+        """
+        Core metadata for a commandline task
+
+        :param task_id: Global id to reference your tool in a pipeline
+        :type task_id: str
+        :param name: Display name of your
+        :param description: Short description of your tool
+        :param version: semantic style versioning
+        :param task_type: If the task will be run locally or not
+        :parama task_type: TaskTypes.LOCAL | TaskTypes.DISTRIBUTED
+        :param input_types: list[FileType]
+        :param output_types:
+        :param tool_options:
+        :param nproc:
+        :param resources:
+        :return:
+        """
         self.task_id = task_id
         self.name = name
         self.description = description

@@ -58,9 +58,10 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
         base_name = ".".join([file_type.base_name, file_type.ext])
         return os.path.join(root_output_dir, base_name)
 
-    output_files = [to_out_file(REGISTERED_FILE_TYPES[f]) for f in tool_contract.task.output_file_types]
+    output_files = [to_out_file(REGISTERED_FILE_TYPES[f.file_type_id]) for f in tool_contract.task.output_file_types]
 
-    resolved_options = {}
+    # terrible hack for now
+    resolved_options = tool_options
 
     nproc = _resolve_nproc(tool_contract.task.nproc, max_nproc)
 

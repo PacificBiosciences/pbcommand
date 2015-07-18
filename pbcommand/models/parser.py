@@ -82,7 +82,6 @@ def validate_schema(f):
     return w
 
 
-@validate_schema
 def to_option_schema(option_id, dtype_or_dtypes, display_name, description, default_value):
     """
     Simple util factory method

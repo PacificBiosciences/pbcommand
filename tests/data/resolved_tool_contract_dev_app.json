@@ -2,7 +2,7 @@
   "_comment": "Example of a Resolved Tool Contract.",
   "tool_contract": {
     "tool_contract_id": "pbsmrtpipe.tools.dev_app",
-    "tool_type": "pbsmrtpipe.constants.local_task",
+    "task_type": "pbsmrtpipe.constants.local_task",
     "input_files": ["/tmp/file.fasta"],
     "output_files": ["/tmp/file2.filtered.fasta"],
     "options": {"pbsmrtpipe.options.dev_read_length": 50},
