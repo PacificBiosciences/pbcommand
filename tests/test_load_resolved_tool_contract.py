@@ -61,8 +61,7 @@ class TestResolveContract(unittest.TestCase):
 
 
 class TestRunDevApp(unittest.TestCase):
-    file_name = "dev_example_tool_contract.json"
-    path = get_data_file(file_name)
+    ROOT_DRIVER = "python -m pbcommand.cli.examples.dev_app "
 
     @unittest.skipUnless(HAS_PBCORE, pbcore_skip_msg("Not running dev_app from resolved contract."))
     def test_01(self):
@@ -70,11 +69,16 @@ class TestRunDevApp(unittest.TestCase):
         d = get_temp_dir(suffix="rtc-test")
         log.debug("Running E-2-E in dev-app in {p}".format(p=d))
 
+        output_tc = get_temp_file("dev_example_tool_contract.json", d)
+        emit_tc_exe = "{e} --emit-tool-contract > {o}".format(e=self.ROOT_DRIVER, o=output_tc)
+        rcode = subprocess.call([emit_tc_exe], shell=True)
+        self.assertEquals(rcode, 0, "Emitting tool contract failed")
+
         tmp_fasta_file = get_temp_file("fasta", d)
         with open(tmp_fasta_file, 'w') as f:
             f.write(">record_48\nAACTTTCGGACCCGTGGTAGGATTGTGGGAGAATACTGTTGATGTTTTCAC\n")
 
-        tc = load_tool_contract_from(self.path)
+        tc = load_tool_contract_from(output_tc)
 
         log.info("Resolving tool contract to RTC")
         task_opts = {"pbcommand.task_options.dev_read_length": 27}
@@ -85,7 +89,7 @@ class TestRunDevApp(unittest.TestCase):
         # sanity
         _ = load_resolved_tool_contract_from(output_json_rtc)
 
-        log.info("running resolved contract {r}".format(r=self.path))
+        log.info("running resolved contract {r}".format(r=output_json_rtc))
 
         exe = "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract {p}".format(p=output_json_rtc)
         log.info("Running exe {e}".format(e=exe))
