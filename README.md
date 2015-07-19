@@ -1,7 +1,11 @@
 pbcommand High Level Overview
 =============================
 
-# [![Circle CI](https://circleci.com/gh/PacificBiosciences/pbcommand.svg?style=svg)](https://circleci.com/gh/PacificBiosciences/pbcommand)
+[Full Docs](http://pbcommand.readthedocs.org/en/latest/)
+
+Note the APIs are still in flux. WIP.
+
+[![Circle CI](https://circleci.com/gh/PacificBiosciences/pbcommand.svg?style=svg)](https://circleci.com/gh/PacificBiosciences/pbcommand)
 
 PacBio library for common utils, models, and tools to interface with pbsmrtpipe workflow engine.
 
