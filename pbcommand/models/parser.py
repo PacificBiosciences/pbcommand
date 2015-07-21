@@ -273,32 +273,32 @@ class PbParser(PbParserBase):
     def parsers(self):
         return [self.tool_contract_parser, self.arg_parser]
 
-    def _dispatch(self, f_name, args):
+    def _dispatch(self, f_name, args, kwds):
         for parser in self.parsers:
             f = getattr(parser, f_name)
-            f(*args)
+            f(*args, **kwds)
 
     def add_input_file_type(self, file_type_id, file_id, name, description):
         args = file_type_id, file_id, name, description
-        self._dispatch("add_input_file_type", args)
+        self._dispatch("add_input_file_type", args, {})
 
     def add_output_file_type(self, input_file_type_id, file_id, name, description, default_name):
         args = input_file_type_id, file_id, name, description, default_name
-        self._dispatch("add_output_file_type", args)
+        self._dispatch("add_output_file_type", args, {})
 
     def add_int(self, option_id, option_str, default, name, description):
         args = option_id, option_str, default, name, description
-        self._dispatch("add_int", args)
+        self._dispatch("add_int", args, {})
 
     def add_float(self, option_id, option_str, default, name, description):
         args = option_id, option_str, default, name, description
-        self._dispatch("add_float", args)
+        self._dispatch("add_float", args, {})
 
-    def add_str(self, *args):
-        self._dispatch("add_str", args)
+    def add_str(self, *args, **kwds):
+        self._dispatch("add_str", args, kwds)
 
-    def add_boolean(self, *args):
-        self._dispatch("add_boolean", args)
+    def add_boolean(self, *args, **kwds):
+        self._dispatch("add_boolean", args, kwds)
 
     def to_contract(self):
         return self.tool_contract_parser.to_tool_contract()
