@@ -1,5 +1,7 @@
 """Common options and utils that can me used in commandline utils"""
+import argparse
 import logging
+import sys
 
 from pbcommand.utils import compose
 
@@ -43,3 +45,16 @@ def add_base_options_with_emit_tool_contract(p):
              add_emit_tool_contract_option]
     fs = compose(*funcs)
     return fs(p)
+
+def add_subcomponent_versions_option(p, subcomponents):
+    class ShowComponentVersionAction(argparse.Action):
+        def __call__(self, parser, namespace, values,
+                     option_string=None):
+            for c_name, c_version in subcomponents:
+                sys.stdout.write("  %s version: %s\n" %
+                                 (c_name, c_version))
+            sys.exit(0)
+    p.add_argument("--versions",
+        nargs=0,
+        help="Show versions of individual components",
+        action=ShowComponentVersionAction)

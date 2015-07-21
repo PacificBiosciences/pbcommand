@@ -13,7 +13,8 @@ import functools
 #import jsonschema
 import datetime
 
-from pbcommand.common_options import add_base_options_with_emit_tool_contract
+from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
+                                      add_subcomponent_versions_option)
 from .tool_contract import ToolDriver
 
 log = logging.getLogger(__name__)
@@ -151,11 +152,14 @@ class PbParserBase(object):
 class PyParser(PbParserBase):
 
     def __init__(self, tool_id, version, description):
-        super(PyParser, self).__init__(tool_id, version, description)
+        super(PyParser, self).__init__(tool_id, version, description,
+            subcomponents=())
         self.parser = argparse.ArgumentParser(version=version,
                                               description=description,
                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                               add_help=True)
+        if subcomponents:
+            add_subcomponent_versions_option(self.parser, subcomponents)
 
     def add_input_file_type(self, file_type_id, file_id, name, description):
         # this will propagate up the label to the exception
@@ -304,9 +308,10 @@ class PbParser(PbParserBase):
         return self.tool_contract_parser.to_tool_contract()
 
 
-def get_default_contract_parser(tool_id, version, description, driver_exe, task_type, nproc_symbol, resource_types):
+def get_default_contract_parser(tool_id, version, description, driver_exe, task_type, nproc_symbol, resource_types, subcomponents=()):
     """Central point of creating a Tool contract that can emit and run tool contracts"""
     driver = ToolDriver(driver_exe)
-    arg_parser = PyParser(tool_id, version, description)
+    arg_parser = PyParser(tool_id, version, description,
+        subcomponents=subcomponents)
     tc_parser = ToolContractParser(tool_id, version, description, task_type, driver, nproc_symbol, resource_types)
     return PbParser(tc_parser, arg_parser)
