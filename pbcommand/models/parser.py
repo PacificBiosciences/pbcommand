@@ -151,9 +151,8 @@ class PbParserBase(object):
 
 class PyParser(PbParserBase):
 
-    def __init__(self, tool_id, version, description):
-        super(PyParser, self).__init__(tool_id, version, description,
-            subcomponents=())
+    def __init__(self, tool_id, version, description, subcomponents=()):
+        super(PyParser, self).__init__(tool_id, version, description)
         self.parser = argparse.ArgumentParser(version=version,
                                               description=description,
                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter,
