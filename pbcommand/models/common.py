@@ -202,7 +202,7 @@ class FileTypes(object):
     XML = FileType(to_file_ns('xml'), "file", "xml", 'application/xml')
     # Generic Json File
     JSON = FileType(to_file_ns("json"), "file", "json", "application/json")
-     # Generic H5 File
+    # Generic H5 File
     H5 = FileType(to_file_ns("h5"), "file", "h5", "application/octet-stream")
 
     # ******************* NEW SA3 File Types ********************

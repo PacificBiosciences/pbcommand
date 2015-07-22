@@ -138,3 +138,4 @@ class ResolvedToolContract(object):
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.task_type)
         return "<{k} id:{i} >".format(**_d)
+

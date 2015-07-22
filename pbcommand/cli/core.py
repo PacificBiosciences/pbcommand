@@ -41,6 +41,7 @@ def get_default_argparser(version, description):
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     return p
 
+
 def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
     """
     Runs a general func and logs results. The return type is expected to be an (int) return code.
@@ -165,9 +166,8 @@ def pacbio_args_or_contract_runner(argv,
         # FIXME need to catch the exception if raised here before the _pacbio_main_runner is called
         resolved_tool_contract_path = _get_resolved_tool_contract_from_argv(argv)
         resolved_tool_contract = load_resolved_tool_contract_from(resolved_tool_contract_path)
-        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func,
-                                  resolved_tool_contract)
-        #alog.info("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
+        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract)
+        # alog.info("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
         return r
     else:
         # tool was called with the standard commandline invocation

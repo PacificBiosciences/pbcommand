@@ -175,8 +175,7 @@ class PyParser(PbParserBase):
 
     def add_float(self, option_id, option_str, default, name, description):
         opt = "--" + option_str
-        self.parser.add_argument(opt, type=float, help=description,
-            default=default)
+        self.parser.add_argument(opt, type=float, help=description, default=default)
 
     def add_str(self, option_id, option_str, default, name, description):
         # Fixme
@@ -270,7 +269,6 @@ class PbParser(PbParserBase):
         description = tool_contract_parser.description
         super(PbParser, self).__init__(tool_id, version, description)
 
-
     @property
     def parsers(self):
         return [self.tool_contract_parser, self.arg_parser]
@@ -306,10 +304,12 @@ class PbParser(PbParserBase):
         return self.tool_contract_parser.to_tool_contract()
 
 
-def get_default_contract_parser(tool_id, version, description, driver_exe, task_type, nproc_symbol, resource_types, subcomponents=()):
+def get_default_contract_parser(tool_id, version, description, driver_exe,
+                                task_type, nproc_symbol, resource_types,
+                                subcomponents=()):
     """Central point of creating a Tool contract that can emit and run tool contracts"""
     driver = ToolDriver(driver_exe)
     arg_parser = PyParser(tool_id, version, description,
-        subcomponents=subcomponents)
+                          subcomponents=subcomponents)
     tc_parser = ToolContractParser(tool_id, version, description, task_type, driver, nproc_symbol, resource_types)
     return PbParser(tc_parser, arg_parser)
