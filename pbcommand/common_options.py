@@ -47,17 +47,15 @@ def add_base_options_with_emit_tool_contract(p):
     return fs(p)
 
 
-def _to_show_action(subcomponents):
+def _to_print_message_action(msg):
 
-    class ShowComponentVersionAction(argparse.Action):
-        def __call__(self, parser, namespace, values,
-                     option_string=None):
-            for c_name, c_version in subcomponents:
-                sys.stdout.write("  %s version: %s\n" %
-                                 (c_name, c_version))
+    class PrintMessageAction(argparse.Action):
+        """Print message and exit"""
+        def __call__(self, parser, namespace, values, option_string=None):
+            sys.stdout.write(msg + "\n")
             sys.exit(0)
 
-    return ShowComponentVersionAction
+    return PrintMessageAction
 
 
 def add_subcomponent_versions_option(p, subcomponents):
@@ -66,7 +64,11 @@ def add_subcomponent_versions_option(p, subcomponents):
 
      Subcomponents must be provided as a list of tuples (component, version)
      """
-    action = _to_show_action(subcomponents)
+    max_length = max(len(x) for x, _ in subcomponents)
+    pad = 2
+    msg = "\n" .join([" : ".join([x.rjust(max_length + pad), y]) for x, y in subcomponents])
+
+    action = _to_print_message_action(msg)
     p.add_argument("--versions",
                    nargs=0,
                    help="Show versions of individual components",
