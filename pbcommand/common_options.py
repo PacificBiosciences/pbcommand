@@ -46,15 +46,32 @@ def add_base_options_with_emit_tool_contract(p):
     fs = compose(*funcs)
     return fs(p)
 
-def add_subcomponent_versions_option(p, subcomponents):
-    class ShowComponentVersionAction(argparse.Action):
-        def __call__(self, parser, namespace, values,
-                     option_string=None):
-            for c_name, c_version in subcomponents:
-                sys.stdout.write("  %s version: %s\n" %
-                                 (c_name, c_version))
+
+def _to_print_message_action(msg):
+
+    class PrintMessageAction(argparse.Action):
+        """Print message and exit"""
+        def __call__(self, parser, namespace, values, option_string=None):
+            sys.stdout.write(msg + "\n")
             sys.exit(0)
+
+    return PrintMessageAction
+
+
+def add_subcomponent_versions_option(p, subcomponents):
+    """Add subcomponents to a subparser to provide more information
+     about the tools dependencies.
+
+     Subcomponents must be provided as a list of tuples (component, version)
+     """
+    max_length = max(len(x) for x, _ in subcomponents)
+    pad = 2
+    msg = "\n" .join([" : ".join([x.rjust(max_length + pad), y]) for x, y in subcomponents])
+
+    action = _to_print_message_action(msg)
     p.add_argument("--versions",
-        nargs=0,
-        help="Show versions of individual components",
-        action=ShowComponentVersionAction)
+                   nargs=0,
+                   help="Show versions of individual components",
+                   action=action)
+
+    return p
