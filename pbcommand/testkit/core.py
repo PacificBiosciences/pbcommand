@@ -70,3 +70,12 @@ class PbTestApp(unittest.TestCase):
         rcode = subprocess.call([exe], shell=True)
         self.assertEqual(rcode, 0, "Running from resolved tool contract failed from {e}".format(e=exe))
         log.info("Successfully:wq completed running e2e for {d}".format(d=self.DRIVER_EMIT))
+        self.run_after(d)
+
+    def run_after(self, tmp_dir):
+        """
+        Optional additional test code, e.g. to verify that the job produced
+        the expected outputs.  This is run automatically by test_run_e2e, but
+        does nothing unless overridden in a subclass.
+        """
+        pass
