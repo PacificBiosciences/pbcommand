@@ -17,24 +17,53 @@ A hello world example:
 
 ```javascript
 {
-  "_comment": "Example Tool Contract Interface using Pbsystem",
-  "driver": {
-    "_comment": "The execution layer will call '${exe} manifest.json' as the to_cmd",
-    "exe": "python -m pbsystem.common.cmdline.dev_app --resolved-tool-contract ",
-    "env": {}
-  },
-  "tool_contract": {
-    "tool_contract_id": "pbsystem.common.cmdline.dev_app",
-    "name": "Pbsystem Sample Dev Task",
-    "tool_type": "pbsmrtpipe.constants.local_task",
-    "version": "0.2.1",
-    "description": "Pbsystem that does awesome things.",
-    "input_types": ["PacBio.FileTypes.Fasta"],
-    "output_types": ["PacBio.FileTypes.Fasta"],
-    "schema_options": {},
-    "nproc": 1,
-    "resource_types": ["$tmpdir", "$logfile"]
-  }
+    "version": "0.2.0", 
+    "driver": {
+        "exe": "python -m pbcommand.cli.example.dev_app --resolved-tool-contract ", 
+        "env": {}
+    }, 
+    "tool_contract_id": "pbcommand.tools.dev_app", 
+    "tool_contract": {
+        "input_types": [
+            {
+                "description": "PacBio Spec'ed fasta file", 
+                "title": "Fasta File", 
+                "id": "fasta_in", 
+                "file_type_id": "PacBio.FileTypes.Fasta"
+            }
+        ], 
+        "task_type": "pbsmrtpipe.constants.local_task", 
+        "resource_types": [], 
+        "nproc": 1, 
+        "schema_options": [
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "required": [
+                    "pbcommand.task_options.dev_read_length"
+                ], 
+                "type": "object", 
+                "properties": {
+                    "pbcommand.task_options.dev_read_length": {
+                        "default": 25, 
+                        "type": "integer", 
+                        "description": "Min Sequence Length filter", 
+                        "title": "Length filter"
+                    }
+                }, 
+                "title": "JSON Schema for pbcommand.task_options.dev_read_length"
+            }
+        ], 
+        "output_types": [
+            {
+                "title": "Filtered Fasta file", 
+                "description": "Filtered Fasta file", 
+                "default_name": "filter.fasta", 
+                "id": "fasta_out", 
+                "file_type_id": "PacBio.FileTypes.Fasta"
+            }
+        ], 
+        "_comment": "Created by v0.1.0 at 2015-07-21T22:36:09.466032"
+    }
 }
 ```
 
@@ -44,19 +73,19 @@ A **Resolved Tool Contract** is a resolved **Tool Contract** where types and res
 {
   "_comment": "Example of a Resolved Tool Contract.",
   "tool_contract": {
-    "tool_contract_id": "pbsystem.tools.dev_app",
-    "tool_type": "pbsmrtpipe.constants.local_task",
-    "input_files": ["/tmp/file.dataset.txt"],
-    "output_files": ["/tmp/output.txt"],
-    "options": {},
-    "nproc": 3,
+    "tool_contract_id": "pbsmrtpipe.tools.dev_app",
+    "task_type": "pbsmrtpipe.constants.local_task",
+    "input_files": ["/tmp/file.fasta"],
+    "output_files": ["/tmp/file2.filtered.fasta"],
+    "options": {"pbsmrtpipe.options.dev_read_length": 50},
+    "nproc": 1,
     "resources": [
       ["$tmpdir", "/tmp/tmpdir"],
       ["$logfile", "/tmp/task-dir/file.log"]]
   },
   "driver": {
     "_comment": "This is the driver exe. The workflow will call ${exe} config.json",
-    "exe": "python -m pbsystem.common.cmdline.dev_app --resolved-tool-contract ",
+    "exe": "python -m pbsystem.common.cmdline.examples.dev_app --resolved-tool-contract",
     "env": {}
   }
 }
@@ -72,8 +101,8 @@ Creating a Commandline Tool using tool contract
 
 Three Steps
 - define Parser
-- add running from argparse and running from ToolContract funcs to call your main
-- call driver
+- add running from argparse and running from Resolved ToolContract funcs to call your main
+- add call to driver
 
 Import or define your main function.
 
@@ -166,13 +195,13 @@ if __name__ == '__main__':
 Now you can run your tool via the argparse standard interface as well as emitting a **Tool Contract** to stdout from the commandline interface.
 
 ```sh
-> my-tool --emit-tool-contract
+> python -m 'pbcommand.cli.examples.dev_app' --emit-tool-contract
 ```
 
 And you can run the tool from a **Resolved Tool Contract**
 
 ```sh
-> my-tool --resolved-tool-contract /path/to/resolved_contract.json
+> python -m pbcommand.cli.example.dev_app --resolved-tool-contract /path/to/resolved_contract.json
 ```
 
 See the dev apps in ["pbcommand.cli.examples"](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/cli/examples/dev_app.py) for a complete application (They require pbcore to be installed).
@@ -180,8 +209,8 @@ See the dev apps in ["pbcommand.cli.examples"](https://github.com/PacificBioscie
 An example of **help** is shown below.
 
 ```sh
-(pbcommand_test)pbcommand $> python -m pbcommand.cli.examples.dev_app --help
-usage: dev_app.py [-h] [-v] [--emit-tool-contract]
+(pbcommand_test)pbcommand $> python -m 'pbcommand.cli.examples.dev_app' --help
+usage: dev_app.py [-h] [-v] [--versions] [--emit-tool-contract]
                   [--resolved-tool-contract RESOLVED_TOOL_CONTRACT]
                   [--log-level LOG_LEVEL] [--debug]
                   [--read-length READ_LENGTH]
@@ -196,6 +225,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
+  --versions            Show versions of individual components (default: None)
   --emit-tool-contract  Emit Tool Contract to stdout (default: False)
   --resolved-tool-contract RESOLVED_TOOL_CONTRACT
                         Run Tool directly from a PacBio Resolved tool contract
