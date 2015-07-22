@@ -34,7 +34,7 @@ Hello World Example
 Tool Contract file for 'my-exe'
 
 
-.. literalinclude:: ../tests/data/dev_example_tool_contract.json
+.. literalinclude:: ../../tests/data/dev_example_tool_contract.json
     :language: javascript
 
 
@@ -61,10 +61,10 @@ pbsystem provides a API to create a tool contract and an argparse instance from 
 Complete App shown below.
 
 
-.. literalinclude:: ../pbsystem/common/cmdline/examples/dev_app.py
+.. literalinclude:: ../../pbcommand/cli/examples/dev_app.py
     :language: python
 
-.. note:: Options must be prefixed with {pbsystem}.task_options.{option_id} format.
+.. note:: Options must be prefixed with {pbcommand}.task_options.{option_id} format.
 
 Details of Resolved Tool Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,7 +73,7 @@ Details of Resolved Tool Contract
 - nproc and other resources are resolved
 
 
-.. literalinclude:: ../tests/data/dev_example_resolved_tool_contract.json
+.. literalinclude:: ../../tests/data/dev_example_resolved_tool_contract.json
     :language: javascript
 
 
@@ -87,14 +87,15 @@ Example of using a manifest in an tool, such as mapping status report.
 
 .. code-block:: python
 
+    from pbcommand.pb_io import load_tool_contract_from
     # your application was called via "pbreports resolved-manifest.json"
-
+    p = "/path/to/resolved-tool-contract.json"
     # load resolved manifest from
-    r = load_manifest_json(sys.argv[1])
+    rtc = load_tool_contract_from(p)
 
     # general call to mapping stats report main
     # mapping_stats_main("/path/to/align.dataset.xml", "/path/to/reference.dataset.xml", "/path/to/output.json", my_option=1235)
-    exit_code = mapping_stats_main(r.input_files[0], r.input_files[1], r.output_files[0], r.opts["pbreports.options.my_option"])
+    exit_code = mapping_stats_main(rtc.input_files[0], rtc.input_files[1], rtc.output_files[0], rtc.opts["pbreports.task_options.my_option"])
 
 
 Example to resolving the Tool Contract
@@ -108,27 +109,27 @@ the output files.
 
     # simple python example, the scala or C++ API would be similar
 
+    from pbcommand.pb_io import load_tool_contract_from
+    from pbcommand.cli import resolve_tool_contract
+
     # load tool contract that is registered to your python package
+    tool_contract = load_tool_contract_from("/path/to/tool-contract.json")
     tool_contract = ToolContractRegistry.get("pbsmrtpipe.tasks.dev_static_task")
 
     max_nproc = 3
     tmp_dir = "/tmp/my-tmp"
     output_dir = os.getcwd()
 
-    # The resolver assigns the output file names, nproc, tmp files, tmp dirs, etc...
-    resolver = SimpleToolContractResolver(tool_contract, output_dir, max_nproc, tmp_dir)
-
     input_files = ("/path/to/file.csv", "/path/to/dataset.subreads.xml")
+    options = {"pbsmrtipe.task_options.my_option": 1234}
 
-    opts = {"pbsmrtipe.task_options.my_option": 1234}
-    is_valid = resolver.validate_opts(opts)
+    # create instance of Resolved Tool Contract
+    rtc = resolve_tool_contract(tool_contract, input_files, output_dir, tmp_dir, max_nproc, options)
 
-    # Create a resolved ToolContract
-    resolved_tool_contract = resolver.resolve(input_files, opts=opts)
-
+    # TODO. Not implemented yet
     # The driver will run the tool, validate output files exist and
     # cleanup any temp files/resources.
-    result = run_tool_contract_driver(resolved_tool_contract, cleanup=False)
+    result = run_tool_contract_driver(rtc, cleanup=False)
 
     print result.exit_code
     print result.error_message

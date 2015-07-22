@@ -24,3 +24,7 @@ test:
 
 doc:
 	cd docs && make html
+
+build-tool-contracts:
+	python -m pbcommand.cli.examples.dev_txt_app --emit-tool-contract > ./tests/data/dev_example_tool_contract.json
+	python -m pbcommand.cli.examples.dev_app --emit-tool-contract > ./tests/data/dev_example_dev_txt_app_contract.json
