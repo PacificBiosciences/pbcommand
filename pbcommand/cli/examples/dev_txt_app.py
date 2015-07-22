@@ -21,8 +21,15 @@ def get_parser():
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
     task_type = TaskTypes.LOCAL
-    p = get_default_contract_parser(TOOL_ID, VERSION, desc, driver_exe, task_type, 1, ())
+    # Can specify libs or other dependencies that
+    subcomponents = [("pbcommand", VERSION),
+                     ("my_component", "0.1.0"),
+                     ("my_component_id", "1.2.3")]
+    # Create an instance of a Pacbio Parser
+    p = get_default_contract_parser(TOOL_ID, VERSION, desc, driver_exe, task_type, 1, (), subcomponents=subcomponents)
+    # Add Input Files types
     p.add_input_file_type(FileTypes.TXT, "txt_in", "Txt file", "Generic Text File")
+    # Add output files types
     p.add_output_file_type(FileTypes.TXT, "txt_out", "Txt outfile", "Generic Output Txt file", "output.txt")
     return p
 

@@ -52,7 +52,10 @@ def get_contract_parser():
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
     task_type = TaskTypes.LOCAL
-    p = get_default_contract_parser(TOOL_ID, __version__, desc, driver_exe, task_type, nproc, resource_types)
+    subcomponents = [("my_subcomponent", "1.2.3")]
+    p = get_default_contract_parser(TOOL_ID, __version__, desc, driver_exe,
+                                    task_type, nproc, resource_types,
+                                    subcomponents=subcomponents)
     add_args_and_options(p)
     return p
 

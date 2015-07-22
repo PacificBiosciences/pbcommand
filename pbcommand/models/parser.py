@@ -215,7 +215,6 @@ class ToolContractParser(PbParserBase):
     def add_float(self, option_id, option_str, default, name, description):
         self.options.append(to_option_schema(option_id, JsonSchemaTypes.NUM, name, description, default))
 
-
     def add_str(self, option_id, option_str, default, name, description):
         self.options.append(to_option_schema(option_id, JsonSchemaTypes.STR, name, description, default))
 
