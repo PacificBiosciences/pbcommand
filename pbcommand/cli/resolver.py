@@ -67,7 +67,8 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
                 'object': object,
                 # TODO This should be resolved?
                 'boolean': int,
-                'str': str}
+                'number': (int, float),
+                'string': (unicode, str)}
 
     for option in tool_contract.task.options:
         for optid in option['required']:
