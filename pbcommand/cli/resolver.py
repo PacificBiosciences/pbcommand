@@ -30,8 +30,7 @@ def _resolve_options(tool_contract, tool_options):
     # These probably exist somewhere else, feel free to replace:
     type_map = {'integer': int,
                 'object': object,
-                # TODO This should be resolved?
-                'boolean': int,
+                'boolean': bool,
                 'number': (int, float),
                 'string': (unicode, str)}
 
