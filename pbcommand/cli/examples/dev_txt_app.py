@@ -31,15 +31,18 @@ def get_parser():
     p.add_input_file_type(FileTypes.TXT, "txt_in", "Txt file", "Generic Text File")
     # Add output files types
     p.add_output_file_type(FileTypes.TXT, "txt_out", "Txt outfile", "Generic Output Txt file", "output.txt")
+    p.add_int("pbcommand.task_options.dev_max_nlines", "max_nlines", 10, "Max Lines", "Max Number of lines to Copy")
     return p
 
 
-def run_main(input_txt, output_txt):
+def run_main(input_txt, output_txt, max_nlines):
     n = 0
     with open(input_txt, 'r') as r:
         with open(output_txt, 'w') as w:
             w.write("# Output Txt file")
             for line in r:
+                if n >= max_nlines:
+                    break
                 w.write(line + "\n")
                 n += 1
 
@@ -48,11 +51,13 @@ def run_main(input_txt, output_txt):
 
 
 def args_runner(args):
-    return run_main(args.txt_in, args.txt_out)
+    return run_main(args.txt_in, args.txt_out, args.max_nlines)
 
 
 def rtc_runner(rtc):
-    return run_main(rtc.task.input_files[0], rtc.task.output_files[0])
+    return run_main(rtc.task.input_files[0],
+                    rtc.task.output_files[0],
+                    rtc.task.options["pbcommand.task_options.dev_max_nlines"])
 
 
 def main(argv=sys.argv):

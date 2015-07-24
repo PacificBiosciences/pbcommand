@@ -17,7 +17,24 @@
         "task_type": "pbsmrtpipe.constants.local_task", 
         "resource_types": [], 
         "nproc": 1, 
-        "schema_options": [], 
+        "schema_options": [
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "required": [
+                    "pbcommand.task_options.dev_max_nlines"
+                ], 
+                "type": "object", 
+                "properties": {
+                    "pbcommand.task_options.dev_max_nlines": {
+                        "default": 10, 
+                        "type": "integer", 
+                        "description": "Max Number of lines to Copy", 
+                        "title": "Max Lines"
+                    }
+                }, 
+                "title": "JSON Schema for pbcommand.task_options.dev_max_nlines"
+            }
+        ], 
         "output_types": [
             {
                 "title": "Txt outfile", 
@@ -27,6 +44,6 @@
                 "file_type_id": "PacBio.FileTypes.txt"
             }
         ], 
-        "_comment": "Created by v0.1.0 at 2015-07-21T23:15:23.959359"
+        "_comment": "Created by v0.1.0 at 2015-07-24T10:03:25.511974"
     }
 }

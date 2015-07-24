@@ -24,6 +24,7 @@ def _resolve_nproc(nproc_int_or_symbol, max_nproc):
         raise TypeError("unsupported type for {s} '{t}".format(t=nproc_int_or_symbol,
                                                                s=SymbolTypes.MAX_NPROC))
 
+
 def _resolve_options(tool_contract, tool_options):
     resolved_options = {}
 
@@ -32,21 +33,21 @@ def _resolve_options(tool_contract, tool_options):
                 'object': object,
                 'boolean': bool,
                 'number': (int, float),
-                'string': (unicode, str)}
+                'string': basestring}
 
+    # Get and Validate resolved value.
+    # TODO. None support should be removed.
     for option in tool_contract.task.options:
         for optid in option['required']:
-            value = option['properties'][optid]['default']
             exp_type = option['properties'][optid]['type']
-            if (not isinstance(value, type_map[exp_type]) and
-                    value != None):
+            value = tool_options.get(optid, option['properties'][optid]['default'])
+
+            if (not isinstance(value, type_map[exp_type]) and value is not None):
                 raise ToolContractError("Incompatible option types. Supplied "
                                         "{i}. Expected {t}".format(
                                             i=type(value),
                                             t=exp_type))
             resolved_options[optid] = value
-
-    resolved_options.update(tool_options)
 
     return resolved_options
 

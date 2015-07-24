@@ -31,8 +31,14 @@ class PbTestApp(unittest.TestCase):
     # input files that will be passed to the resolver
     # To get example files use, get_data_file("example.txt")]
     INPUT_FILES = []
-    TASK_OPTIONS = {}
+
+    # Arguments passed to the Resolver
     MAX_NPROC = 1
+    TASK_OPTIONS = {}
+
+    # These will be checked against the resolved tool contract values
+    RESOLVED_TASK_OPTIONS = {}
+    RESOLVED_NPROC = 1
 
     def test_run_e2e(self):
         if self.REQUIRES_PBCORE:
@@ -66,6 +72,17 @@ class PbTestApp(unittest.TestCase):
 
         # sanity
         _ = load_resolved_tool_contract_from(output_json_rtc)
+
+        # Test Resolved options if specified.
+        for opt, resolved_value in self.RESOLVED_TASK_OPTIONS.iteritems():
+            self.assertTrue(opt in rtc.task.options, "Resolved option {x} not in RTC options.".format(x=opt))
+            # this needs to support polymorphic equals (i.e., almostEquals
+            if not isinstance(resolved_value, float):
+                emsg = "Resolved option {o} are not equal. Expected {a}, got {b}".format(o=opt, b=rtc.task.options[opt], a=resolved_value)
+                self.assertEquals(rtc.task.options[opt], resolved_value, emsg)
+
+        # Resolved NPROC
+        self.assertEquals(rtc.task.nproc, self.RESOLVED_NPROC)
 
         log.info("running resolved contract {r}".format(r=output_json_rtc))
 

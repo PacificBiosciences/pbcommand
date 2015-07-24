@@ -26,4 +26,5 @@ class TestTxtDevApp(pbcommand.testkit.PbTestApp):
 
     REQUIRES_PBCORE = False
     INPUT_FILES = [get_data_file("example.txt")]
-    TASK_OPTIONS = {"pbcommand.task_options.dev_read_length": 27}
+    TASK_OPTIONS = {"pbcommand.task_options.dev_max_nlines": 27}
+    RESOLVED_TASK_OPTIONS = {"pbcommand.task_options.dev_max_nlines": 27}
