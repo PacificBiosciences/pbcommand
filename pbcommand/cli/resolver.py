@@ -24,6 +24,33 @@ def _resolve_nproc(nproc_int_or_symbol, max_nproc):
         raise TypeError("unsupported type for {s} '{t}".format(t=nproc_int_or_symbol,
                                                                s=SymbolTypes.MAX_NPROC))
 
+def _resolve_options(tool_contract, tool_options):
+    resolved_options = {}
+
+    # These probably exist somewhere else, feel free to replace:
+    type_map = {'integer': int,
+                'object': object,
+                # TODO This should be resolved?
+                'boolean': int,
+                'number': (int, float),
+                'string': (unicode, str)}
+
+    for option in tool_contract.task.options:
+        for optid in option['required']:
+            value = option['properties'][optid]['default']
+            exp_type = option['properties'][optid]['type']
+            if (not isinstance(value, type_map[exp_type]) and
+                    value != None):
+                raise ToolContractError("Incompatible option types. Supplied "
+                                        "{i}. Expected {t}".format(
+                                            i=type(value),
+                                            t=exp_type))
+            resolved_options[optid] = value
+
+    resolved_options.update(tool_options)
+
+    return resolved_options
+
 
 def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options):
     """
@@ -60,29 +87,7 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
 
     output_files = [to_out_file(REGISTERED_FILE_TYPES[f.file_type_id]) for f in tool_contract.task.output_file_types]
 
-    resolved_options = {}
-
-    # These probably exist somewhere else, feel free to replace:
-    type_map = {'integer': int,
-                'object': object,
-                # TODO This should be resolved?
-                'boolean': int,
-                'number': (int, float),
-                'string': (unicode, str)}
-
-    for option in tool_contract.task.options:
-        for optid in option['required']:
-            value = option['properties'][optid]['default']
-            exp_type = option['properties'][optid]['type']
-            if (not isinstance(value, type_map[exp_type]) and
-                    value != None):
-                raise ToolContractError("Incompatible option types. Supplied "
-                                        "{i}. Expected {t}".format(
-                                            i=type(value),
-                                            t=exp_type))
-            resolved_options[optid] = value
-
-    resolved_options.update(tool_options)
+    resolved_options = _resolve_options(tool_contract, tool_options)
 
     nproc = _resolve_nproc(tool_contract.task.nproc, max_nproc)
 
