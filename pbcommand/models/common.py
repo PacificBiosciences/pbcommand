@@ -206,9 +206,11 @@ class FileTypes(object):
     H5 = FileType(to_file_ns("h5"), "file", "h5", "application/octet-stream")
 
     # ******************* NEW SA3 File Types ********************
-    # DataSet Types
-    DS_SUBREADS = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", "application/xml")
-    DS_SUBREADS_H5 = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", "application/xml")
+    # DataSet Types. The default file names should have well-defined agreed
+    # upon format. See what Dave did for the bam files.
+    # https://github.com/PacificBiosciences/PacBioFileFormats
+    DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", "application/xml")
+    DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", "application/xml")
     DS_CCS = FileType(to_ds_ns("CCSreadSet"), "file", "ccsread.dataset.xml", "application/xml")
     DS_REF = FileType(to_file_ns("ReferenceSet"), "file", "reference.dataset.xml", "application/xml")
     DS_BAM = FileType(to_file_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
