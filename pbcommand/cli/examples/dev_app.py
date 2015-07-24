@@ -15,10 +15,10 @@ log = logging.getLogger(__name__)
 
 __version__ = '0.2.0'
 
-# Used for the tool contract id. Must have the form {namespace}.tools.{name}
+# Used for the tool contract id. Must have the form {namespace}.tasks.{name}
 # to prevent namespace collisions. For python tools, the namespace should be
 # the python package name.
-TOOL_ID = "pbcommand.tools.dev_app"
+TOOL_ID = "pbcommand.tasks.dev_app"
 
 
 def add_args_and_options(p):

@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 __version__ = '0.1.1'
 
-TOOL_ID = "pbcommand.tools.dev_app_simple"
+TOOL_ID = "pbcommand.tasks.dev_app_simple"
 
 try:
     from pbcore.io import FastaWriter, FastaReader

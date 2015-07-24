@@ -22,7 +22,7 @@ from pbcommand.utils import setup_log
 
 log = logging.getLogger(__name__)
 
-TOOL_ID = "pbcommand.tools.dev_mixed_app"
+TOOL_ID = "pbcommand.tasks.dev_mixed_app"
 __version__ = "0.2.0"
 
 

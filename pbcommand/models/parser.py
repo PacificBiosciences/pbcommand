@@ -7,6 +7,7 @@ import os
 import logging
 import argparse
 import functools
+import re
 
 # there's a problem with functools32 and jsonschema. This import raise an
 # import error.
@@ -26,6 +27,8 @@ __all__ = ["PbParser",
            "ToolContractParser",
            "get_default_contract_parser"]
 
+RX_TASK_ID = re.compile(r'^([A-z0-9_]*)\.tasks\.([A-z0-9_]*)$')
+RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_]*)\.task_options\.([A-z0-9_\.]*)')
 
 def _to_file_type(format_):
     return "pacbio.file_types.{x}".format(x=format_)
@@ -53,6 +56,22 @@ def _validate_file(label, path):
     else:
         raise IOError("Unable to find '{x}' file '{p}'".format(x=label, p=path))
 
+def _validate_option(dtype, dvalue):
+    if isinstance(dvalue, dtype):
+        return dvalue
+    else:
+        raise IOError("Invalid option type: '{a}' provided, '{e}' "
+                      "expected".format(a=dvalue, e=dtype))
+
+def _validate_id(prog, idtype, tid):
+    if prog.match(tid):
+        return tid
+    else:
+        raise IOError("Invalid {t}: '{i}'".format(t=idtype, i=tid))
+
+_validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
+_validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
+                                             'task option id')
 
 def to_opt_id(namespace, s):
     return ".".join([namespace, "options", s])
@@ -148,11 +167,10 @@ class PbParserBase(object):
     def add_boolean(self, option_id, option_str, default, name, description):
         raise NotImplementedError
 
-
 class PyParser(PbParserBase):
 
     def __init__(self, tool_id, version, description, subcomponents=()):
-        super(PyParser, self).__init__(tool_id, version, description)
+        super(PyParser, self).__init__(_validate_task_id(tool_id), version, description)
         self.parser = argparse.ArgumentParser(version=version,
                                               description=description,
                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -171,27 +189,34 @@ class PyParser(PbParserBase):
     def add_int(self, option_id, option_str, default, name, description):
         # Fixme
         opt = "--" + option_str
-        self.parser.add_argument(opt, type=int, help=description, default=default)
+        vfunc = functools.partial(_validate_option, int)
+        self.parser.add_argument(opt, type=vfunc, help=description,
+                                 default=vfunc(default))
 
     def add_float(self, option_id, option_str, default, name, description):
         opt = "--" + option_str
-        self.parser.add_argument(opt, type=float, help=description, default=default)
+        vfunc = functools.partial(_validate_option, float)
+        self.parser.add_argument(opt, type=vfunc, help=description,
+                                 default=vfunc(default))
 
     def add_str(self, option_id, option_str, default, name, description):
         # Fixme
         opt = "--" + option_str
-        self.parser.add_argument(opt, type=str, help=description, default=default)
+        vfunc = functools.partial(_validate_option, str)
+        self.parser.add_argument(opt, type=vfunc, help=description,
+                                 default=vfunc(default))
 
     def add_boolean(self, option_id, option_str, default, name, description):
         d = {True: "store_true", False: "store_false"}
         opt = '--' + option_str
-        self.parser.add_argument(opt, action=d[default], help=description)
+        vfunc = functools.partial(_validate_option, bool)
+        self.parser.add_argument(opt, action=d[vfunc(default)], help=description)
 
 
 class ToolContractParser(PbParserBase):
 
     def __init__(self, tool_id, version, description, task_type, driver, nproc_symbol, resource_types):
-        super(ToolContractParser, self).__init__(tool_id, version, description)
+        super(ToolContractParser, self).__init__(_validate_task_id(tool_id), version, description)
         self.input_types = []
         self.output_types = []
         self.options = []
@@ -209,16 +234,24 @@ class ToolContractParser(PbParserBase):
         self.output_types.append(_d)
 
     def add_int(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id, JsonSchemaTypes.INT, name, description, default))
+        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+                                             JsonSchemaTypes.INT, name, description,
+                                             _validate_option(int, default)))
 
     def add_float(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id, JsonSchemaTypes.NUM, name, description, default))
+        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+                                             JsonSchemaTypes.NUM, name, description,
+                                             _validate_option(float, default)))
 
     def add_str(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id, JsonSchemaTypes.STR, name, description, default))
+        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+                                             JsonSchemaTypes.STR, name, description,
+                                             _validate_option(str, default)))
 
     def add_boolean(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id, JsonSchemaTypes.BOOL, name, description, default))
+        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+                                             JsonSchemaTypes.BOOL, name, description,
+                                             _validate_option(bool, default)))
 
     def to_tool_contract(self):
 
