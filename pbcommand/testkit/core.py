@@ -23,7 +23,7 @@ class PbTestApp(unittest.TestCase):
 
     # complete Emit a tool contract
     DRIVER_EMIT = ""
-    # complete resolve tool contract
+    # Run tool from a resolve tool contract JSON file
     DRIVER_RESOLVE = ""
 
     # Requires Pbcore
@@ -40,6 +40,13 @@ class PbTestApp(unittest.TestCase):
     # These will be checked against the resolved tool contract values
     RESOLVED_TASK_OPTIONS = {}
     RESOLVED_NPROC = 1
+
+    def _test_outputs_exists(self, rtc):
+        """:type rtc: pbcommand.models.ResolvedToolContract"""
+        log.debug("validating output file existence from {r}".format(r=rtc))
+        for i, output_file in enumerate(rtc.task.output_files):
+            msg = "Unable to find {i}-th output file {p}".format(i=i, p=output_file)
+            self.assertTrue(os.path.exists(output_file), msg)
 
     def test_run_e2e(self):
         if self.REQUIRES_PBCORE:
@@ -92,6 +99,9 @@ class PbTestApp(unittest.TestCase):
         rcode = subprocess.call([exe], shell=True)
         self.assertEqual(rcode, 0, "Running from resolved tool contract failed from {e}".format(e=exe))
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
+
+        self._test_outputs_exists(rtc)
+
         self.run_after(rtc, output_dir)
 
     def run_after(self, rtc, output_dir):
