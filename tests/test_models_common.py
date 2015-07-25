@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 
 class TestLoadFileTypes(unittest.TestCase):
+
     def test_file_types(self):
         # smoke test for loading file types
         ft = FileTypes.DS_BAM

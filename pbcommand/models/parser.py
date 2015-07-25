@@ -30,6 +30,7 @@ __all__ = ["PbParser",
 RX_TASK_ID = re.compile(r'^([A-z0-9_]*)\.tasks\.([A-z0-9_]*)$')
 RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_]*)\.task_options\.([A-z0-9_\.]*)')
 
+
 def _to_file_type(format_):
     return "pacbio.file_types.{x}".format(x=format_)
 
@@ -56,12 +57,14 @@ def _validate_file(label, path):
     else:
         raise IOError("Unable to find '{x}' file '{p}'".format(x=label, p=path))
 
+
 def _validate_option(dtype, dvalue):
     if isinstance(dvalue, dtype):
         return dvalue
     else:
         raise IOError("Invalid option type: '{a}' provided, '{e}' "
                       "expected".format(a=dvalue, e=dtype))
+
 
 def _validate_id(prog, idtype, tid):
     if prog.match(tid):
@@ -72,6 +75,7 @@ def _validate_id(prog, idtype, tid):
 _validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
 _validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
                                              'task option id')
+
 
 def to_opt_id(namespace, s):
     return ".".join([namespace, "options", s])
@@ -166,6 +170,7 @@ class PbParserBase(object):
     @abc.abstractmethod
     def add_boolean(self, option_id, option_str, default, name, description):
         raise NotImplementedError
+
 
 class PyParser(PbParserBase):
 

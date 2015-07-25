@@ -31,6 +31,7 @@ def _example_main(cmdline_args):
 
 
 class SimpleTest(unittest.TestCase):
+
     def test_01(self):
         args = "--debug /path/to/my_fake_file.txt"
         rcode = _example_main(args)

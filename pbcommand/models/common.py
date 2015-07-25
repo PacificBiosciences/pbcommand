@@ -50,6 +50,7 @@ to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
 
 
 class TaskTypes(object):
+
     """Task types used in workflow engine. Local will run the task as a subprocess,
     Distributed will run the process on a remote node if the workflow has been configured with a cluster manager.
 
@@ -63,6 +64,7 @@ class TaskTypes(object):
 
 
 class SymbolTypes(object):
+
     """*Symbols* that are understood durning resolving, such as max number of
     processors, Max Chunks"""
     MAX_NPROC = '$max_nproc'
@@ -76,6 +78,7 @@ class SymbolTypes(object):
 
 
 class ResourceTypes(object):
+
     """Resources such as tmp dirs and files, log files"""
     TMP_DIR = '$tmpdir'
     TMP_FILE = '$tmpfile'
@@ -99,6 +102,7 @@ class ResourceTypes(object):
 
 
 class _RegisteredFileType(type):
+
     def __init__(cls, name, bases, dct):
         super(_RegisteredFileType, cls).__init__(name, bases, dct)
 
@@ -161,6 +165,7 @@ class FileType(object):
 
 
 class FileTypes(object):
+
     """Registry of all PacBio Files types
 
     This needs to be cleaned up and solidified. The old pre-SA3 file types need to be deleted.
@@ -236,5 +241,3 @@ class FileTypes(object):
     @staticmethod
     def is_valid_id(file_type_id):
         return file_type_id in REGISTERED_FILE_TYPES
-
-

@@ -54,4 +54,3 @@ class TestResolveContract(unittest.TestCase):
         rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, {})
         log.info(pprint.pformat(rtc))
         self.assertIsNotNone(rtc)
-

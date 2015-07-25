@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 
 
 class PbTestApp(unittest.TestCase):
+
     """Generic Harness for running tool contracts end-to-end"""
 
     # complete Emit a tool contract

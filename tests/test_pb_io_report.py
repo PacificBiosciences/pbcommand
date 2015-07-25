@@ -21,6 +21,7 @@ def _to_report(name):
 
 
 class TestSerializationOverviewReport(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         name = 'overview.json'
@@ -34,6 +35,7 @@ class TestSerializationOverviewReport(unittest.TestCase):
 
 
 class TestSerializationAdapterReport(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         file_name = 'filter_reports_adapters.json'
@@ -50,8 +52,3 @@ class TestSerializationAdapterReport(unittest.TestCase):
 
     def test_plots(self):
         self.assertEqual(len(self.report.plotGroups[0].plots), 1)
-
-
-
-
-

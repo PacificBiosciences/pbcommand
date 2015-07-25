@@ -50,7 +50,9 @@ def add_base_options_with_emit_tool_contract(p):
 def _to_print_message_action(msg):
 
     class PrintMessageAction(argparse.Action):
+
         """Print message and exit"""
+
         def __call__(self, parser, namespace, values, option_string=None):
             sys.stdout.write(msg + "\n")
             sys.exit(0)

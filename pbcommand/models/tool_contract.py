@@ -6,6 +6,7 @@ Author: Michael Kocher
 
 
 class _IOFileType(object):
+
     def __init__(self, file_type_id, label, display_name, description):
         self.file_type_id = file_type_id
         self.label = label
@@ -26,12 +27,14 @@ class InputFileType(_IOFileType):
 
 
 class OutputFileType(_IOFileType):
+
     def __init__(self, file_type, label, display_name, description, default_name):
         super(OutputFileType, self).__init__(file_type, label, display_name, description)
         self.default_name = default_name
 
 
 class ToolDriver(object):
+
     def __init__(self, driver_exe, env=None):
         """
 
@@ -51,6 +54,7 @@ class ToolDriver(object):
 
 
 class ToolContractTask(object):
+
     def __init__(self, task_id, name, description, version, task_type, input_types, output_types, tool_options, nproc, resources):
         """
         Core metadata for a commandline task
@@ -88,6 +92,7 @@ class ToolContractTask(object):
 class ResolvedToolContractTask(object):
     # The interface is the same, but the types are "resolved" and have a different
     # structure
+
     def __init__(self, task_id, task_type, input_files, output_files, options, nproc, resources):
         self.task_id = task_id
         self.task_type = task_type
@@ -103,6 +108,7 @@ class ResolvedToolContractTask(object):
 
 
 class ToolContract(object):
+
     def __init__(self, task, driver):
         """
 
@@ -122,6 +128,7 @@ class ToolContract(object):
 
 
 class ResolvedToolContract(object):
+
     def __init__(self, task, driver):
         """
 
@@ -138,4 +145,3 @@ class ResolvedToolContract(object):
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.task_type)
         return "<{k} id:{i} >".format(**_d)
-

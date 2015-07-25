@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 
 
 class TestLoadToolContract(unittest.TestCase):
+
     def test_01(self):
         file_name = "dev_example_tool_contract.json"
         path = get_data_file(file_name)

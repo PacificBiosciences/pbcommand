@@ -117,9 +117,3 @@ def load_report_from_json(json_file):
         d = json.loads(f.read())
     r = dict_to_report(d)
     return r
-
-
-
-
-
-

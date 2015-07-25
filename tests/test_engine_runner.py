@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class RunnerSmokeTest(unittest.TestCase):
+
     def test_simple_run_cmd(self):
         d = get_temp_dir("simple-cmd")
         txt_in = get_temp_file(".txt", d)
