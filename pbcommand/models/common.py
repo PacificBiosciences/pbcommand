@@ -5,9 +5,13 @@ Large parts of this are pulled from pbsmrtpipe.
 
 Author: Michael Kocher
 """
+import json
 import logging
+import os
+import re
 import warnings
 import functools
+import datetime
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +20,7 @@ REGISTERED_FILE_TYPES = {}
 
 class PacBioNamespaces(object):
     # File Types
-    #PBSMRTPIPE_FILE_PREFIX = 'pbsmrtpipe.files'
+    # PBSMRTPIPE_FILE_PREFIX = 'pbsmrtpipe.files'
     # NEW File Type Identifier style Prefix
     NEW_PBSMRTPIPE_FILE_PREFIX = "PacBio.FileTypes"
     # New DataSet Identifier Prefix
@@ -241,3 +245,155 @@ class FileTypes(object):
     @staticmethod
     def is_valid_id(file_type_id):
         return file_type_id in REGISTERED_FILE_TYPES
+
+
+class DataStoreFile(object):
+
+    def __init__(self, uuid, file_id, type_id, path):
+        # adding this for consistency. In the scala code, the unique id must be
+        # a uuid format
+        self.uuid = uuid
+        # this must globally unique. This is used to provide context to where
+        # the file originated from (i.e., the tool author
+        self.file_id = file_id
+        # Consistent with a value in FileTypes
+        self.file_type_id = type_id
+        self.path = path
+        self.file_size = os.path.getsize(path)
+        self.created_at = datetime.datetime.fromtimestamp(os.path.getctime(path))
+        self.modified_at = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__,
+                  i=self.file_id,
+                  t=self.file_type_id,
+                  p=os.path.basename(self.path))
+        return "<{k} {i} type:{t} filename:{p} >".format(**_d)
+
+    def to_dict(self):
+        return dict(sourceId=self.file_id,
+                    uniqueId=str(self.uuid),
+                    fileTypeId=self.file_type_id,
+                    path=self.path,
+                    fileSize=self.file_size,
+                    createdAt=_datetime_to_string(self.created_at),
+                    modifiedAt=_datetime_to_string(self.modified_at))
+
+    @staticmethod
+    def from_dict(d):
+        # FIXME. This isn't quite right.
+        to_a = lambda x: x.encode('ascii', 'ignore')
+        to_k = lambda x: to_a(d[x])
+        return DataStoreFile(to_k('uniqueId'), to_k('sourceId'), to_k('fileTypeId'), to_k('path'))
+
+
+def _datetime_to_string(dt):
+    return dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+
+class DataStore(object):
+    version = "0.2.2"
+
+    def __init__(self, ds_files, created_at=None):
+        """
+
+        :type ds_files: list[DataStoreFile]
+        """
+        self.files = {f.uuid: f for f in ds_files}
+        self.created_at = datetime.datetime.now() if created_at is None else created_at
+        self.updated_at = datetime.datetime.now()
+
+    def __repr__(self):
+        _d = dict(n=len(self.files), k=self.__class__.__name__)
+        return "<{k} nfiles={n} >".format(**_d)
+
+    def add(self, ds_file):
+        if isinstance(ds_file, DataStoreFile):
+            self.files[ds_file.uuid] = ds_file
+            self.updated_at = datetime.datetime.now()
+        else:
+            raise TypeError("DataStoreFile expected. Got type {t} for {d}".format(t=type(ds_file), d=ds_file))
+
+    def to_dict(self):
+        fs = [f.to_dict() for i, f in self.files.iteritems()]
+        _d = dict(version=self.version,
+                  createdAt=_datetime_to_string(self.created_at),
+                  updatedAt=_datetime_to_string(self.updated_at), files=fs)
+        return _d
+
+    def _write_json(self, file_name, permission):
+        with open(file_name, permission) as f:
+            s = json.dumps(self.to_dict(), indent=4, sort_keys=True)
+            f.write(s)
+
+    def write_json(self, file_name):
+        # if the file exists is should raise?
+        self._write_json(file_name, 'w')
+
+    def write_update_json(self, file_name):
+        """Overwrite Datastore with current state"""
+        self._write_json(file_name, 'w+')
+
+    @staticmethod
+    def load_from_json(path):
+        with open(path, 'r') as reader:
+            d = json.loads(reader.read())
+
+        ds_files = [DataStoreFile.from_dict(x) for x in d['files']]
+        return DataStore(ds_files)
+
+
+def _is_chunk_key(k):
+    return k.startswith(PipelineChunk.CHUNK_KEY_PREFIX)
+
+
+class MalformedChunkKeyError(ValueError):
+
+    """Chunk Key does NOT adhere to the spec"""
+    pass
+
+
+class PipelineChunk(object):
+
+    CHUNK_KEY_PREFIX = "$chunk."
+    RX_CHUNK_KEY = re.compile(r'^\$chunk\.([A-z0-9_]*)')
+
+    def __init__(self, chunk_id, **kwargs):
+        """
+
+        kwargs is a key-value store. keys that begin "$chunk." are considered
+        to be semantically understood by workflow and can be "routed" to
+        chunked task inputs.
+
+        Values that don't begin with "$chunk." are considered metadata.
+
+
+        :param chunk_id: Chunk id
+        :type chunk_id: str
+
+        """
+        if self.RX_CHUNK_KEY.match(chunk_id) is not None:
+            raise MalformedChunkKeyError("'{c}' expected {p}".format(c=chunk_id, p=self.RX_CHUNK_KEY.pattern))
+
+        self.chunk_id = chunk_id
+        # loose key-value pair
+        self._datum = kwargs
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__, i=self.chunk_id, c=",".join(self.chunk_keys))
+        return "<{k} id='{i}' chunk keys={c} >".format(**_d)
+
+    @property
+    def chunk_d(self):
+        return {k: v for k, v in self._datum.iteritems() if _is_chunk_key(k)}
+
+    @property
+    def chunk_keys(self):
+        return self.chunk_d.keys()
+
+    @property
+    def chunk_metadata(self):
+        return {k: v for k, v in self._datum.iteritems() if not _is_chunk_key(k)}
+
+    def to_dict(self):
+        return {'chunk_id': self.chunk_id, 'chunk': self._datum}
