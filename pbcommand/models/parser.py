@@ -62,6 +62,12 @@ def _validate_option(dtype, dvalue):
     if isinstance(dvalue, dtype):
         return dvalue
     else:
+        # XXX this is almost always going to be the case...
+        if isinstance(dvalue, basestring):
+            try:
+                return dtype(dvalue)
+            except ValueError as e:
+                pass
         raise IOError("Invalid option type: '{a}' provided, '{e}' "
                       "expected".format(a=dvalue, e=dtype))
 
