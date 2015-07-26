@@ -42,7 +42,7 @@ def _resolve_options(tool_contract, tool_options):
             exp_type = option['properties'][optid]['type']
             value = tool_options.get(optid, option['properties'][optid]['default'])
 
-            if (not isinstance(value, type_map[exp_type]) and value is not None):
+            if not isinstance(value, type_map[exp_type]):
                 raise ToolContractError("Incompatible option types. Supplied "
                                         "{i}. Expected {t}".format(
                                             i=type(value),
