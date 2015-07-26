@@ -145,7 +145,7 @@ class PbParserBase(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, tool_id, version, description):
-        self.tool_id = tool_id
+        self.tool_id = _validate_task_id(tool_id)
         self.version = version
         self.description = description
 
@@ -181,7 +181,7 @@ class PbParserBase(object):
 class PyParser(PbParserBase):
 
     def __init__(self, tool_id, version, description, subcomponents=()):
-        super(PyParser, self).__init__(_validate_task_id(tool_id), version, description)
+        super(PyParser, self).__init__(tool_id, version, description)
         self.parser = argparse.ArgumentParser(version=version,
                                               description=description,
                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -227,7 +227,7 @@ class PyParser(PbParserBase):
 class ToolContractParser(PbParserBase):
 
     def __init__(self, tool_id, version, description, task_type, driver, nproc_symbol, resource_types):
-        super(ToolContractParser, self).__init__(_validate_task_id(tool_id), version, description)
+        super(ToolContractParser, self).__init__(tool_id, version, description)
         self.input_types = []
         self.output_types = []
         self.options = []
