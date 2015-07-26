@@ -68,15 +68,15 @@ def _validate_option(dtype, dvalue):
                 return dtype(dvalue)
             except ValueError as e:
                 pass
-        raise IOError("Invalid option type: '{a}' provided, '{e}' "
-                      "expected".format(a=dvalue, e=dtype))
+        raise TypeError("Invalid option type: '{a}' provided, '{e}' "
+                        "expected".format(a=dvalue, e=dtype))
 
 
 def _validate_id(prog, idtype, tid):
     if prog.match(tid):
         return tid
     else:
-        raise IOError("Invalid {t}: '{i}'".format(t=idtype, i=tid))
+        raise ValueError("Invalid {t}: '{i}'".format(t=idtype, i=tid))
 
 _validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
 _validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
