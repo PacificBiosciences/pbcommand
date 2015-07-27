@@ -20,7 +20,7 @@ from .tool_contract import ToolDriver
 
 log = logging.getLogger(__name__)
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = ["PbParser",
            "PyParser",
@@ -58,7 +58,7 @@ def _validate_file(label, path):
         raise IOError("Unable to find '{x}' file '{p}'".format(x=label, p=path))
 
 
-def _validate_option(dtype, dvalue):
+def _validate_option_or_cast(dtype, dvalue):
     if isinstance(dvalue, dtype):
         return dvalue
     else:
@@ -72,11 +72,19 @@ def _validate_option(dtype, dvalue):
                         "expected".format(a=dvalue, e=dtype))
 
 
+def _validate_option(dtype, dvalue):
+    if isinstance(dvalue, dtype):
+        return dvalue
+    else:
+        raise TypeError("Invalid option type: '{a}' provided, '{e}' "
+                        "expected".format(a=dvalue, e=dtype))
+
+
 def _validate_id(prog, idtype, tid):
     if prog.match(tid):
         return tid
     else:
-        raise ValueError("Invalid {t}: '{i}'".format(t=idtype, i=tid))
+        raise ValueError("Invalid format {t}: '{i}'".format(t=idtype, i=tid))
 
 _validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
 _validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
@@ -126,6 +134,8 @@ def to_option_schema(option_id, dtype_or_dtypes, display_name, description, defa
     # annoying that you can't specify a tuple
     if isinstance(dtype_or_dtypes, tuple):
         dtype_or_dtypes = list(dtype_or_dtypes)
+
+    _validate_task_option_id(option_id)
 
     d = {'$schema': "http://json-schema.org/draft-04/schema#",
          'type': 'object',
@@ -177,8 +187,14 @@ class PbParserBase(object):
     def add_boolean(self, option_id, option_str, default, name, description):
         raise NotImplementedError
 
+_validate_argparse_int = functools.partial(_validate_option_or_cast, int)
+_validate_argparse_float = functools.partial(_validate_option_or_cast, float)
+_validate_argparse_bool = functools.partial(_validate_option_or_cast, bool)
+_validate_argparse_str = functools.partial(_validate_option_or_cast, str)
+
 
 class PyParser(PbParserBase):
+    """PbParser backed that supports argparse"""
 
     def __init__(self, tool_id, version, description, subcomponents=()):
         super(PyParser, self).__init__(tool_id, version, description)
@@ -198,33 +214,34 @@ class PyParser(PbParserBase):
         self.parser.add_argument(file_id, type=str, help=description)
 
     def add_int(self, option_id, option_str, default, name, description):
-        # Fixme
+        # FIXME Need to better define and validate option_str
         opt = "--" + option_str
-        vfunc = functools.partial(_validate_option, int)
-        self.parser.add_argument(opt, type=vfunc, help=description,
-                                 default=vfunc(default))
+        self.parser.add_argument(opt, type=_validate_argparse_int,
+                                 help=description,
+                                 default=_validate_argparse_int(default))
 
     def add_float(self, option_id, option_str, default, name, description):
         opt = "--" + option_str
-        vfunc = functools.partial(_validate_option, float)
-        self.parser.add_argument(opt, type=vfunc, help=description,
-                                 default=vfunc(default))
+        self.parser.add_argument(opt, type=_validate_argparse_float,
+                                 help=description,
+                                 default=_validate_argparse_float(default))
 
     def add_str(self, option_id, option_str, default, name, description):
         # Fixme
         opt = "--" + option_str
-        vfunc = functools.partial(_validate_option, str)
-        self.parser.add_argument(opt, type=vfunc, help=description,
-                                 default=vfunc(default))
+        self.parser.add_argument(opt, type=_validate_argparse_str,
+                                 help=description,
+                                 default=_validate_argparse_str(default))
 
     def add_boolean(self, option_id, option_str, default, name, description):
         d = {True: "store_true", False: "store_false"}
         opt = '--' + option_str
-        vfunc = functools.partial(_validate_option, bool)
-        self.parser.add_argument(opt, action=d[vfunc(default)], help=description)
+        self.parser.add_argument(opt, action=d[_validate_argparse_bool(default)],
+                                 help=description)
 
 
 class ToolContractParser(PbParserBase):
+    """Parser to support Emitting and running ToolContracts"""
 
     def __init__(self, tool_id, version, description, task_type, driver, nproc_symbol, resource_types):
         super(ToolContractParser, self).__init__(tool_id, version, description)
@@ -245,22 +262,22 @@ class ToolContractParser(PbParserBase):
         self.output_types.append(_d)
 
     def add_int(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+        self.options.append(to_option_schema(option_id,
                                              JsonSchemaTypes.INT, name, description,
                                              _validate_option(int, default)))
 
     def add_float(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+        self.options.append(to_option_schema(option_id,
                                              JsonSchemaTypes.NUM, name, description,
                                              _validate_option(float, default)))
 
     def add_str(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+        self.options.append(to_option_schema(option_id,
                                              JsonSchemaTypes.STR, name, description,
                                              _validate_option(str, default)))
 
     def add_boolean(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(_validate_task_option_id(option_id),
+        self.options.append(to_option_schema(option_id,
                                              JsonSchemaTypes.BOOL, name, description,
                                              _validate_option(bool, default)))
 

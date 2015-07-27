@@ -1,7 +1,4 @@
-import os
-import unittest
 import logging
-import subprocess
 
 from base_utils import get_data_file
 import pbcommand.testkit

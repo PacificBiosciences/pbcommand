@@ -49,6 +49,10 @@ class PbTestApp(unittest.TestCase):
             self.assertTrue(os.path.exists(output_file), msg)
 
     def test_run_e2e(self):
+        # hack to skip running the base Test class (which is the nose default behavior)
+        if self.__class__.__name__ == 'PbTestApp':
+            return
+
         if self.REQUIRES_PBCORE:
             if not HAS_PBCORE:
                 self.assertTrue(True, pbcore_skip_msg("Skipping running e2e for {d}".format(d=self.DRIVER_EMIT)))
@@ -61,7 +65,7 @@ class PbTestApp(unittest.TestCase):
         log.debug("input files {i}".format(i=self.INPUT_FILES))
         log.debug("running in {p}".format(p=output_dir))
 
-        output_tc = get_temp_file("dev_example_tool_contract.json", output_dir)
+        output_tc = get_temp_file("-{n}-tool_contract.json".format(n=self.__class__.__name__), output_dir)
         emit_tc_exe = "{e} > {o}".format(e=self.DRIVER_EMIT, o=output_tc)
         rcode = subprocess.call([emit_tc_exe], shell=True)
 
