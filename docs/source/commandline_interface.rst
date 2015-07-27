@@ -56,7 +56,7 @@ Note. A single driver can reference many manifests. For example "pbreports" woul
 Programmatically defining a Parser to Emit a Tool Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pbsystem provides a API to create a tool contract and an argparse instance from a single interface. This facilitates a single point of defining options and keeps the standard commandline entry point and the tool contract to be in sync. This also allows your tool to emit the tool contract to stdout using "--emit-tool-contract" and to be run from a **Resolved Tool Contract** using the "--resolved-tool-contract /path/to/resolved-tool-contract.json" commandline argument.
+pbcommand provides a API to create a tool contract and an argparse instance from a single interface. This facilitates a single point of defining options and keeps the standard commandline entry point and the tool contract to be in sync. This also allows your tool to emit the tool contract to stdout using "--emit-tool-contract" and to be run from a **Resolved Tool Contract** using the "--resolved-tool-contract /path/to/resolved-tool-contract.json" commandline argument.
 
 Complete App shown below.
 

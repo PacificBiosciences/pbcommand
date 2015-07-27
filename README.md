@@ -85,7 +85,7 @@ A **Resolved Tool Contract** is a resolved **Tool Contract** where types and res
   },
   "driver": {
     "_comment": "This is the driver exe. The workflow will call ${exe} config.json",
-    "exe": "python -m pbsystem.common.cmdline.examples.dev_app --resolved-tool-contract",
+    "exe": "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract",
     "env": {}
   }
 }
