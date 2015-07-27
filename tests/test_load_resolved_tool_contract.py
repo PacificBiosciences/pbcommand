@@ -1,6 +1,7 @@
 import pprint
 import unittest
 import logging
+import os.path
 
 from base_utils import get_data_file
 
@@ -54,3 +55,5 @@ class TestResolveContract(unittest.TestCase):
         rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, {})
         log.info(pprint.pformat(rtc))
         self.assertIsNotNone(rtc)
+        self.assertEqual(os.path.basename(rtc.task.output_files[0]),
+            "output.txt")

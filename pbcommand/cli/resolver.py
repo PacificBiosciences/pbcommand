@@ -81,11 +81,17 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
 
     # need something smarter here. If the file already exists, raise or
     # decide to pick a new name.
-    def to_out_file(file_type):
-        base_name = ".".join([file_type.base_name, file_type.ext])
-        return os.path.join(root_output_dir, base_name)
+    def to_out_file(file_type, file_info):
+        if not file_info.default_name:
+            base_name = ".".join([file_type.base_name, file_type.ext])
+            return os.path.join(root_output_dir, base_name)
+        elif isinstance(file_info.default_name, tuple):
+            base, ext = file_info.default_name
+            return os.path.join(root_output_dir, ".".join([base, ext]))
+        else: # XXX should get rid of this eventually
+            return os.path.join(root_output_dir, file_info.default_name)
 
-    output_files = [to_out_file(REGISTERED_FILE_TYPES[f.file_type_id]) for f in tool_contract.task.output_file_types]
+    output_files = [to_out_file(REGISTERED_FILE_TYPES[f.file_type_id], f) for f in tool_contract.task.output_file_types]
 
     resolved_options = _resolve_options(tool_contract, tool_options)
 

@@ -164,27 +164,97 @@ class PbParserBase(object):
         return "<{k} id:{i} {v} >".format(**_d)
 
     @abc.abstractmethod
-    def add_input_file_type(self, input_file_type_id, file_id, name, description):
+    def add_input_file_type(self, file_type, file_id, name, description):
+        """
+        Add a mandatory input file parameter.  On the Python argparse side,
+        this will be a positional argument.
+
+        :param file_type: file type ID from pbcommand.models.common, e.g.
+                          FileTypes.DS_REF
+        :param file_id: parameter name, mainly used on argparse side
+        :param name: plain-English name
+        :param description: help string
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add_output_file_type(self, input_file_type_id, file_id, name, description, default_name):
+    def add_output_file_type(self, file_type, file_id, name, description, default_name):
+        """
+        Add a mandatory output file parameter.  On the Python argparse side,
+        this will be a positional argument.
+
+        :param file_type: file type ID from pbcommand.models.common, e.g.
+                          FileTypes.DS_REF
+        :param file_id: parameter name, mainly used on argparse side
+        :param name: plain-English name
+        :param description: help string
+        :param default_name: tuple of form (base_name, extension) specifying
+                             the default output file name
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def add_int(self, option_id, option_str, default, name, description):
+        """
+        Add an optional integer keyword argument (e.g. "--n=10" or "--n 10" on
+        the command line).
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param default: default value (must be an actual integer, not None)
+        :param name: plain-English name
+        :param description: help string
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def add_float(self, option_id, option_str, default, name, description):
+        """
+        Add an optional float keyword argument (e.g. "--n=10" or "--n 10" on
+        the command line).
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param default: default value (must be an actual number, not None)
+        :param name: plain-English name
+        :param description: help string
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def add_str(self, option_id, option_str, default, name, description):
+        """
+        Add a generic keyword argument whose type is a string.
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param default: default value (can be blank, but not None)
+        :param name: plain-English name
+        :param description: help string
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def add_boolean(self, option_id, option_str, default, name, description):
+        """
+        Add a boolean option.
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param default: specifies the boolean value of this option **if the
+                        argument was supplied**, i.e. on the argparse layer,
+                        default=True is equivalent to action="store_true"
+        :param name: plain-English name
+        :param description: help string
+        """
         raise NotImplementedError
 
 _validate_argparse_int = functools.partial(_validate_option_or_cast, int)
@@ -205,12 +275,12 @@ class PyParser(PbParserBase):
         if subcomponents:
             add_subcomponent_versions_option(self.parser, subcomponents)
 
-    def add_input_file_type(self, file_type_id, file_id, name, description):
+    def add_input_file_type(self, file_type, file_id, name, description):
         # this will propagate up the label to the exception
         vfunc = functools.partial(_validate_file, file_id)
         self.parser.add_argument(file_id, type=vfunc, help=description)
 
-    def add_output_file_type(self, file_type_id, file_id, name, description, default_name):
+    def add_output_file_type(self, file_type, file_id, name, description, default_name):
         self.parser.add_argument(file_id, type=str, help=description)
 
     def add_int(self, option_id, option_str, default, name, description):
@@ -300,6 +370,10 @@ class ToolContractParser(PbParserBase):
 
 
 class PbParser(PbParserBase):
+    """
+    Wrapper class for managing separate tool contract and argument parsers
+    (stored as tool_contract_parser and arg_parser attributes respectively).
+    """
 
     def __init__(self, tool_contract_parser, arg_parser, *parsers):
         """
@@ -339,12 +413,12 @@ class PbParser(PbParserBase):
             f = getattr(parser, f_name)
             f(*args, **kwds)
 
-    def add_input_file_type(self, file_type_id, file_id, name, description):
-        args = file_type_id, file_id, name, description
+    def add_input_file_type(self, file_type, file_id, name, description):
+        args = file_type, file_id, name, description
         self._dispatch("add_input_file_type", args, {})
 
-    def add_output_file_type(self, input_file_type_id, file_id, name, description, default_name):
-        args = input_file_type_id, file_id, name, description, default_name
+    def add_output_file_type(self, file_type, file_id, name, description, default_name):
+        args = file_type, file_id, name, description, default_name
         self._dispatch("add_output_file_type", args, {})
 
     def add_int(self, option_id, option_str, default, name, description):
@@ -355,11 +429,13 @@ class PbParser(PbParserBase):
         args = option_id, option_str, default, name, description
         self._dispatch("add_float", args, {})
 
-    def add_str(self, *args, **kwds):
-        self._dispatch("add_str", args, kwds)
+    def add_str(self, option_id, option_str, default, name, description):
+        args = option_id, option_str, default, name, description
+        self._dispatch("add_str", args, {})
 
-    def add_boolean(self, *args, **kwds):
-        self._dispatch("add_boolean", args, kwds)
+    def add_boolean(self, option_id, option_str, default, name, description):
+        args = option_id, option_str, default, name, description
+        self._dispatch("add_boolean", args, {})
 
     def to_contract(self):
         return self.tool_contract_parser.to_tool_contract()
@@ -368,7 +444,12 @@ class PbParser(PbParserBase):
 def get_default_contract_parser(tool_id, version, description, driver_exe,
                                 task_type, nproc_symbol, resource_types,
                                 subcomponents=()):
-    """Central point of creating a Tool contract that can emit and run tool contracts"""
+    """
+    Central point of creating a Tool contract that can emit and run tool
+    contracts.
+
+    :returns: PbParser object
+    """
     driver = ToolDriver(driver_exe)
     arg_parser = PyParser(tool_id, version, description,
                           subcomponents=subcomponents)
