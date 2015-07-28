@@ -291,6 +291,8 @@ class PyParser(PbParserBase):
                                  default=_validate_argparse_int(default))
 
     def add_float(self, option_id, option_str, default, name, description):
+        if isinstance(default, int):
+            default = float(default)
         opt = "--" + option_str
         self.parser.add_argument(opt, type=_validate_argparse_float,
                                  help=description,
@@ -337,6 +339,8 @@ class ToolContractParser(PbParserBase):
                                              _validate_option(int, default)))
 
     def add_float(self, option_id, option_str, default, name, description):
+        if isinstance(default, int):
+            default = float(default)
         self.options.append(to_option_schema(option_id,
                                              JsonSchemaTypes.NUM, name, description,
                                              _validate_option(float, default)))
@@ -426,6 +430,8 @@ class PbParser(PbParserBase):
         self._dispatch("add_int", args, {})
 
     def add_float(self, option_id, option_str, default, name, description):
+        if isinstance(default, int):
+            default = float(default)
         args = option_id, option_str, default, name, description
         self._dispatch("add_float", args, {})
 

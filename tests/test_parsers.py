@@ -65,7 +65,7 @@ class TestParsers(unittest.TestCase):
             ())
         p.add_int("pbcommand.task_options.n", "n", default=0, name="N",
             description="Integer option")
-        p.add_float("pbcommand.task_options.f", "f", default=0.0, name="F",
+        p.add_float("pbcommand.task_options.f", "f", default=0, name="F",
             description="Float option")
         # XXX note that the 'default' value is not actually what the option is
         # set to by default - it simply signals that action=store_true
