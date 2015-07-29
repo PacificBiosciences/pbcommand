@@ -430,8 +430,6 @@ class PbParser(PbParserBase):
         self._dispatch("add_int", args, {})
 
     def add_float(self, option_id, option_str, default, name, description):
-        if isinstance(default, int):
-            default = float(default)
         args = option_id, option_str, default, name, description
         self._dispatch("add_float", args, {})
 
