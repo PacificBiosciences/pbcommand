@@ -18,9 +18,7 @@ class TestRunDevApp(pbcommand.testkit.PbTestApp):
 
 class TestTxtDevApp(pbcommand.testkit.PbTestApp):
     DRIVER_BASE = "python -m pbcommand.cli.examples.dev_txt_app "
-    DRIVER_EMIT = DRIVER_BASE + ' --emit-tool-contract '
-    DRIVER_RESOLVE = DRIVER_BASE + ' --resolved-tool-contract '
-
+    # XXX using default args, so the emit/resolve drivers are automatic
     REQUIRES_PBCORE = False
     INPUT_FILES = [get_data_file("example.txt")]
     TASK_OPTIONS = {"pbcommand.task_options.dev_max_nlines": 27}
