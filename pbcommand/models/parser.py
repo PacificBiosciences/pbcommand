@@ -16,7 +16,9 @@ import datetime
 
 from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
                                       add_subcomponent_versions_option)
-from .tool_contract import ToolDriver
+from .tool_contract import (ToolDriver,
+                            InputFileType, OutputFileType,
+                            ToolContract, ToolContractTask)
 
 log = logging.getLogger(__name__)
 
@@ -316,22 +318,26 @@ class ToolContractParser(PbParserBase):
     """Parser to support Emitting and running ToolContracts"""
 
     def __init__(self, tool_id, version, description, task_type, driver, nproc_symbol, resource_types):
+        """Keeps the required elements for creating an instance of a
+        ToolContract"""
         super(ToolContractParser, self).__init__(tool_id, version, description)
         self.input_types = []
         self.output_types = []
         self.options = []
         self.driver = driver
+        # display name of the tool. Leaving this to not break every single API call
+        self.name = "DisplayName"
         self.nproc_symbol = nproc_symbol
         self.resource_types = resource_types
         self.task_type = task_type
 
     def add_input_file_type(self, file_type, file_id, name, description):
-        _d = dict(file_type_id=file_type.file_type_id, id=file_id, title=name, description=description)
-        self.input_types.append(_d)
+        x = InputFileType(file_type.file_type_id, file_id, name, description)
+        self.input_types.append(x)
 
     def add_output_file_type(self, file_type, file_id, name, description, default_name):
-        _d = dict(file_type_id=file_type.file_type_id, id=file_id, title=name, description=description, default_name=default_name)
-        self.output_types.append(_d)
+        x = OutputFileType(file_type.file_type_id, file_id, name, description, default_name)
+        self.output_types.append(x)
 
     def add_int(self, option_id, option_str, default, name, description):
         self.options.append(to_option_schema(option_id,
@@ -356,21 +362,22 @@ class ToolContractParser(PbParserBase):
                                              _validate_option(bool, default)))
 
     def to_tool_contract(self):
+        if not self.input_types and not self.output_types:
+            raise ValueError("Malformed tool contract inputs")
 
-        created_at = datetime.datetime.now()
-        _t = dict(input_types=self.input_types,
-                  output_types=self.output_types,
-                  task_type=self.task_type,
-                  schema_options=self.options,
-                  nproc=self.nproc_symbol,
-                  resource_types=self.resource_types,
-                  _comment="Created by v{v} at {d}".format(v=__version__, d=created_at.isoformat()))
-
-        _d = dict(version=self.version,
-                  tool_contract_id=self.tool_id,
-                  driver=self.driver.to_dict(),
-                  tool_contract=_t)
-        return _d
+        task = ToolContractTask(self.tool_id,
+                                self.name,
+                                self.description,
+                                self.version,
+                                self.task_type,
+                                self.input_types,
+                                self.output_types,
+                                self.options,
+                                self.nproc_symbol,
+                                self.resource_types)
+        tc = ToolContract(task, self.driver)
+        # this should just return TC, not tc.to_dict()
+        return tc.to_dict()
 
 
 class PbParser(PbParserBase):

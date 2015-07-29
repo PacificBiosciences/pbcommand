@@ -1,6 +1,7 @@
-
 import unittest
+
 from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
+
 
 class TestParsers(unittest.TestCase):
     def test_input_output_files(self):

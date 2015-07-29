@@ -3,9 +3,14 @@
 
 Author: Michael Kocher
 """
+import abc
+import datetime
+
+__version__ = '0.2.0'
 
 
 class _IOFileType(object):
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, file_type_id, label, display_name, description):
         self.file_type_id = file_type_id
@@ -21,16 +26,33 @@ class _IOFileType(object):
                   k=self.__class__.__name__)
         return "<{k} {f} {i} >".format(**_d)
 
+    @abc.abstractmethod
+    def to_dict(self):
+        raise NotImplementedError
+
 
 class InputFileType(_IOFileType):
-    pass
+    def to_dict(self):
+        return dict(file_type_id=self.file_type_id,
+                    id=self.label,
+                    title=self.display_name,
+                    description=self.description)
 
 
 class OutputFileType(_IOFileType):
 
     def __init__(self, file_type, label, display_name, description, default_name):
         super(OutputFileType, self).__init__(file_type, label, display_name, description)
+        # Default name of the output file. Should be specified as (base, ext)
+        # but "base.ext" is also supported. This should go away
         self.default_name = default_name
+
+    def to_dict(self):
+        return dict(file_type_id=self.file_type_id,
+                    id=self.label,
+                    title=self.display_name,
+                    description=self.description,
+                    default_name=self.default_name)
 
 
 class ToolDriver(object):
@@ -88,6 +110,17 @@ class ToolContractTask(object):
         _d = dict(k=self.__class__.__name__, i=self.task_id, t=self.task_type, n=self.name)
         return "<{k} id:{i} {n} >".format(**_d)
 
+    def to_dict(self):
+        created_at = datetime.datetime.now()
+        _t = dict(input_types=[i.to_dict() for i in self.input_file_types],
+                  output_types=[i.to_dict() for i in self.output_file_types],
+                  task_type=self.task_type,
+                  schema_options=self.options,
+                  nproc=self.nproc,
+                  resource_types=self.resources,
+                  _comment="Created by v{v} at {d}".format(v=__version__, d=created_at.isoformat()))
+        return _t
+
 
 class ResolvedToolContractTask(object):
     # The interface is the same, but the types are "resolved" and have a different
@@ -125,6 +158,14 @@ class ToolContract(object):
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.task_type)
         return "<{k} id:{i} >".format(**_d)
+
+    def to_dict(self):
+        _t = self.task.to_dict()
+        _d = dict(version=self.task.version,
+                  tool_contract_id=self.task.task_id,
+                  driver=self.driver.to_dict(),
+                  tool_contract=_t)
+        return _d
 
 
 class ResolvedToolContract(object):

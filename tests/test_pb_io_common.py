@@ -4,7 +4,7 @@ from pbcommand.testkit.base_utils import get_temp_dir
 
 log = logging.getLogger(__name__)
 
-from pbcommand.models.common import PipelineChunk
+from pbcommand.models import PipelineChunk
 from pbcommand.pb_io import load_pipeline_chunks_from_json, write_pipeline_chunks
 
 from base_utils import get_temp_file

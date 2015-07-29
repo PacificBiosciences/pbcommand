@@ -150,7 +150,7 @@ def load_tool_contract_from(path):
 
 def _write_json(s, output_file):
     with open(output_file, 'w') as f:
-        f.write(json.dumps(s))
+        f.write(json.dumps(s, indent=4, sort_keys=True))
     return s
 
 
