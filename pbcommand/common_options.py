@@ -15,7 +15,8 @@ def add_debug_option(p):
 
 
 def add_log_level_option(p):
-    p.add_argument('--log-level', default=logging.DEBUG, help="Set log level")
+    p.add_argument('--log-level', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'),
+                   default='INFO', help="Set log level")
     return p
 
 

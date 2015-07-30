@@ -16,6 +16,7 @@ Going to do this in a new steps.
 """
 import argparse
 import json
+import logging
 import time
 import traceback
 import sys
@@ -57,8 +58,16 @@ def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
 
     started_at = time.time()
 
-    # ToDo make this customizable from the options (?)
-    setup_log_func(alog)
+    pargs = args[0]
+    level = logging.INFO
+    # Assuming that the log_level might not be an added option.
+    if hasattr(pargs, 'log_level'):
+        level = logging.getLevelName(pargs.log_level)
+
+    log_options = dict(level=level)
+    # The Setup log func must adhere to the pbcommand.utils.setup_log func
+    # signature
+    setup_log_func(alog, **log_options)
 
     try:
         # the code in func should catch any exceptions. The try/catch
