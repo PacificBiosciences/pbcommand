@@ -24,8 +24,9 @@ class Constants(object):
     TOOL_ID = "tool_contract_id"
     TOOL = "tool_contract"
     TOOL_TYPE = "task_type"
+    IS_DIST = 'is_distributed'
 
-    RTOOL_ID = "resolved_tool_contract"
+    RTOOL = "resolved_tool_contract"
 
 
 class MalformedToolContractError(ValueError):
@@ -53,6 +54,8 @@ def load_or_raise(ex_type):
 def resolved_tool_contract_from_d(d):
     """Convert a dict to Resolved Tool Contract"""
 
+    # NEED to add Scatter/Gather type support
+
     driver_exe = d['driver']['exe']
     driver_env = d['driver'].get('env', {})
     driver = ToolDriver(driver_exe, env=driver_env)
@@ -61,13 +64,14 @@ def resolved_tool_contract_from_d(d):
         return x.encode('ascii', 'ignore')
 
     def _get(attr_name):
-        return d[Constants.TOOL][attr_name]
+        return d[Constants.RTOOL][attr_name]
 
     def _get_ascii(x_):
         return _to_a(_get(x_))
 
     tool_contract_id = _get_ascii(Constants.TOOL_ID)
     tool_type = _get_ascii(Constants.TOOL_TYPE)
+    is_distributed = _get(Constants.IS_DIST)
     # list of strings
     input_files = [_to_a(x) for x in _get("input_files")]
     # list of strings
@@ -78,7 +82,7 @@ def resolved_tool_contract_from_d(d):
     nproc = _get("nproc")
     resource_types = _get("resources")
 
-    resolved_tool_task = ResolvedToolContractTask(tool_contract_id, tool_type,
+    resolved_tool_task = ResolvedToolContractTask(tool_contract_id, is_distributed,
                                                   input_files, output_files,
                                                   tool_options, nproc, resource_types)
 
@@ -117,9 +121,10 @@ def tool_contract_from_d(d):
 
     task_id = _to_a(d[Constants.TOOL_ID])
     # FIXME
-    display_name = "Display Name"
+    display_name = _get_ascii("name")
     version = _to_a(d["version"])
     description = "Description"
+    is_distributed = _get(Constants.IS_DIST)
     task_type = _get_ascii(Constants.TOOL_TYPE)
     input_types = [_to_in_ft(x) for x in _get("input_types")]
     output_types = [_to_out_ft(x) for x in _get("output_types")]
@@ -133,7 +138,8 @@ def tool_contract_from_d(d):
 
     driver = ToolDriver(d['driver']['exe'], env=d['driver']['env'])
     tool_task = ToolContractTask(task_id, display_name, description, version,
-                                 task_type, input_types,
+                                 is_distributed,
+                                 input_types,
                                  output_types,
                                  tool_options, nproc, resource_types)
 
@@ -154,16 +160,15 @@ def _write_json(s, output_file):
     return s
 
 
-def write_tool_contract(p, output_json_file):
+def write_tool_contract(tool_contract, output_json_file):
     """
-    Write a Tool Contract from a PbParser instance
+    Write a Tool Contract
 
-    :param p:
-    :type p: pbcommand.models.parser.PbParser
+    :type tool_contract: ToolContract
     :param output_json_file:
     :return:
     """
-    return _write_json(p.to_contract(), output_json_file)
+    return _write_json(tool_contract.to_dict(), output_json_file)
 
 
 def write_resolved_tool_contract(rtc, output_json_file):
@@ -174,20 +179,5 @@ def write_resolved_tool_contract(rtc, output_json_file):
     :param output_json_file:
     :return:
     """
-    created_at = datetime.datetime.now()
-    comment = "Created by pbcommand v{v} at {d}".format(v=pbcommand.get_version(), d=created_at.isoformat())
-
-    # FIXME. there's a lot of assumptions here.
-    tc = dict(input_files=rtc.task.input_files,
-              output_files=rtc.task.output_files,
-              task_type=rtc.task.task_type,
-              tool_contract_id=rtc.task.task_id,
-              nproc=rtc.task.nproc,
-              resources=rtc.task.resources,
-              options=rtc.task.options,
-              _comment=comment)
-
-    d = dict(tool_contract=tc,
-             driver=rtc.driver.to_dict())
-
+    d = rtc.to_dict()
     return _write_json(d, output_json_file)

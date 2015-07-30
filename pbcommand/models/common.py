@@ -30,6 +30,9 @@ class PacBioNamespaces(object):
 
     # Task Ids
     PBSMRTPIPE_TASK_PREFIX = 'pbsmrtpipe.tasks'
+
+    PB_TASK_TYPES = 'pbsmrtpipe.task_types'
+
     # Task Options
     PBSMRTPIPE_TASK_OPTS_PREFIX = 'pbsmrtpipe.task_options'
     # Workflow Level Options
@@ -48,23 +51,18 @@ to_file_ns = functools.partial(__to_type, PacBioNamespaces.NEW_PBSMRTPIPE_FILE_P
 to_ds_ns = functools.partial(__to_type, PacBioNamespaces.DATASET_FILE_PREFIX)
 to_task_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_OPTS_PREFIX)
 to_task_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_PREFIX)
+to_task_types_ns = functools.partial(__to_type, PacBioNamespaces.PB_TASK_TYPES)
 to_workflow_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_PREFIX)
 to_pipeline_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_PIPELINES)
 to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
 
 
 class TaskTypes(object):
+    # This is really TC types
 
-    """Task types used in workflow engine. Local will run the task as a subprocess,
-    Distributed will run the process on a remote node if the workflow has been configured with a cluster manager.
-
-    Most tasks should be set to be Distributed, only extremely light weight tasks
-    should be set to LOCAL.
-    """
-    # perhaps this should have it's own namespace
-    # pbsmrtpipe.task_types.
-    LOCAL = to_constant_ns('local_task')
-    DISTRIBUTED = to_constant_ns('distributed_task')
+    STANDARD = to_task_types_ns("standard")
+    SCATTERED = to_task_types_ns("scattered")
+    GATHERED = to_task_types_ns("gathered")
 
 
 class SymbolTypes(object):

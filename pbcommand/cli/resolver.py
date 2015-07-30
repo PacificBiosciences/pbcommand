@@ -99,10 +99,9 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
 
     resources = []
 
-    log.warn("Resolved options not supported yet.")
     log.warn("Resolved resources not support yet.")
     task = ResolvedToolContractTask(tool_contract.task.task_id,
-                                    tool_contract.task.task_type,
+                                    tool_contract.task.is_distributed,
                                     input_files,
                                     output_files,
                                     resolved_options,

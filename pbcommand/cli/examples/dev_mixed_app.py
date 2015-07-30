@@ -16,8 +16,8 @@ options = alpha, beta
 import sys
 import logging
 
-from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
-from pbcommand.cli import pacbio_args_or_contract_runner_emit
+from pbcommand.models import TaskTypes, FileTypes, get_pbparser
+from pbcommand.cli import pbparser_runner
 from pbcommand.utils import setup_log
 
 log = logging.getLogger(__name__)
@@ -33,14 +33,12 @@ def _get_contract_parser():
     :return: PbParser
     """
     # Number of processors to use
-    nproc = 1
-    # Log file, tmp dir, tmp file. See ResourceTypes in models
-    resource_types = ()
+    nproc = 2
     # Commandline exe to call "{exe}" /path/to/resolved-tool-contract.json
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
-    task_type = TaskTypes.LOCAL
-    p = get_default_contract_parser(TOOL_ID, __version__, desc, driver_exe, task_type, nproc, resource_types)
+    p = get_pbparser(TOOL_ID, __version__, "DevApp", desc, driver_exe,
+                     is_distributed=False, nproc=nproc)
     return p
 
 
@@ -113,7 +111,7 @@ def main(argv=sys.argv):
     log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
 
     p = get_contract_parser()
-    return pacbio_args_or_contract_runner_emit(argv[1:], p,
+    return pbparser_runner(argv[1:], p,
                                                args_runner,
                                                resolved_tool_contract_runner,
                                                log,

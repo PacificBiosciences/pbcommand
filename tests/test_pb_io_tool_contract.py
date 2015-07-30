@@ -3,8 +3,7 @@ import unittest
 import logging
 
 from base_utils import get_data_file, HAS_PBCORE, pbcore_skip_msg
-from pbcommand.pb_io.tool_contract_io import (write_tool_contract,
-                                              load_tool_contract_from)
+from pbcommand.pb_io.tool_contract_io import load_tool_contract_from
 
 
 import pbcommand.cli.examples.dev_app

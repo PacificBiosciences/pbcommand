@@ -1,6 +1,6 @@
 {
   "_comment": "Example of a Resolved Tool Contract.",
-  "tool_contract": {
+  "resolved_tool_contract": {
     "tool_contract_id": "pbsmrtpipe.tools.dev_app",
     "task_type": "pbsmrtpipe.constants.local_task",
     "input_files": ["/tmp/file.fasta"],

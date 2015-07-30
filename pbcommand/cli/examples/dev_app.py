@@ -4,8 +4,8 @@ import logging
 import sys
 
 from pbcommand.utils import setup_log
-from pbcommand.cli import pacbio_args_or_contract_runner_emit
-from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
+from pbcommand.cli import pbparser_runner
+from pbcommand.models import TaskTypes, FileTypes, get_pbparser
 
 
 # This has the same functionality as the dev_simple_app
@@ -44,18 +44,20 @@ def get_contract_parser():
     :rtype: PbParser
     :return: PbParser
     """
-    # Number of processors to use
-    nproc = 1
-    # Log file, tmp dir, tmp file. See ResourceTypes in models
-    resource_types = ()
     # Commandline exe to call "{exe}" /path/to/resolved-tool-contract.json
+
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
-    task_type = TaskTypes.LOCAL
     subcomponents = [("my_subcomponent", "1.2.3")]
-    p = get_default_contract_parser(TOOL_ID, __version__, desc, driver_exe,
-                                    task_type, nproc, resource_types,
-                                    subcomponents=subcomponents)
+
+    p = get_pbparser(TOOL_ID,
+                     __version__,
+                     "Example Dev App",
+                     desc,
+                     driver_exe,
+                     is_distributed=False,
+                     subcomponents=subcomponents)
+
     add_args_and_options(p)
     return p
 
@@ -89,7 +91,7 @@ def main(argv=sys.argv):
     # mp.arg_parser.parser
     # The Tool Contract parser
     # mp.tool_contract_parser.parser
-    return pacbio_args_or_contract_runner_emit(argv[1:],
+    return pbparser_runner(argv[1:],
                                                mp,
                                                args_runner,
                                                resolved_tool_contract_runner,

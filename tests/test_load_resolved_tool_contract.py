@@ -26,13 +26,6 @@ class _TestUtil(unittest.TestCase):
         self.assertIsNotNone(tool_contract)
 
 
-class TestLoadResolvedToolContract(_TestUtil):
-    FILE_NAME = "resolved_contract_01.json"
-
-    def _to_object(self, path):
-        return load_resolved_tool_contract_from(path)
-
-
 class TestLoadResolvedContract(unittest.TestCase):
 
     def test_01(self):

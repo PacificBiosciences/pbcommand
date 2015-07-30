@@ -12,13 +12,13 @@ import re
 # there's a problem with functools32 and jsonschema. This import raise an
 # import error.
 #import jsonschema
-import datetime
 
 from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
                                       add_subcomponent_versions_option)
 from .tool_contract import (ToolDriver,
                             InputFileType, OutputFileType,
-                            ToolContract, ToolContractTask)
+                            ToolContract, ToolContractTask,
+                            ScatterToolContractTask)
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,9 @@ __version__ = "0.1.1"
 __all__ = ["PbParser",
            "PyParser",
            "ToolContractParser",
-           "get_default_contract_parser"]
+           "get_pbparser",
+           "get_scatter_pbparser",
+           "get_gather_pbparser"]
 
 RX_TASK_ID = re.compile(r'^([A-z0-9_]*)\.tasks\.([A-z0-9_]*)$')
 RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_]*)\.task_options\.([A-z0-9_\.]*)')
@@ -156,10 +158,11 @@ class PbParserBase(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, tool_id, version, description):
+    def __init__(self, tool_id, version, name, description):
         self.tool_id = _validate_task_id(tool_id)
         self.version = version
         self.description = description
+        self.name = name
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.tool_id, v=self.version)
@@ -268,8 +271,8 @@ _validate_argparse_str = functools.partial(_validate_option_or_cast, str)
 class PyParser(PbParserBase):
     """PbParser backed that supports argparse"""
 
-    def __init__(self, tool_id, version, description, subcomponents=()):
-        super(PyParser, self).__init__(tool_id, version, description)
+    def __init__(self, tool_id, version, name, description, subcomponents=()):
+        super(PyParser, self).__init__(tool_id, version, name, description)
         self.parser = argparse.ArgumentParser(version=version,
                                               description=description,
                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -317,10 +320,10 @@ class PyParser(PbParserBase):
 class ToolContractParser(PbParserBase):
     """Parser to support Emitting and running ToolContracts"""
 
-    def __init__(self, tool_id, version, description, task_type, driver, nproc_symbol, resource_types):
+    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types):
         """Keeps the required elements for creating an instance of a
         ToolContract"""
-        super(ToolContractParser, self).__init__(tool_id, version, description)
+        super(ToolContractParser, self).__init__(tool_id, version, name, description)
         self.input_types = []
         self.output_types = []
         self.options = []
@@ -362,6 +365,8 @@ class ToolContractParser(PbParserBase):
                                              _validate_option(bool, default)))
 
     def to_tool_contract(self):
+        # Not a well formed tool contract, must have at least one input and
+        # one output
         if not self.input_types and not self.output_types:
             raise ValueError("Malformed tool contract inputs")
 
@@ -377,7 +382,33 @@ class ToolContractParser(PbParserBase):
                                 self.resource_types)
         tc = ToolContract(task, self.driver)
         # this should just return TC, not tc.to_dict()
-        return tc.to_dict()
+        return tc
+
+
+class ScatterToolContractParser(ToolContractParser):
+
+    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types, chunk_keys):
+        super(ScatterToolContractParser, self).__init__(tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types)
+        self.chunk_keys = chunk_keys
+
+    def to_tool_contract(self):
+        task = ScatterToolContractTask(self.tool_id,
+                                       self.name,
+                                       self.description,
+                                       self.version,
+                                       self.task_type,
+                                       self.input_types,
+                                       self.output_types,
+                                       self.options,
+                                       self.nproc_symbol,
+                                       self.resource_types,
+                                       self.chunk_keys)
+        tc = ToolContract(task, self.driver)
+        return tc
+
+
+class GatherToolContractParser(ToolContractParser):
+    pass
 
 
 class PbParser(PbParserBase):
@@ -412,8 +443,10 @@ class PbParser(PbParserBase):
         # for now assume parsers have the same version, id, ...
         tool_id = tool_contract_parser.tool_id
         version = tool_contract_parser.version
+        name = tool_contract_parser.name
         description = tool_contract_parser.description
-        super(PbParser, self).__init__(tool_id, version, description)
+
+        super(PbParser, self).__init__(tool_id, version, name, description)
 
     @property
     def parsers(self):
@@ -452,17 +485,35 @@ class PbParser(PbParserBase):
         return self.tool_contract_parser.to_tool_contract()
 
 
-def get_default_contract_parser(tool_id, version, description, driver_exe,
-                                task_type, nproc_symbol, resource_types,
-                                subcomponents=()):
+def _factory(tool_id, version, name, description, subcomponents):
+    def _f(tc_parser):
+        arg_parser = PyParser(tool_id, version, name, description, subcomponents=subcomponents)
+        return PbParser(tc_parser, arg_parser)
+    return _f
+
+
+def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed=True, nproc=1, resource_types=(), subcomponents=()):
     """
     Central point of creating a Tool contract that can emit and run tool
     contracts.
 
     :returns: PbParser object
     """
-    driver = ToolDriver(driver_exe)
-    arg_parser = PyParser(tool_id, version, description,
-                          subcomponents=subcomponents)
-    tc_parser = ToolContractParser(tool_id, version, description, task_type, driver, nproc_symbol, resource_types)
-    return PbParser(tc_parser, arg_parser)
+    tc_parser = ToolContractParser(tool_id, version, name, description, is_distributed, ToolDriver(driver_exe), nproc, resource_types)
+    return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
+
+
+def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_keys,
+                         is_distributed=True, nproc=1, resource_types=(), subcomponents=()):
+    """Create a Scatter Tool"""
+    tc_parser = ScatterToolContractParser(tool_id, version, name, description,
+                                          is_distributed, ToolDriver(driver_exe), nproc, resource_types, chunk_keys)
+    return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
+
+
+def get_gather_pbparser(tool_id, version, name, description, driver_exe,
+                        is_distributed=True, nproc=1, resource_types=(), subcomponents=()):
+    """Create a Gather tool"""
+    tc_parser = GatherToolContractParser(tool_id, version, name, description,
+                                         is_distributed, ToolDriver(driver_exe), nproc, resource_types)
+    return _factory(tool_id, version, name, description, subcomponents)(tc_parser)

@@ -15,7 +15,6 @@ Going to do this in a new steps.
 
 """
 import argparse
-
 import json
 import time
 import traceback
@@ -141,6 +140,8 @@ def pacbio_args_or_contract_runner(argv,
                                    contract_tool_runner_func,
                                    alog, setup_log_func):
     """
+    For tools that understand resolved_tool_contracts, but can't emit
+    tool contracts (they may have been written by hand)
 
     :param parser: argparse Parser
     :type parser: ArgumentParser
@@ -155,8 +156,6 @@ def pacbio_args_or_contract_runner(argv,
     :return: int return code
     :rtype: int
     """
-
-    # for tools that understand resolved_tool_contracts
 
     # circumvent the argparse parsing by inspecting the raw argv, then manually
     # parse out the resolved_tool_contract path. Not awesome, but the only way to skip the
@@ -175,12 +174,12 @@ def pacbio_args_or_contract_runner(argv,
                                   setup_log_func)
 
 
-def pacbio_args_or_contract_runner_emit(argv,
-                                        parser,
-                                        args_runner_func,
-                                        contract_runner_func,
-                                        alog,
-                                        setup_log_func):
+def pbparser_runner(argv,
+                    parser,
+                    args_runner_func,
+                    contract_runner_func,
+                    alog,
+                    setup_log_func):
     """Run a Contract or emit a contract to stdout."""
     if not isinstance(parser, PbParser):
         raise TypeError("Only supports PbParser.")
@@ -191,7 +190,7 @@ def pacbio_args_or_contract_runner_emit(argv,
 
     if EMIT_TOOL_CONTRACT_OPTION in argv:
         # print tool_contract
-        x = json.dumps(tool_contract, indent=4)
+        x = json.dumps(tool_contract.to_dict(), indent=4)
         print x
     else:
         return pacbio_args_or_contract_runner(argv, arg_parser, args_runner_func, contract_runner_func, alog, setup_log_func)

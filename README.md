@@ -143,7 +143,7 @@ def get_contract_parser():
     task_type = TaskTypes.LOCAL 
     # TaskTypes.DISTRIBUTED if you want your task to be submitted to the cluster manager (e.g., SGE) if 
     # one is provided to the workflow engine.
-    p = get_default_contract_parser(TOOL_ID, __version__, desc, driver_exe, task_type, nproc, resource_types)
+    p = get_pbparser(TOOL_ID, __version__, desc, driver_exe, task_type, nproc, resource_types)
     add_args_and_options(p)
     return p
 
@@ -174,7 +174,7 @@ Add running layer
 import sys
 import logging
 import pbcommand.utils setup_log
-from pbcommand.cli import pacbio_args_or_contract_runner_emit
+from pbcommand.cli import pbparser_runner
 
 log = logging.getLogger(__name__)
 
@@ -182,7 +182,7 @@ def main(argv=sys.argv):
     # New interface that supports running resolved tool contracts
     log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
     p = get_contract_parser()
-    return pacbio_args_or_contract_runner_emit(argv[1:], p,
+    return pbparser_runner(argv[1:], p,
                                                _args_runner, # argparse runner func
                                                _resolved_tool_contract_runner, # tool contract runner func
                                                log, # log instance

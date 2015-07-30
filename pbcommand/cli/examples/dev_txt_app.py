@@ -8,8 +8,8 @@ import logging
 import sys
 
 from pbcommand.utils import setup_log
-from pbcommand.cli import pacbio_args_or_contract_runner_emit
-from pbcommand.models import TaskTypes, FileTypes, get_default_contract_parser
+from pbcommand.cli import pbparser_runner
+from pbcommand.models import TaskTypes, FileTypes, get_pbparser
 
 TOOL_ID = "pbcommand.tasks.dev_txt_app"
 VERSION = "0.1.0"
@@ -18,15 +18,15 @@ log = logging.getLogger(__name__)
 
 
 def get_parser():
-    driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
+    driver_exe = "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
-    task_type = TaskTypes.LOCAL
     # Can specify libs or other dependencies that
     subcomponents = [("pbcommand", VERSION),
                      ("my_component", "0.1.0"),
                      ("my_component_id", "1.2.3")]
     # Create an instance of a Pacbio Parser
-    p = get_default_contract_parser(TOOL_ID, VERSION, desc, driver_exe, task_type, 1, (), subcomponents=subcomponents)
+    p = get_pbparser(TOOL_ID, VERSION, "Txt App", desc, driver_exe,
+                     is_distributed=False, subcomponents=subcomponents)
     # Add Input Files types
     p.add_input_file_type(FileTypes.TXT, "txt_in", "Txt file", "Generic Text File")
     # Add output files types
@@ -61,7 +61,7 @@ def rtc_runner(rtc):
 
 
 def main(argv=sys.argv):
-    return pacbio_args_or_contract_runner_emit(argv[1:],
+    return pbparser_runner(argv[1:],
                                                get_parser(),
                                                args_runner,
                                                rtc_runner,

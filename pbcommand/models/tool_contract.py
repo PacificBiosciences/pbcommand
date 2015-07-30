@@ -6,6 +6,9 @@ Author: Michael Kocher
 import abc
 import datetime
 
+import pbcommand
+from pbcommand.models import TaskTypes
+
 __version__ = '0.2.0'
 
 
@@ -77,7 +80,9 @@ class ToolDriver(object):
 
 class ToolContractTask(object):
 
-    def __init__(self, task_id, name, description, version, task_type, input_types, output_types, tool_options, nproc, resources):
+    TASK_TYPE_ID = TaskTypes.STANDARD
+
+    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resources):
         """
         Core metadata for a commandline task
 
@@ -86,8 +91,8 @@ class ToolContractTask(object):
         :param name: Display name of your
         :param description: Short description of your tool
         :param version: semantic style versioning
-        :param task_type: If the task will be run locally or not
-        :parama task_type: TaskTypes.LOCAL | TaskTypes.DISTRIBUTED
+        :param is_distributed: If the task will be run locally or not
+        :param is_distributed: bool
         :param input_types: list[FileType]
         :param output_types:
         :param tool_options:
@@ -99,7 +104,7 @@ class ToolContractTask(object):
         self.name = name
         self.description = description
         self.version = version
-        self.task_type = task_type
+        self.is_distributed = is_distributed
         self.input_file_types = input_types
         self.output_file_types = output_types
         self.options = tool_options
@@ -107,14 +112,16 @@ class ToolContractTask(object):
         self.resources = resources
 
     def __repr__(self):
-        _d = dict(k=self.__class__.__name__, i=self.task_id, t=self.task_type, n=self.name)
+        _d = dict(k=self.__class__.__name__, i=self.task_id, t=self.is_distributed, n=self.name)
         return "<{k} id:{i} {n} >".format(**_d)
 
     def to_dict(self):
         created_at = datetime.datetime.now()
         _t = dict(input_types=[i.to_dict() for i in self.input_file_types],
                   output_types=[i.to_dict() for i in self.output_file_types],
-                  task_type=self.task_type,
+                  task_type=self.TASK_TYPE_ID,
+                  is_distributed=self.is_distributed,
+                  name=self.name,
                   schema_options=self.options,
                   nproc=self.nproc,
                   resource_types=self.resources,
@@ -122,22 +129,30 @@ class ToolContractTask(object):
         return _t
 
 
-class ResolvedToolContractTask(object):
-    # The interface is the same, but the types are "resolved" and have a different
-    # structure
+class ScatterToolContractTask(ToolContractTask):
 
-    def __init__(self, task_id, task_type, input_files, output_files, options, nproc, resources):
-        self.task_id = task_id
-        self.task_type = task_type
-        self.input_files = input_files
-        self.output_files = output_files
-        self.options = options
-        self.nproc = nproc
-        self.resources = resources
+    TASK_TYPE_ID = TaskTypes.SCATTERED
 
-    def __repr__(self):
-        _d = dict(k=self.__class__.__name__, i=self.task_id, t=self.task_type)
-        return "<{k} id:{i} >".format(**_d)
+    def __init__(self, task_id, name, description, version, is_distributed,
+                 input_types, output_types, tool_options, nproc, resources, chunk_keys):
+        """Scatter tasks have a special output signature of [FileTypes.CHUNK]
+
+        The chunk keys are the expected to be written to the chunk.json file
+        """
+        super(ScatterToolContractTask, self).__init__(task_id, name, description, version, is_distributed,
+                                                        input_types, output_types, tool_options, nproc, resources)
+        self.chunk_keys = chunk_keys
+
+    def to_dict(self):
+        s = super(ScatterToolContractTask, self).to_dict()
+        s['chunk_keys'] = self.chunk_keys
+        return s
+
+
+class GatherToolContractTask(ToolContractTask):
+    """Gather tasks have special input type [FileTypes.CHUNK]"""
+    TASK_TYPE_ID = TaskTypes.GATHERED
+    # not completely sure how to handle chunk-keys.
 
 
 class ToolContract(object):
@@ -145,7 +160,7 @@ class ToolContract(object):
     def __init__(self, task, driver):
         """
 
-        :type task: ToolContractTask
+        :type task: ToolContractTask | ScatterToolContractTask | GatherToolContractTask
         :type driver: ToolDriver
 
         :param task:
@@ -156,7 +171,7 @@ class ToolContract(object):
         self.driver = driver
 
     def __repr__(self):
-        _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.task_type)
+        _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.is_distributed)
         return "<{k} id:{i} >".format(**_d)
 
     def to_dict(self):
@@ -168,12 +183,61 @@ class ToolContract(object):
         return _d
 
 
+class ResolvedToolContractTask(object):
+    # The interface is the same, but the types are "resolved" and have a
+    # different
+    # structure
+    TASK_TYPE_ID = TaskTypes.STANDARD
+
+    def __init__(self, task_id, is_distributed, input_files, output_files,
+                 options, nproc, resources):
+        self.task_id = task_id
+        self.is_distributed = is_distributed
+        self.input_files = input_files
+        self.output_files = output_files
+        self.options = options
+        self.nproc = nproc
+        self.resources = resources
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__, i=self.task_id,
+                  t=self.is_distributed)
+        return "<{k} id:{i} >".format(**_d)
+
+    def to_dict(self):
+        created_at = datetime.datetime.now()
+        comment = "Created by pbcommand v{v} at {d}".format(
+            v=pbcommand.get_version(), d=created_at.isoformat())
+
+        tc = dict(input_files=self.input_files,
+                  output_files=self.output_files,
+                  task_type=self.TASK_TYPE_ID,
+                  is_distributed=self.is_distributed,
+                  tool_contract_id=self.task_id,
+                  nproc=self.nproc,
+                  resources=self.resources,
+                  options=self.options,
+                  _comment=comment)
+        return tc
+
+
+class ResolvedScatteredContractTask(ResolvedToolContractTask):
+    TASK_TYPE_ID = TaskTypes.SCATTERED
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks):
+        super(ResolvedScatteredContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+        self.max_nchunks = max_nchunks
+
+
+class ResolvedGatherContractTask(ResolvedToolContractTask):
+    TASK_TYPE_ID = TaskTypes.GATHERED
+
+
 class ResolvedToolContract(object):
 
     def __init__(self, task, driver):
         """
 
-        :type task: ResolvedToolContractTask
+        :type task: ResolvedToolContractTask | ResolvedScatteredContractTask | ResolvedGatherContractTask
         :type driver: ToolDriver
 
         :param task:
@@ -184,5 +248,9 @@ class ResolvedToolContract(object):
         self.driver = driver
 
     def __repr__(self):
-        _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.task_type)
+        _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.is_distributed)
         return "<{k} id:{i} >".format(**_d)
+
+    def to_dict(self):
+        return dict(resolved_tool_contract=self.task.to_dict(),
+                    driver=self.driver.to_dict())

@@ -1,7 +1,7 @@
 import pprint
 
 from pbcommand.models.common import (FileTypes, ResourceTypes, SymbolTypes, TaskTypes)
-from pbcommand.models.parser import get_default_contract_parser
+from pbcommand.models.parser import get_pbparser
 from pbcommand.models.tool_contract import ToolDriver
 
 
@@ -17,7 +17,7 @@ def _example_options(p):
 def example_01():
     driver = ToolDriver("my-exe --config")
     resource_types = (ResourceTypes.TMP_DIR, ResourceTypes.LOG_FILE)
-    p = get_default_contract_parser("pbcommand.tools.example", "0.1.2", "My Description", driver, TaskTypes.DISTRIBUTED, SymbolTypes.MAX_NPROC, resource_types)
+    p = get_pbparser("pbcommand.tools.example", "0.1.2", "My Description", driver, TaskTypes.DISTRIBUTED, SymbolTypes.MAX_NPROC, resource_types)
     return _example_options(p)
 
 
