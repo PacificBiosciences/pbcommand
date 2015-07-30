@@ -220,7 +220,7 @@ class FileTypes(object):
     DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", "application/xml")
     DS_CCS = FileType(to_ds_ns("CCSreadSet"), "file", "ccsread.dataset.xml", "application/xml")
     DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "reference.dataset.xml", "application/xml")
-    DS_BAM = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
+    DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
     DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.dataset.xml", "application/xml")
     DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcode.dataset.xml", "application/xml")
 
