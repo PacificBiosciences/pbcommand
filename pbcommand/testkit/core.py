@@ -21,6 +21,9 @@ class PbTestApp(unittest.TestCase):
 
     """Generic Harness for running tool contracts end-to-end"""
 
+    # if the base command is defined, DRIVER_EMIT and DRIVER_RESOLVE can be
+    # guessed automatically
+    DRIVER_BASE = None
     # complete Emit a tool contract
     DRIVER_EMIT = ""
     # Run tool from a resolve tool contract JSON file
@@ -40,6 +43,14 @@ class PbTestApp(unittest.TestCase):
     # These will be checked against the resolved tool contract values
     RESOLVED_TASK_OPTIONS = {}
     RESOLVED_NPROC = 1
+
+    @classmethod
+    def setUpClass(cls):
+        if cls.DRIVER_BASE is not None:
+            if cls.DRIVER_EMIT == "":
+                cls.DRIVER_EMIT = cls.DRIVER_BASE + " --emit-tool-contract "
+            if cls.DRIVER_RESOLVE == "":
+                cls.DRIVER_RESOLVE = cls.DRIVER_BASE + " --resolved-tool-contract "
 
     def _test_outputs_exists(self, rtc):
         """:type rtc: pbcommand.models.ResolvedToolContract"""
