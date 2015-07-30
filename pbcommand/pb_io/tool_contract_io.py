@@ -44,7 +44,7 @@ def load_or_raise(ex_type):
             try:
                 return func(path)
             except Exception as e:
-                msg = msg + "{e} {m}".format(m=e.message, e=e)
+                msg = msg + " {e} {m}".format(m=e.message, e=e)
                 log.error(msg, exc_info=True)
                 raise ex_type(msg)
         return _wrapper
