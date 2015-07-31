@@ -329,7 +329,7 @@ class ToolContractParser(PbParserBase):
         self.options = []
         self.driver = driver
         # display name of the tool. Leaving this to not break every single API call
-        self.name = "DisplayName"
+        self.name = name
         self.nproc_symbol = nproc_symbol
         self.resource_types = resource_types
         self.task_type = task_type
