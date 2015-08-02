@@ -132,7 +132,7 @@ def get_parser():
     p = get_scatter_pbparser(TOOL_ID, __version__, "Fasta Scatter",
                              desc, driver, chunk_keys, is_distributed=False)
     p.add_input_file_type(FileTypes.FASTA, "fasta_in", "Fasta In", "Fasta file to scatter")
-    p.add_output_file_type(FileTypes.CHUNK, "cjson", "Chunk JSON", "Scattered/Chunked Fasta Chunk.json", ("fasta", "chunks.json"))
+    p.add_output_file_type(FileTypes.CHUNK, "cjson", "Chunk JSON", "Scattered/Chunked Fasta Chunk.json", "fasta.chunks.json")
     p.add_int("pbcommand.task_options.dev_scatter_fa_nchunks", "nchunks", 10, "Number of chunks",
               "Suggested number of chunks. May be overridden by $max_nchunks")
     return p

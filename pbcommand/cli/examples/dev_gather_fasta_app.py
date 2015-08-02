@@ -89,7 +89,7 @@ def get_parser():
     p = get_gather_pbparser(TOOL_ID, __version__, "Fasta Chunk Gather",
                             desc, driver, is_distributed=False)
     p.add_input_file_type(FileTypes.CHUNK, "chunk_json", "Chunk JSON", "Chunked Fasta JSON Out")
-    p.add_output_file_type(FileTypes.FASTA, "output", "Chunk JSON", "Output Fasta", ("gathered", "fasta"))
+    p.add_output_file_type(FileTypes.FASTA, "output", "Chunk JSON", "Output Fasta", "gathered.fasta")
     return p
 
 

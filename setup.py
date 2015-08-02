@@ -48,7 +48,7 @@ setup(
     packages=find_packages(),
     package_data={"pbcommand": ["schemas/*.avsc"]},
     zip_safe=False,
-    extras_require={"pbcore": ["pbcore", "ipython"]},
+    extras_require={"pbcore": ["pbcore", "ipython", "autopep8"]},
     classifiers=['Development Status :: 4 - Beta',
                  'Environment :: Console',
                  'Topic :: Software Development :: Bug Tracking']

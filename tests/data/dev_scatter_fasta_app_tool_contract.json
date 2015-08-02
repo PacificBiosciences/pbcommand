@@ -1,0 +1,55 @@
+{
+    "version": "0.1.0", 
+    "driver": {
+        "exe": "python -m pbcommand.cli.examples.dev_scatter_fasta ", 
+        "env": {}
+    }, 
+    "tool_contract_id": "pbcommand.tasks.dev_scatter_fasta", 
+    "tool_contract": {
+        "task_type": "pbsmrtpipe.task_types.scattered", 
+        "resource_types": [], 
+        "description": "Scatter a single fasta file to create chunk.json file", 
+        "schema_options": [
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "required": [
+                    "pbcommand.task_options.dev_scatter_fa_nchunks"
+                ], 
+                "type": "object", 
+                "properties": {
+                    "pbcommand.task_options.dev_scatter_fa_nchunks": {
+                        "default": 10, 
+                        "type": "integer", 
+                        "description": "Suggested number of chunks. May be overridden by $max_nchunks", 
+                        "title": "Number of chunks"
+                    }
+                }, 
+                "title": "JSON Schema for pbcommand.task_options.dev_scatter_fa_nchunks"
+            }
+        ], 
+        "output_types": [
+            {
+                "title": "Chunk JSON", 
+                "description": "Scattered/Chunked Fasta Chunk.json", 
+                "default_name": "fasta.chunks.json", 
+                "id": "cjson", 
+                "file_type_id": "PacBio.FileTypes.CHUNK"
+            }
+        ], 
+        "_comment": "Created by v0.2.0 at 2015-08-01T22:37:56.300558", 
+        "input_types": [
+            {
+                "description": "Fasta file to scatter", 
+                "title": "Fasta In", 
+                "id": "fasta_in", 
+                "file_type_id": "PacBio.FileTypes.Fasta"
+            }
+        ], 
+        "chunk_keys": [
+            "$chunk.fasta_id"
+        ], 
+        "nproc": 1, 
+        "is_distributed": false, 
+        "name": "Fasta Scatter"
+    }
+}

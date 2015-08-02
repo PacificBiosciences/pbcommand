@@ -7,8 +7,8 @@
     "tool_contract_id": "pbcommand.tasks.dev_app", 
     "tool_contract": {
         "task_type": "pbsmrtpipe.task_types.standard", 
-        "is_distributed": false, 
-        "name": "DisplayName", 
+        "resource_types": [], 
+        "description": "Dev app for Testing that supports emitting tool contracts", 
         "schema_options": [
             {
                 "$schema": "http://json-schema.org/draft-04/schema#", 
@@ -36,7 +36,7 @@
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
         ], 
-        "_comment": "Created by v0.2.0 at 2015-07-29T21:10:10.035465", 
+        "_comment": "Created by v0.2.0 at 2015-08-01T22:37:55.981632", 
         "input_types": [
             {
                 "description": "PacBio Spec'ed fasta file", 
@@ -46,6 +46,7 @@
             }
         ], 
         "nproc": 1, 
-        "resource_types": []
+        "is_distributed": false, 
+        "name": "Example Dev App"
     }
 }

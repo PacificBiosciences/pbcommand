@@ -62,11 +62,11 @@ def rtc_runner(rtc):
 
 def main(argv=sys.argv):
     return pbparser_runner(argv[1:],
-                                               get_parser(),
-                                               args_runner,
-                                               rtc_runner,
-                                               log,
-                                               setup_log)
+                           get_parser(),
+                           args_runner,
+                           rtc_runner,
+                           log,
+                           setup_log)
 
 
 if __name__ == '__main__':

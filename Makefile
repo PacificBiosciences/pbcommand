@@ -28,6 +28,8 @@ doc:
 build-tool-contracts:
 	python -m pbcommand.cli.examples.dev_txt_app --emit-tool-contract > ./tests/data/dev_example_tool_contract.json
 	python -m pbcommand.cli.examples.dev_app --emit-tool-contract > ./tests/data/dev_example_dev_txt_app_contract.json
+	python -m pbcommand.cli.examples.dev_gather_fasta_app --emit-tool-contract > ./tests/data/dev_gather_fasta_app_tool_contract.json
+	python -m pbcommand.cli.examples.dev_scatter_fasta_app --emit-tool-contract > ./tests/data/dev_scatter_fasta_app_tool_contract.json
 
 run-pep8:
 	find pbcommand -name "*.py" -exec pep8 --ignore=E501,E265,E731,E402 {} \;

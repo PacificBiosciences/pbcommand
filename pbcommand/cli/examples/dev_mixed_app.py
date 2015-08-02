@@ -112,10 +112,10 @@ def main(argv=sys.argv):
 
     p = get_contract_parser()
     return pbparser_runner(argv[1:], p,
-                                               args_runner,
-                                               resolved_tool_contract_runner,
-                                               log,
-                                               setup_log)
+                           args_runner,
+                           resolved_tool_contract_runner,
+                           log,
+                           setup_log)
 
 
 if __name__ == '__main__':

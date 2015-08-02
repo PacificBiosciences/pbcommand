@@ -18,7 +18,7 @@ from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
 from .tool_contract import (ToolDriver,
                             InputFileType, OutputFileType,
                             ToolContract, ToolContractTask,
-                            ScatterToolContractTask)
+                            ScatterToolContractTask, GatherToolContractTask)
 
 log = logging.getLogger(__name__)
 
@@ -328,7 +328,6 @@ class ToolContractParser(PbParserBase):
         self.output_types = []
         self.options = []
         self.driver = driver
-        # display name of the tool. Leaving this to not break every single API call
         self.name = name
         self.nproc_symbol = nproc_symbol
         self.resource_types = resource_types
@@ -408,7 +407,20 @@ class ScatterToolContractParser(ToolContractParser):
 
 
 class GatherToolContractParser(ToolContractParser):
-    pass
+
+    def to_tool_contract(self):
+        task = GatherToolContractTask(self.tool_id,
+                                      self.name,
+                                      self.description,
+                                      self.version,
+                                      self.task_type,
+                                      self.input_types,
+                                      self.output_types,
+                                      self.options,
+                                      self.nproc_symbol,
+                                      self.resource_types)
+        tc = ToolContract(task, self.driver)
+        return tc
 
 
 class PbParser(PbParserBase):

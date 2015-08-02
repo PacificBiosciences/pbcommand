@@ -92,11 +92,11 @@ def main(argv=sys.argv):
     # The Tool Contract parser
     # mp.tool_contract_parser.parser
     return pbparser_runner(argv[1:],
-                                               mp,
-                                               args_runner,
-                                               resolved_tool_contract_runner,
-                                               log,
-                                               setup_log)
+                           mp,
+                           args_runner,
+                           resolved_tool_contract_runner,
+                           log,
+                           setup_log)
 
 
 if __name__ == '__main__':

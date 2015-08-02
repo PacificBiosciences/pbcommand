@@ -35,6 +35,7 @@ class _IOFileType(object):
 
 
 class InputFileType(_IOFileType):
+
     def to_dict(self):
         return dict(file_type_id=self.file_type_id,
                     id=self.label,
@@ -122,6 +123,7 @@ class ToolContractTask(object):
                   task_type=self.TASK_TYPE_ID,
                   is_distributed=self.is_distributed,
                   name=self.name,
+                  description=self.description,
                   schema_options=self.options,
                   nproc=self.nproc,
                   resource_types=self.resources,
@@ -140,7 +142,7 @@ class ScatterToolContractTask(ToolContractTask):
         The chunk keys are the expected to be written to the chunk.json file
         """
         super(ScatterToolContractTask, self).__init__(task_id, name, description, version, is_distributed,
-                                                        input_types, output_types, tool_options, nproc, resources)
+                                                      input_types, output_types, tool_options, nproc, resources)
         self.chunk_keys = chunk_keys
 
     def to_dict(self):
@@ -223,6 +225,7 @@ class ResolvedToolContractTask(object):
 
 class ResolvedScatteredContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.SCATTERED
+
     def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks):
         super(ResolvedScatteredContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
         self.max_nchunks = max_nchunks

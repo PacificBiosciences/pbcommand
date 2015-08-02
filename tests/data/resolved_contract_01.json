@@ -2,7 +2,7 @@
   "_comment": "Example of a Resolved Tool Contract.",
   "resolved_tool_contract": {
     "tool_contract_id": "pbreports.tools.mapping_stats_report",
-    "task_type": "pbsmrtpipe.constants.local_task",
+    "task_type": "pbsmrtpipe.task_types.standard",
     "is_distributed": false,
     "input_files": ["/path/to/file.dataset.xml"],
     "output_files": ["/tmp/file.report.json"],

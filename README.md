@@ -32,7 +32,7 @@ A hello world example:
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
         ], 
-        "task_type": "pbsmrtpipe.constants.local_task", 
+        "task_type": "pbsmrtpipe.task_types.standard", 
         "resource_types": [], 
         "nproc": 1, 
         "schema_options": [
@@ -74,7 +74,7 @@ A **Resolved Tool Contract** is a resolved **Tool Contract** where types and res
   "_comment": "Example of a Resolved Tool Contract.",
   "tool_contract": {
     "tool_contract_id": "pbsmrtpipe.tools.dev_app",
-    "task_type": "pbsmrtpipe.constants.local_task",
+    "task_type": "pbsmrtpipe.task_types.standard",
     "input_files": ["/tmp/file.fasta"],
     "output_files": ["/tmp/file2.filtered.fasta"],
     "options": {"pbsmrtpipe.options.dev_read_length": 50},
