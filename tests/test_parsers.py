@@ -76,12 +76,18 @@ class TestParsers(unittest.TestCase):
 
         # XXX note that the 'default' value is not actually what the option is
         # set to by default - it simply signals that action=store_true
-        p.add_boolean("pbcommand.task_options.loud", "loud", default=True,
+        p.add_boolean("pbcommand.task_options.loud", "loud", default=False,
                       name="Verbose", description="Boolean option")
-        opts = p.arg_parser.parser.parse_args(["--n", "250", "--f", "1.2345", "--loud"])
+
+        pa = p.arg_parser.parser.parse_args
+
+        opts = pa(["--n", "250", "--f", "1.2345", "--loud"])
         self.assertEqual(opts.n, 250)
         self.assertEqual(opts.f, 1.2345)
         self.assertTrue(opts.loud)
+
+        opts2 = pa([])
+        self.assertFalse(opts2.loud)
 
     # TODO we should add a lot more tests for parser behavior
 
