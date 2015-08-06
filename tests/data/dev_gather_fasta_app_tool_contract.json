@@ -1,7 +1,7 @@
 {
     "version": "0.1.0", 
     "driver": {
-        "exe": "python -m pbcommand.cli.examples.dev_scatter_fasta ", 
+        "exe": "python -m pbcommand.cli.examples.dev_scatter_fasta_app --resolved-tool-contract ", 
         "env": {}
     }, 
     "tool_contract_id": "pbcommand.tasks.dev_gather_fasta", 
