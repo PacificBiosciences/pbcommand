@@ -1,0 +1,80 @@
+{
+  "namespace": "com.pacbio.common.models",
+  "type": "record",
+  "name": "ResolvedToolContract",
+  "fields": [
+    {
+      "name": "resolved_tool_contract",
+      "type": {
+        "type": "record",
+        "name": "ResolvedToolContractTask",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string"
+          },
+          {
+            "name": "input_files",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "output_files",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "nproc",
+            "type": "int"
+          },
+          {
+            "name": "is_distributed",
+            "type": "boolean"
+          },
+          {
+            "name": "task_type",
+            "type": "string"
+          },
+          {
+            "name": "tool_contract_id",
+            "type": "string"
+          },
+          {
+            "name": "resources",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "driver",
+      "type": {
+        "type": "record",
+        "name": "Driver",
+        "fields": [
+          {
+            "name": "exe",
+            "type": "string"
+          },
+          {
+            "name": "env",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -82,7 +82,7 @@ def run_main(chunked_json, output_fasta, chunk_key):
 
 def get_parser():
 
-    driver = "python -m pbcommand.cli.examples.dev_scatter_fasta "
+    driver = "python -m pbcommand.cli.examples.dev_scatter_fasta_app --resolved-tool-contract "
     desc = "Gather a fasta resources in a Chunk.json file"
     # chunk keys that will be written to the file
     chunk_key = "$chunk.fasta_id"

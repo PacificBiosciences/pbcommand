@@ -4,7 +4,6 @@
 Author: Michael Kocher
 """
 import abc
-import datetime
 
 import pbcommand
 from pbcommand.models import TaskTypes
@@ -117,7 +116,6 @@ class ToolContractTask(object):
         return "<{k} id:{i} {n} >".format(**_d)
 
     def to_dict(self):
-        created_at = datetime.datetime.now()
         _t = dict(input_types=[i.to_dict() for i in self.input_file_types],
                   output_types=[i.to_dict() for i in self.output_file_types],
                   task_type=self.TASK_TYPE_ID,
@@ -127,7 +125,7 @@ class ToolContractTask(object):
                   schema_options=self.options,
                   nproc=self.nproc,
                   resource_types=self.resources,
-                  _comment="Created by v{v} at {d}".format(v=__version__, d=created_at.isoformat()))
+                  _comment="Created by v{v}".format(v=__version__))
         return _t
 
 
@@ -207,9 +205,7 @@ class ResolvedToolContractTask(object):
         return "<{k} id:{i} >".format(**_d)
 
     def to_dict(self):
-        created_at = datetime.datetime.now()
-        comment = "Created by pbcommand v{v} at {d}".format(
-            v=pbcommand.get_version(), d=created_at.isoformat())
+        comment = "Created by pbcommand v{v}".format(v=pbcommand.get_version())
 
         tc = dict(input_files=self.input_files,
                   output_files=self.output_files,

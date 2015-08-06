@@ -1,7 +1,6 @@
 """IO Layer for creating models from files"""
 import json
 import logging
-import datetime
 
 import pbcommand
 from pbcommand.models import TaskTypes, GatherToolContractTask, ScatterToolContractTask
