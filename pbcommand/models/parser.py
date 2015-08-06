@@ -311,9 +311,17 @@ class PyParser(PbParserBase):
                                  default=_validate_argparse_str(default))
 
     def add_boolean(self, option_id, option_str, default, name, description):
+        """
+        Note, the default value is set by NOT setting the option.
+
+        Example, if you have option_str of --my-option with a default value of True,
+        if --my-option is NOT provided, the value is True, if the --my-option
+        is provided, then the value is false.
+
+        """
         d = {True: "store_true", False: "store_false"}
         opt = '--' + option_str
-        self.parser.add_argument(opt, action=d[_validate_argparse_bool(default)],
+        self.parser.add_argument(opt, action=d[_validate_argparse_bool(not default)],
                                  help=description)
 
 
