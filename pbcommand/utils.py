@@ -4,12 +4,13 @@ import sys
 import logging
 import argparse
 import traceback
+import time
 
 log = logging.getLogger(__name__)
 
 
 def setup_log(alog, level=logging.INFO, file_name=None, log_filter=None,
-              str_formatter='[%(levelname)s] %(asctime)-15s [%(name)s %(funcName)s %(lineno)d] %(message)s'):
+              str_formatter='[%(levelname)s] %(asctime)-15sZ [%(name)s %(funcName)s %(lineno)d] %(message)s'):
     """Core Util to setup log handler
 
     :param alog: a log instance
@@ -18,6 +19,8 @@ def setup_log(alog, level=logging.INFO, file_name=None, log_filter=None,
     :param log_filter: (LogFilter, None)
     :param str_formatter: (str) log formatting str
     """
+    logging.Formatter.converter = time.gmtime
+
     alog.setLevel(logging.DEBUG)
     if file_name is None:
         handler = logging.StreamHandler(sys.stdout)
