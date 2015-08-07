@@ -10,20 +10,64 @@
         "name": "ToolContractTask",
         "fields": [
           {
-            "name": "input_files",
+            "name": "input_types",
             "type": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "record",
+                "name": "ToolInputFile",
+                "fields": [
+                  {
+                    "name": "id",
+                    "type": "string"
+                  },
+                  {
+                    "name": "file_type_id",
+                    "type": "string"
+                  },
+                  {
+                    "_comment": "Display Name",
+                    "name": "title",
+                    "type": "string"
+                  },
+                  {
+                    "name": "description",
+                    "type": "string"
+                  }
+                ]
               }
             }
           },
           {
-            "name": "output_files",
+            "name": "output_types",
             "type": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "record",
+                "name": "ToolOutputFile",
+                "fields": [
+                  {
+                    "name": "id",
+                    "type": "string"
+                  },
+                  {
+                    "name": "file_type_id",
+                    "type": "string"
+                  },
+                  {
+                    "_comment": "Display Name",
+                    "name": "title",
+                    "type": "string"
+                  },
+                  {
+                    "name": "default_name",
+                    "type": "string"
+                  },
+                  {
+                    "name": "description",
+                    "type": "string"
+                  }
+                ]
               }
             }
           },
@@ -32,19 +76,15 @@
             "type": "int"
           },
           {
-            "name": "is_distributed",
-            "type": "boolean"
-          },
-          {
             "name": "task_type",
             "type": "string"
           },
           {
-            "name": "tool_contract_id",
-            "type": "string"
+            "name": "is_distributed",
+            "type": "boolean"
           },
           {
-            "name": "resources",
+            "name": "resource_types",
             "type": {
               "type": "array",
               "items": {
