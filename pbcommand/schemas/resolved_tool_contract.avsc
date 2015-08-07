@@ -10,10 +10,6 @@
         "name": "ResolvedToolContractTask",
         "fields": [
           {
-            "name": "id",
-            "type": "string"
-          },
-          {
             "name": "input_files",
             "type": {
               "type": "array",
@@ -67,10 +63,6 @@
         "fields": [
           {
             "name": "exe",
-            "type": "string"
-          },
-          {
-            "name": "env",
             "type": "string"
           }
         ]
