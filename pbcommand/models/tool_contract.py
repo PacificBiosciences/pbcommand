@@ -8,7 +8,7 @@ import abc
 import pbcommand
 from pbcommand.models import TaskTypes
 
-__version__ = '0.2.0'
+__version__ = pbcommand.get_version()
 
 
 class _IOFileType(object):
