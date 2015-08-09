@@ -134,7 +134,7 @@ class ScatterToolContractTask(ToolContractTask):
     TASK_TYPE_ID = TaskTypes.SCATTERED
 
     def __init__(self, task_id, name, description, version, is_distributed,
-                 input_types, output_types, tool_options, nproc, resources, chunk_keys):
+                 input_types, output_types, tool_options, nproc, resources, chunk_keys, max_nchunks):
         """Scatter tasks have a special output signature of [FileTypes.CHUNK]
 
         The chunk keys are the expected to be written to the chunk.json file
@@ -142,10 +142,13 @@ class ScatterToolContractTask(ToolContractTask):
         super(ScatterToolContractTask, self).__init__(task_id, name, description, version, is_distributed,
                                                       input_types, output_types, tool_options, nproc, resources)
         self.chunk_keys = chunk_keys
+        # int or $max_chunks symbol
+        self.max_nchunks = max_nchunks
 
     def to_dict(self):
         s = super(ScatterToolContractTask, self).to_dict()
         s['chunk_keys'] = self.chunk_keys
+        s['nchunks'] = self.max_nchunks
         return s
 
 

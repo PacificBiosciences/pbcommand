@@ -37,6 +37,7 @@
             }
         ], 
         "_comment": "Created by v0.2.0", 
+        "nchunks": "$max_nchunks", 
         "input_types": [
             {
                 "description": "Fasta file to scatter", 

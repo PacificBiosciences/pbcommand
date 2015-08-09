@@ -8,9 +8,9 @@ from .base_utils import (HAS_PBCORE,
                          get_temp_file,
                          get_temp_dir)
 
-from pbcommand.cli import (resolve_tool_contract,
-                           resolve_gather_tool_contract,
-                           resolve_scatter_tool_contract)
+from pbcommand.resolver import (resolve_tool_contract,
+                                resolve_gather_tool_contract,
+                                resolve_scatter_tool_contract)
 from pbcommand.models import ResolvedToolContract, PipelineChunk
 from pbcommand.pb_io import (load_tool_contract_from,
                              load_resolved_tool_contract_from)

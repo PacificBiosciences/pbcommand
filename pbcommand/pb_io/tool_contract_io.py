@@ -28,6 +28,9 @@ class Constants(object):
     TOOL_TYPE = "task_type"
     IS_DIST = 'is_distributed'
 
+    # Scatter TC, mirrors the nproc key in the JSON
+    NCHUNKS = "nchunks"
+
     RTOOL = "resolved_tool_contract"
     # Used in Scattering/Chunking tasks to
     # produce chunks with specific $chunk_keys
@@ -244,11 +247,13 @@ def _scattered_tool_contract_from(path_or_d):
     task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
 
     chunk_keys = path_or_d[Constants.TOOL][Constants.CHUNK_KEYS]
+    # int, or SymbolTypes.MAX_NCHUNKS
+    nchunks = path_or_d[Constants.TOOL][Constants.NCHUNKS]
     task = ScatterToolContractTask(task_id, display_name, description, version,
                                    is_distributed,
                                    input_types,
                                    output_types,
-                                   tool_options, nproc, resource_types, chunk_keys)
+                                   tool_options, nproc, resource_types, chunk_keys, nchunks)
     return __to_tc_from_d(path_or_d)(task)
 
 

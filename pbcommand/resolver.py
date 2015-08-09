@@ -17,14 +17,22 @@ class ToolContractError(BaseException):
     pass
 
 
-def _resolve_nproc(nproc_int_or_symbol, max_nproc):
-    if isinstance(nproc_int_or_symbol, int):
-        return min(nproc_int_or_symbol, max_nproc)
-    elif nproc_int_or_symbol == SymbolTypes.MAX_NPROC:
-        return max_nproc
+def __resolve_int_or_symbol(symbol_type, symbol_or_int, max_value):
+    if isinstance(symbol_or_int, int):
+        return min(symbol_or_int, max_value)
+    elif symbol_or_int == symbol_type:
+        return max_value
     else:
-        raise TypeError("unsupported type for {s} '{t}".format(t=nproc_int_or_symbol,
-                                                               s=SymbolTypes.MAX_NPROC))
+        raise TypeError("unsupported type for {s} '{t}".format(t=symbol_or_int,
+                                                               s=symbol_type))
+
+
+def _resolve_nproc(nproc_int_or_symbol, max_nproc):
+    return __resolve_int_or_symbol(SymbolTypes.MAX_NPROC, nproc_int_or_symbol, max_nproc)
+
+
+def _resolve_max_nchunks(nchunks_or_symbol, max_nchunks):
+    return __resolve_int_or_symbol(SymbolTypes.MAX_NCHUNKS, nchunks_or_symbol, max_nchunks)
 
 
 def _resolve_options(tool_contract, tool_options):
@@ -128,23 +136,24 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
 
 def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys):
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
+    resolved_max_chunks = _resolve_max_nchunks(tool_contract.task.max_nchunks, max_nchunks)
     task = ResolvedScatteredToolContractTask(tool_contract.task.task_id,
-                                         tool_contract.task.is_distributed,
-                                         input_files,
-                                         output_files,
-                                         resolved_options,
-                                         nproc,
-                                         resources, max_nchunks, chunk_keys)
+                                             tool_contract.task.is_distributed,
+                                             input_files,
+                                             output_files,
+                                             resolved_options,
+                                             nproc,
+                                             resources, resolved_max_chunks, chunk_keys)
     return ResolvedToolContract(task, tool_contract.driver)
 
 
 def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key):
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
     task = ResolvedGatherToolContractTask(tool_contract.task.task_id,
-                                      tool_contract.task.is_distributed,
-                                      input_files,
-                                      output_files,
-                                      resolved_options,
-                                      nproc,
-                                      resources, chunk_key)
+                                          tool_contract.task.is_distributed,
+                                          input_files,
+                                          output_files,
+                                          resolved_options,
+                                          nproc,
+                                          resources, chunk_key)
     return ResolvedToolContract(task, tool_contract.driver)

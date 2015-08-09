@@ -4,11 +4,9 @@ import logging
 import os.path
 
 from base_utils import get_data_file
-
-from pbcommand.cli.resolver import resolve_tool_contract
+from pbcommand.resolver import resolve_tool_contract
 from pbcommand.pb_io.tool_contract_io import (load_resolved_tool_contract_from,
                                               load_tool_contract_from)
-
 
 log = logging.getLogger(__name__)
 

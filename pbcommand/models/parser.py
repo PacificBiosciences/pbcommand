@@ -15,6 +15,7 @@ import re
 
 from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
                                       add_subcomponent_versions_option)
+from pbcommand.models import SymbolTypes
 from .tool_contract import (ToolDriver,
                             InputFileType, OutputFileType,
                             ToolContract, ToolContractTask,
@@ -394,9 +395,10 @@ class ToolContractParser(PbParserBase):
 
 class ScatterToolContractParser(ToolContractParser):
 
-    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types, chunk_keys):
+    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types, chunk_keys, nchunks):
         super(ScatterToolContractParser, self).__init__(tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types)
         self.chunk_keys = chunk_keys
+        self.nchunks = nchunks
 
     def to_tool_contract(self):
         task = ScatterToolContractTask(self.tool_id,
@@ -409,7 +411,8 @@ class ScatterToolContractParser(ToolContractParser):
                                        self.options,
                                        self.nproc_symbol,
                                        self.resource_types,
-                                       self.chunk_keys)
+                                       self.chunk_keys,
+                                       self.nchunks)
         tc = ToolContract(task, self.driver)
         return tc
 
@@ -524,10 +527,10 @@ def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed
 
 
 def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_keys,
-                         is_distributed=True, nproc=1, resource_types=(), subcomponents=()):
+                         is_distributed=True, nproc=1, nchunks=SymbolTypes.MAX_NCHUNKS, resource_types=(), subcomponents=()):
     """Create a Scatter Tool"""
     tc_parser = ScatterToolContractParser(tool_id, version, name, description,
-                                          is_distributed, ToolDriver(driver_exe), nproc, resource_types, chunk_keys)
+                                          is_distributed, ToolDriver(driver_exe), nproc, resource_types, chunk_keys, nchunks)
     return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
 
 
