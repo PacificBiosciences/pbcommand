@@ -219,16 +219,38 @@ class ResolvedToolContractTask(object):
         return tc
 
 
-class ResolvedScatteredContractTask(ResolvedToolContractTask):
+class ResolvedScatteredToolContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.SCATTERED
 
-    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks):
-        super(ResolvedScatteredContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks, chunk_keys):
+        super(ResolvedScatteredToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
         self.max_nchunks = max_nchunks
+        # these can be used to verified the output chunk.json
+        # after the task has been run
+        self.chunk_keys = chunk_keys
+
+    def to_dict(self):
+        d = super(ResolvedScatteredToolContractTask, self).to_dict()
+        d['max_nchunks'] = self.max_nchunks
+        d['chunk_keys'] = self.chunk_keys
+        return d
 
 
-class ResolvedGatherContractTask(ResolvedToolContractTask):
+class ResolvedGatherToolContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.GATHERED
+
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, chunk_key):
+        """
+        The chunk key is used in the pluck specific chunk values from
+        PipelineChunks. This makes gather tasks (i.e., GffGather) generalized.
+        """
+        super(ResolvedGatherToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+        self.chunk_key = chunk_key
+
+    def to_dict(self):
+        d = super(ResolvedGatherToolContractTask, self).to_dict()
+        d['chunk_key'] = self.chunk_key
+        return d
 
 
 class ResolvedToolContract(object):
@@ -236,7 +258,8 @@ class ResolvedToolContract(object):
     def __init__(self, task, driver):
         """
 
-        :type task: ResolvedToolContractTask | ResolvedScatteredContractTask | ResolvedGatherContractTask
+        :type task: ResolvedToolContractTask |
+        ResolvedScatteredToolContractTask | ResolvedGatherToolContractTask
         :type driver: ToolDriver
 
         :param task:

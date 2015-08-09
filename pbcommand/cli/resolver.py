@@ -6,7 +6,9 @@ import os
 from pbcommand.models.common import SymbolTypes, REGISTERED_FILE_TYPES
 from pbcommand.models.tool_contract import (ResolvedToolContract,
                                             ToolContract,
-                                            ResolvedToolContractTask)
+                                            ResolvedToolContractTask,
+                                            ResolvedScatteredToolContractTask,
+                                            ResolvedGatherToolContractTask)
 
 log = logging.getLogger(__name__)
 
@@ -52,6 +54,46 @@ def _resolve_options(tool_contract, tool_options):
     return resolved_options
 
 
+def _resolve_output_file(file_type, output_file_type, root_output_dir):
+    """
+    Resolved the Output File Type
+
+    :type file_type: pbcommand.models.FileType
+    :type output_file_type: pbcommand.models.OutputFileType
+    :return: Resolved output file name
+    """
+    if not output_file_type.default_name:
+        base_name = ".".join([file_type.base_name, file_type.ext])
+        return os.path.join(root_output_dir, base_name)
+    elif isinstance(output_file_type.default_name, tuple):
+        base, ext = output_file_type.default_name
+        return os.path.join(root_output_dir, ".".join([base, ext]))
+    else:  # XXX should get rid of this eventually
+        return os.path.join(root_output_dir, output_file_type.default_name)
+
+
+def _resolve_output_files(output_file_types, root_output_dir):
+    return [_resolve_output_file(REGISTERED_FILE_TYPES[f.file_type_id], f, root_output_dir) for f in output_file_types]
+
+
+def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options):
+
+    if len(input_files) != len(tool_contract.task.input_file_types):
+        _d = dict(i=input_files, t=tool_contract.task.input_file_types)
+        raise ToolContractError("Incompatible input types. Supplied {i}. Expected file types {t}".format(**_d))
+
+    output_files = _resolve_output_files(tool_contract.task.output_file_types, root_output_dir)
+
+    resolved_options = _resolve_options(tool_contract, tool_options)
+
+    nproc = _resolve_nproc(tool_contract.task.nproc, max_nproc)
+
+    log.warn("Resolved resources not support yet.")
+    resources = []
+
+    return output_files, resolved_options, nproc, resources
+
+
 def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options):
     """
     Convert a ToolContract into a Resolved Tool Contract.
@@ -72,34 +114,7 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
     :rtype: ResolvedToolContract
     :return: A Resolved tool contract
     """
-    if len(input_files) != len(tool_contract.task.input_file_types):
-        _d = dict(i=input_files, t=tool_contract.task.input_file_types)
-        raise ToolContractError("Incompatible input types. Supplied {i}. Expected file types {t}".format(**_d))
-
-    # Need to clarify how FileTypes defined in the globally registry are required,
-    # or not required.
-
-    # need something smarter here. If the file already exists, raise or
-    # decide to pick a new name.
-    def to_out_file(file_type, file_info):
-        if not file_info.default_name:
-            base_name = ".".join([file_type.base_name, file_type.ext])
-            return os.path.join(root_output_dir, base_name)
-        elif isinstance(file_info.default_name, tuple):
-            base, ext = file_info.default_name
-            return os.path.join(root_output_dir, ".".join([base, ext]))
-        else:  # XXX should get rid of this eventually
-            return os.path.join(root_output_dir, file_info.default_name)
-
-    output_files = [to_out_file(REGISTERED_FILE_TYPES[f.file_type_id], f) for f in tool_contract.task.output_file_types]
-
-    resolved_options = _resolve_options(tool_contract, tool_options)
-
-    nproc = _resolve_nproc(tool_contract.task.nproc, max_nproc)
-
-    resources = []
-
-    log.warn("Resolved resources not support yet.")
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
     task = ResolvedToolContractTask(tool_contract.task.task_id,
                                     tool_contract.task.is_distributed,
                                     input_files,
@@ -108,4 +123,28 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
                                     nproc,
                                     resources)
 
+    return ResolvedToolContract(task, tool_contract.driver)
+
+
+def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys):
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
+    task = ResolvedScatteredToolContractTask(tool_contract.task.task_id,
+                                         tool_contract.task.is_distributed,
+                                         input_files,
+                                         output_files,
+                                         resolved_options,
+                                         nproc,
+                                         resources, max_nchunks, chunk_keys)
+    return ResolvedToolContract(task, tool_contract.driver)
+
+
+def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key):
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
+    task = ResolvedGatherToolContractTask(tool_contract.task.task_id,
+                                      tool_contract.task.is_distributed,
+                                      input_files,
+                                      output_files,
+                                      resolved_options,
+                                      nproc,
+                                      resources, chunk_key)
     return ResolvedToolContract(task, tool_contract.driver)

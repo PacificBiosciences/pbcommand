@@ -381,6 +381,24 @@ class PipelineChunk(object):
         _d = dict(k=self.__class__.__name__, i=self.chunk_id, c=",".join(self.chunk_keys))
         return "<{k} id='{i}' chunk keys={c} >".format(**_d)
 
+    def set_chunk_key(self, chunk_key, value):
+        """Overwrite or add a chunk_key => value to the Chunk datum
+
+        the chunk-key can be provided with or without the '$chunk:' prefix
+        """
+        if not chunk_key.startswith(PipelineChunk.CHUNK_KEY_PREFIX):
+            chunk_key = PipelineChunk.CHUNK_KEY_PREFIX + chunk_key
+        self._datum[chunk_key] = value
+
+    def set_metadata_key(self, metadata_key, value):
+        """Set chunk metadata key => value
+
+        metadata key must NOT begin with $chunk. format
+        """
+        if metadata_key.startswith(PipelineChunk.CHUNK_KEY_PREFIX):
+            raise ValueError("Cannot set chunk-key values. {i}".format(i=metadata_key))
+        self._datum[metadata_key] = value
+
     @property
     def chunk_d(self):
         return {k: v for k, v in self._datum.iteritems() if _is_chunk_key(k)}

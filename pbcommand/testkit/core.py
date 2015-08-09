@@ -8,7 +8,10 @@ from .base_utils import (HAS_PBCORE,
                          get_temp_file,
                          get_temp_dir)
 
-from pbcommand.cli import resolve_tool_contract
+from pbcommand.cli import (resolve_tool_contract,
+                           resolve_gather_tool_contract,
+                           resolve_scatter_tool_contract)
+from pbcommand.models import ResolvedToolContract, PipelineChunk
 from pbcommand.pb_io import (load_tool_contract_from,
                              load_resolved_tool_contract_from)
 
@@ -59,9 +62,13 @@ class PbTestApp(unittest.TestCase):
             msg = "Unable to find {i}-th output file {p}".format(i=i, p=output_file)
             self.assertTrue(os.path.exists(output_file), msg)
 
+    def _to_rtc(self, tc, output_dir, tmp_dir):
+        # handled the polymorphism in subclasses by overriding
+        return resolve_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS)
+
     def test_run_e2e(self):
         # hack to skip running the base Test class (which is the nose default behavior)
-        if self.__class__.__name__ == 'PbTestApp':
+        if self.__class__.__name__ in ('PbTestApp', 'PbTestScatterApp', 'PbTestGatherApp'):
             return
 
         if self.REQUIRES_PBCORE:
@@ -88,13 +95,14 @@ class PbTestApp(unittest.TestCase):
 
         log.info("Resolving tool contract to RTC")
 
-        rtc = resolve_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS)
+        rtc = self._to_rtc(tc, output_dir, tmp_dir)
 
         output_json_rtc = get_temp_file("resolved_tool_contract.json", output_dir)
         write_resolved_tool_contract(rtc, output_json_rtc)
 
         # sanity
-        _ = load_resolved_tool_contract_from(output_json_rtc)
+        loaded_rtc = load_resolved_tool_contract_from(output_json_rtc)
+        self.assertIsInstance(loaded_rtc, ResolvedToolContract)
 
         # Test Resolved options if specified.
         for opt, resolved_value in self.RESOLVED_TASK_OPTIONS.iteritems():
@@ -126,3 +134,27 @@ class PbTestApp(unittest.TestCase):
         does nothing unless overridden in a subclass.
         """
         pass
+
+
+class PbTestScatterApp(PbTestApp):
+    """Test harness for testing end-to-end scattering apps
+
+    Override MAX_NCHUNKS, RESOLVED_MAX_NCHUNKS and CHUNK_KEYS
+    """
+    MAX_NCHUNKS = 12
+    RESOLVED_MAX_NCHUNKS = 12
+    CHUNK_KEYS = ()
+
+    def _to_rtc(self, tc, output_dir, tmp_dir):
+        return resolve_scatter_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.MAX_NCHUNKS, self.CHUNK_KEYS)
+
+
+class PbTestGatherApp(PbTestApp):
+    """Test harness for testing end-to-end gather apps
+
+    Override the CHUNK_KEY to pass that into your resolver
+    """
+    CHUNK_KEY = PipelineChunk.CHUNK_KEY_PREFIX + 'fasta_id'
+
+    def _to_rtc(self, tc, output_dir, tmp_dir):
+        return resolve_gather_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.CHUNK_KEY)
