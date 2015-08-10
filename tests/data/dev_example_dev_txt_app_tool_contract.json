@@ -1,6 +1,7 @@
 {
     "version": "0.2.0", 
     "driver": {
+        "serialization": "json", 
         "exe": "python -m pbcommand.cli.example.dev_app --resolved-tool-contract ", 
         "env": {}
     }, 

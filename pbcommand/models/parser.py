@@ -329,7 +329,8 @@ class PyParser(PbParserBase):
 class ToolContractParser(PbParserBase):
     """Parser to support Emitting and running ToolContracts"""
 
-    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types):
+    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol,
+                 resource_types, serialization='json'):
         """Keeps the required elements for creating an instance of a
         ToolContract"""
         super(ToolContractParser, self).__init__(tool_id, version, name, description)
@@ -341,6 +342,8 @@ class ToolContractParser(PbParserBase):
         self.nproc_symbol = nproc_symbol
         self.resource_types = resource_types
         self.task_type = task_type
+        # 'json' or 'avro'
+        self.serialization = serialization
 
     def add_input_file_type(self, file_type, file_id, name, description):
         x = InputFileType(file_type.file_type_id, file_id, name, description)
@@ -394,9 +397,10 @@ class ToolContractParser(PbParserBase):
 
 
 class ScatterToolContractParser(ToolContractParser):
-
-    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types, chunk_keys, nchunks):
-        super(ScatterToolContractParser, self).__init__(tool_id, version, name, description, task_type, driver, nproc_symbol, resource_types)
+    def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol,
+                 resource_types, chunk_keys, nchunks, serialization='json'):
+        super(ScatterToolContractParser, self).__init__(tool_id, version, name, description, task_type, driver,
+                                                        nproc_symbol, resource_types, serialization=serialization)
         self.chunk_keys = chunk_keys
         self.nchunks = nchunks
 
@@ -515,28 +519,33 @@ def _factory(tool_id, version, name, description, subcomponents):
     return _f
 
 
-def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed=True, nproc=1, resource_types=(), subcomponents=()):
+def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed=True, nproc=1,
+                 resource_types=(), subcomponents=(), serialization='json'):
     """
     Central point of creating a Tool contract that can emit and run tool
     contracts.
 
     :returns: PbParser object
     """
-    tc_parser = ToolContractParser(tool_id, version, name, description, is_distributed, ToolDriver(driver_exe), nproc, resource_types)
+    tc_parser = ToolContractParser(tool_id, version, name, description, is_distributed, ToolDriver(driver_exe),
+                                   nproc, resource_types, serialization=serialization)
     return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
 
 
 def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_keys,
-                         is_distributed=True, nproc=1, nchunks=SymbolTypes.MAX_NCHUNKS, resource_types=(), subcomponents=()):
+                         is_distributed=True, nproc=1, nchunks=SymbolTypes.MAX_NCHUNKS, resource_types=(),
+                         subcomponents=(), serialization='json'):
     """Create a Scatter Tool"""
-    tc_parser = ScatterToolContractParser(tool_id, version, name, description,
-                                          is_distributed, ToolDriver(driver_exe), nproc, resource_types, chunk_keys, nchunks)
+    tc_parser = ScatterToolContractParser(tool_id, version, name, description, is_distributed,
+                                          ToolDriver(driver_exe), nproc, resource_types, chunk_keys,
+                                          nchunks, serialization=serialization)
     return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
 
 
 def get_gather_pbparser(tool_id, version, name, description, driver_exe,
-                        is_distributed=True, nproc=1, resource_types=(), subcomponents=()):
+                        is_distributed=True, nproc=1, resource_types=(), subcomponents=(), serialization='json'):
     """Create a Gather tool"""
     tc_parser = GatherToolContractParser(tool_id, version, name, description,
-                                         is_distributed, ToolDriver(driver_exe), nproc, resource_types)
+                                         is_distributed, ToolDriver(driver_exe), nproc, resource_types,
+                                         serialization=serialization)
     return _factory(tool_id, version, name, description, subcomponents)(tc_parser)

@@ -1,9 +1,15 @@
 """IO Layer for creating models from files"""
 import json
 import logging
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
 
 import pbcommand
-from pbcommand.models import TaskTypes, GatherToolContractTask, ScatterToolContractTask
+
+from pbcommand.schemas import RTC_SCHEMA
+from pbcommand.models import (TaskTypes,
+                              GatherToolContractTask,
+                              ScatterToolContractTask)
 from pbcommand.models.tool_contract import (ToolDriver,
                                             ToolContractTask,
                                             ToolContract,
@@ -27,6 +33,9 @@ class Constants(object):
     TOOL = "tool_contract"
     TOOL_TYPE = "task_type"
     IS_DIST = 'is_distributed'
+
+    # Serialization Format
+    SERIALIZATION = 'serialization'
 
     # Scatter TC, mirrors the nproc key in the JSON
     NCHUNKS = "nchunks"
@@ -63,10 +72,11 @@ def load_or_raise(ex_type):
     return loader_wrap
 
 
-def __driver_from_rtc_d(d):
+def __driver_from_d(d):
     driver_exe = d['driver']['exe']
     driver_env = d['driver'].get('env', {})
-    return ToolDriver(driver_exe, env=driver_env)
+    serialization = d['driver'].get(Constants.SERIALIZATION, 'json')
+    return ToolDriver(driver_exe, env=driver_env, serialization=serialization)
 
 
 def __core_resolved_tool_contract_task_from_d(d):
@@ -97,7 +107,7 @@ def __core_resolved_tool_contract_task_from_d(d):
 
 def __to_rtc_from_d(d):
     def _wrapper(task):
-        driver = __driver_from_rtc_d(d)
+        driver = __driver_from_d(d)
         rtc = ResolvedToolContract(task, driver)
         return rtc
     return _wrapper
@@ -214,18 +224,19 @@ def __core_tool_contract_task_from(d):
     default_desc = "PacBio Tool {n}".format(n=display_name)
     description = _get_ascii_or("description", default_desc)
     is_distributed = _get(Constants.IS_DIST)
+    serialization = _get_or(Constants.SERIALIZATION, 'json')
 
     input_types = [_to_in_ft(x) for x in _get("input_types")]
     output_types = [_to_out_ft(x) for x in _get("output_types")]
     tool_options = _get("schema_options")
     nproc = _get("nproc")
     resource_types = _get("resource_types")
-    return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types
+    return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serialization
 
 
 def __to_tc_from_d(d):
     def _wrapper(task):
-        driver = __driver_from_rtc_d(d)
+        driver = __driver_from_d(d)
         tc = ToolContract(task, driver)
         return tc
     return _wrapper
@@ -233,7 +244,7 @@ def __to_tc_from_d(d):
 
 @_json_path_or_d
 def _standard_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serializatioin = __core_tool_contract_task_from(path_or_d)
     task = ToolContractTask(task_id, display_name, description, version,
                             is_distributed,
                             input_types,
@@ -244,7 +255,7 @@ def _standard_tool_contract_from(path_or_d):
 
 @_json_path_or_d
 def _scattered_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serializatioin = __core_tool_contract_task_from(path_or_d)
 
     chunk_keys = path_or_d[Constants.TOOL][Constants.CHUNK_KEYS]
     # int, or SymbolTypes.MAX_NCHUNKS
@@ -259,7 +270,7 @@ def _scattered_tool_contract_from(path_or_d):
 
 @_json_path_or_d
 def _gather_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serializatioin = __core_tool_contract_task_from(path_or_d)
     task = GatherToolContractTask(task_id, display_name, description, version,
                                   is_distributed,
                                   input_types,
@@ -317,3 +328,22 @@ def write_resolved_tool_contract(rtc, output_json_file):
     """
     d = rtc.to_dict()
     return _write_json(d, output_json_file)
+
+
+def _write_records_to_avro(schema, _d_or_ds, output_file):
+    # FIXME. There's only one record being written here,
+    # why does this not support a single item
+    if isinstance(_d_or_ds, dict):
+        _d_or_ds = [_d_or_ds]
+    with open(output_file, 'w') as outs:
+        with DataFileWriter(outs, DatumWriter(), schema) as writer:
+            for record in _d_or_ds:
+                writer.append(record)
+
+    log.debug("Write avro file to {p}".format(p=output_file))
+
+
+def write_resolved_tool_contract_avro(rtc, avro_output):
+    d = rtc.to_dict()
+    _write_records_to_avro(RTC_SCHEMA, d, avro_output)
+    return rtc

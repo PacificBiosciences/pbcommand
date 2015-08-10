@@ -60,7 +60,7 @@ class OutputFileType(_IOFileType):
 
 class ToolDriver(object):
 
-    def __init__(self, driver_exe, env=None):
+    def __init__(self, driver_exe, env=None, serialization='json'):
         """
 
         :param driver_exe: Path to the driver
@@ -69,13 +69,15 @@ class ToolDriver(object):
         """
         self.driver_exe = driver_exe
         self.env = {} if env is None else env
+        # 'avro' or 'json'
+        self.serialization = serialization
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, e=self.driver_exe)
         return "<{k} driver:{e} >".format(**_d)
 
     def to_dict(self):
-        return dict(exe=self.driver_exe, env=self.env)
+        return dict(exe=self.driver_exe, env=self.env, serialization=self.serialization)
 
 
 class ToolContractTask(object):
