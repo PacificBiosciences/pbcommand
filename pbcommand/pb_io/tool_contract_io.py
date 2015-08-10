@@ -224,14 +224,13 @@ def __core_tool_contract_task_from(d):
     default_desc = "PacBio Tool {n}".format(n=display_name)
     description = _get_ascii_or("description", default_desc)
     is_distributed = _get(Constants.IS_DIST)
-    serialization = _get_or(Constants.SERIALIZATION, 'json')
 
     input_types = [_to_in_ft(x) for x in _get("input_types")]
     output_types = [_to_out_ft(x) for x in _get("output_types")]
     tool_options = _get("schema_options")
     nproc = _get("nproc")
     resource_types = _get("resource_types")
-    return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serialization
+    return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types
 
 
 def __to_tc_from_d(d):
@@ -244,7 +243,7 @@ def __to_tc_from_d(d):
 
 @_json_path_or_d
 def _standard_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serializatioin = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types  = __core_tool_contract_task_from(path_or_d)
     task = ToolContractTask(task_id, display_name, description, version,
                             is_distributed,
                             input_types,
@@ -255,7 +254,7 @@ def _standard_tool_contract_from(path_or_d):
 
 @_json_path_or_d
 def _scattered_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serializatioin = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
 
     chunk_keys = path_or_d[Constants.TOOL][Constants.CHUNK_KEYS]
     # int, or SymbolTypes.MAX_NCHUNKS
@@ -270,7 +269,7 @@ def _scattered_tool_contract_from(path_or_d):
 
 @_json_path_or_d
 def _gather_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, serializatioin = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
     task = GatherToolContractTask(task_id, display_name, description, version,
                                   is_distributed,
                                   input_types,
