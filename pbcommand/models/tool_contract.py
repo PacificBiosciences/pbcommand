@@ -118,7 +118,8 @@ class ToolContractTask(object):
         return "<{k} id:{i} {n} >".format(**_d)
 
     def to_dict(self):
-        _t = dict(input_types=[i.to_dict() for i in self.input_file_types],
+        _t = dict(tool_contract_id=self.task_id,
+                  input_types=[i.to_dict() for i in self.input_file_types],
                   output_types=[i.to_dict() for i in self.output_file_types],
                   task_type=self.TASK_TYPE_ID,
                   is_distributed=self.is_distributed,

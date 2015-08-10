@@ -39,6 +39,7 @@
         ], 
         "_comment": "Created by v0.2.3", 
         "nchunks": "$max_nchunks", 
+        "name": "Fasta Scatter", 
         "input_types": [
             {
                 "description": "Fasta file to scatter", 
@@ -52,6 +53,6 @@
         ], 
         "nproc": 1, 
         "is_distributed": false, 
-        "name": "Fasta Scatter"
+        "tool_contract_id": "pbcommand.tasks.dev_scatter_fasta"
     }
 }

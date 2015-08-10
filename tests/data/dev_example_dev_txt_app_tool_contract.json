@@ -38,6 +38,7 @@
             }
         ], 
         "_comment": "Created by v0.2.3", 
+        "name": "Example Dev App", 
         "input_types": [
             {
                 "description": "PacBio Spec'ed fasta file", 
@@ -48,6 +49,6 @@
         ], 
         "nproc": 1, 
         "is_distributed": false, 
-        "name": "Example Dev App"
+        "tool_contract_id": "pbcommand.tasks.dev_app"
     }
 }

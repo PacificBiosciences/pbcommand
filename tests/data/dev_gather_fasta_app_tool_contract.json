@@ -21,6 +21,7 @@
             }
         ], 
         "_comment": "Created by v0.2.3", 
+        "name": "Fasta Chunk Gather", 
         "input_types": [
             {
                 "description": "Chunked Fasta JSON Out", 
@@ -31,6 +32,6 @@
         ], 
         "nproc": 1, 
         "is_distributed": false, 
-        "name": "Fasta Chunk Gather"
+        "tool_contract_id": "pbcommand.tasks.dev_gather_fasta"
     }
 }

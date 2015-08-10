@@ -38,6 +38,7 @@
             }
         ], 
         "_comment": "Created by v0.2.3", 
+        "name": "Txt App", 
         "input_types": [
             {
                 "description": "Generic Text File", 
@@ -48,6 +49,6 @@
         ], 
         "nproc": 1, 
         "is_distributed": false, 
-        "name": "Txt App"
+        "tool_contract_id": "pbcommand.tasks.dev_txt_app"
     }
 }
