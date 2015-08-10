@@ -1,5 +1,5 @@
 {
-  "namespace": "com.pacbio.common.models",
+  "namespace": "com.pacbio.common.models.contracts",
   "type": "record",
   "name": "ToolContract",
   "fields": [
@@ -74,6 +74,10 @@
           {
             "name": "nproc",
             "type": "int"
+          },
+          {
+            "name": "tool_contract_id",
+            "type": "string"
           },
           {
             "name": "task_type",

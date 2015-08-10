@@ -1,5 +1,5 @@
 {
-  "namespace": "com.pacbio.common.models",
+  "namespace": "com.pacbio.common.models.contracts",
   "type": "record",
   "name": "ResolvedToolContract",
   "fields": [

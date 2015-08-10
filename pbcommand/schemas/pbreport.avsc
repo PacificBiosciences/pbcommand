@@ -1,5 +1,5 @@
 {
-  "namespace": "com.pacbio.common.models",
+  "namespace": "com.pacbio.common.models.reports",
   "type": "record",
   "name": "Report",
   "fields": [
