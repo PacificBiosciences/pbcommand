@@ -44,8 +44,8 @@ class InputFileType(_IOFileType):
 
 class OutputFileType(_IOFileType):
 
-    def __init__(self, file_type, label, display_name, description, default_name):
-        super(OutputFileType, self).__init__(file_type, label, display_name, description)
+    def __init__(self, file_type_id, label, display_name, description, default_name):
+        super(OutputFileType, self).__init__(file_type_id, label, display_name, description)
         # Default name of the output file. Should be specified as (base, ext)
         # but "base.ext" is also supported. This should go away
         self.default_name = default_name
