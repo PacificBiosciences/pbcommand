@@ -20,3 +20,12 @@ class TestTxtDevApp(pbcommand.testkit.PbTestApp):
     INPUT_FILES = [get_data_file("example.txt")]
     TASK_OPTIONS = {"pbcommand.task_options.dev_max_nlines": 27}
     RESOLVED_TASK_OPTIONS = {"pbcommand.task_options.dev_max_nlines": 27}
+
+
+class TestQuickDevHelloWorld(pbcommand.testkit.PbTestApp):
+    """Runs dev_qhello_world """
+    DRIVER_EMIT = "python -m pbcommand.cli.examples.dev_quick_hello_world  emit-tool-contract pbcommand.tasks.dev_qhello_world "
+    DRIVER_RESOLVE = "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc "
+
+    REQUIRES_PBCORE = False
+    INPUT_FILES = [get_data_file("example.txt")]

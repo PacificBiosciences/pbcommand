@@ -148,6 +148,10 @@ class FileType(object):
         if file_type_id not in REGISTERED_FILE_TYPES:
             REGISTERED_FILE_TYPES[file_type_id] = self
 
+    @property
+    def default_name(self):
+        return ".".join([self.base_name, self.ext])
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             if self.file_type_id == other.file_type_id:
@@ -162,8 +166,8 @@ class FileType(object):
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
                   i=self.file_type_id,
-                  b=self.base_name, e=self.ext)
-        return "<{k} id={i} name={b}.{e} >".format(**_d)
+                  n=self.default_name)
+        return "<{k} id={i} name={n} >".format(**_d)
 
 
 class FileTypes(object):

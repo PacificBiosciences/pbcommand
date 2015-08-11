@@ -10,7 +10,6 @@ from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
                              write_tool_contract)
 from pbcommand.utils import setup_log
-from pbcommand.validators import validate_file
 
 log = logging.getLogger(__name__)
 
@@ -27,13 +26,18 @@ def _example_main(*args, **kwargs):
 
 
 def _file_type_to_input_file_type(file_type):
-    """:type file_type: FileType"""
-    return InputFileType(file_type.file_type_id, "Label " + file_type.file_type_id, repr(file_type), "description for {f}".format(f=file_type))
+    return InputFileType(file_type.file_type_id,
+                         "Label " + file_type.file_type_id,
+                         repr(file_type),
+                         "description for {f}".format(f=file_type))
 
 
 def _file_type_to_output_file_type(file_type):
-    default_name = ".".format([file_type.base_name, file_type.ext])
-    return OutputFileType(file_type.file_type_id, "Label " + file_type.file_type_id, repr(file_type), "description for {f}".format(f=file_type), default_name)
+    return OutputFileType(file_type.file_type_id,
+                          "Label " + file_type.file_type_id,
+                          repr(file_type),
+                          "description for {f}".format(f=file_type),
+                          file_type.default_name)
 
 
 class Registry(object):
@@ -94,7 +98,7 @@ def _subparser_builder(subparser, name, description, options_func, exe_func):
 
 
 def _add_run_rtc_options(p):
-    p.add_argument('rtc_path', type=validate_file, help="Path to resolved tool contract")
+    p.add_argument('rtc_path', type=str, help="Path to resolved tool contract")
     return p
 
 
@@ -120,16 +124,20 @@ def __args_summary_runner(registry):
 
 def __args_rtc_runner(registry):
     def _w(args):
+        # FIXME.
+        setup_log(log, level=logging.DEBUG)
+
         log.info("Registry {r}".format(r=registry))
         log.info("loading RTC from {i}".format(i=args.rtc_path))
         rtc = load_resolved_tool_contract_from(args.rtc_path)
         id_funcs = {t.task.task_id:func for t, func in registry.rtc_runners.iteritems()}
-        func = id_funcs.get(rtc.task.tool_contract_id, None)
+        func = id_funcs.get(rtc.task.task_id, None)
         if func is None:
             sys.stderr.write("ERROR. Unknown tool contract id {x}".format(x=rtc.task.task_id))
             return -1
         else:
-            return func(rtc)
+            exit_code = func(rtc)
+            log.info("Completed running {r} exitcode {e}".format(r=rtc, e=exit_code))
     return _w
 
 
