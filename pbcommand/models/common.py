@@ -227,6 +227,7 @@ class FileTypes(object):
     DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
     DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.dataset.xml", "application/xml")
     DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcode.dataset.xml", "application/xml")
+    DS_ALIGN_CCS = FileType(to_ds_ns("ConsensusAlignmentSet"), "file", "alignedccs.dataset.xml", "application/xml")
 
     # Index Files
     I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", "application/octet-stream")
