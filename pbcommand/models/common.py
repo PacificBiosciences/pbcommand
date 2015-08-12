@@ -222,7 +222,7 @@ class FileTypes(object):
     # https://github.com/PacificBiosciences/PacBioFileFormats
     DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", "application/xml")
     DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", "application/xml")
-    DS_CCS = FileType(to_ds_ns("CCSreadSet"), "file", "ccsread.dataset.xml", "application/xml")
+    DS_CCS = FileType(to_ds_ns("ConsensusReadSet"), "file", "ccsread.dataset.xml", "application/xml")
     DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "reference.dataset.xml", "application/xml")
     DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
     DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.dataset.xml", "application/xml")
@@ -241,7 +241,7 @@ class FileTypes(object):
     # FIXME. Add Bax/Bam Formats here. This should replace the exiting pre-SA3 formats.
     BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", "application/octet-stream")
     BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", "application/octet-stream")
-    BAM_CCS = FileType("PacBio.CCSreadFile.CCSreadBamFile", "file", "ccs.bam", "application/octet-stream")
+    BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", "application/octet-stream")
 
     BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", "application/octet-stream")
 
