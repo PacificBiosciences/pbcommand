@@ -165,7 +165,7 @@ def __args_emit_all_tcs_runner(registry):
         log.info("Emitting TCs to {i}".format(i=args.output_dir))
         tcs = registry.rtc_runners.keys()
         for tc in tcs:
-            output_file = os.path.join(args.output_dir, tc.task.task_id + ".json")
+            output_file = os.path.join(args.output_dir, tc.task.task_id + "_tool_contract.json")
             write_tool_contract(tc, output_file)
         return 0
     return _w
