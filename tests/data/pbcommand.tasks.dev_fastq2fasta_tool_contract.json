@@ -5,7 +5,7 @@
         "serialization": "json"
     }, 
     "tool_contract": {
-        "_comment": "Created by v0.2.4", 
+        "_comment": "Created by v0.2.7", 
         "description": "Quick tool dev_fastq2fasta pbcommand.tasks.dev_fastq2fasta", 
         "input_types": [
             {
@@ -28,7 +28,7 @@
             }
         ], 
         "resource_types": [], 
-        "schema_options": {}, 
+        "schema_options": [], 
         "task_type": "pbsmrtpipe.task_types.standard", 
         "tool_contract_id": "pbcommand.tasks.dev_fastq2fasta"
     }, 

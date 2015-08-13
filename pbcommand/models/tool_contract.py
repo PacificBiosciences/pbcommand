@@ -11,6 +11,17 @@ from pbcommand.models import TaskTypes
 __version__ = pbcommand.get_version()
 
 
+def _validate_type(value, type_or_types):
+    return isinstance(value, type_or_types)
+
+
+def _validate_or_raise(value, type_or_types):
+    if not _validate_type(value, type_or_types):
+        _d = dict(x=value, t=type(value), s=type_or_types)
+        raise TypeError("Unsupported type for {x} {t}. Expected types {s}".format(**_d))
+    return value
+
+
 class _IOFileType(object):
     __metaclass__ = abc.ABCMeta
 
@@ -109,6 +120,8 @@ class ToolContractTask(object):
         self.is_distributed = is_distributed
         self.input_file_types = input_types
         self.output_file_types = output_types
+        # This needs to be list
+        # self.options = _validate_or_raise(tool_options, (list, tuple))
         self.options = tool_options
         self.nproc = nproc
         self.resources = resources
@@ -118,6 +131,9 @@ class ToolContractTask(object):
         return "<{k} id:{i} {n} >".format(**_d)
 
     def to_dict(self):
+        # this is a little hack to get around some sloppyness in the datamodel
+        opts = self.options if self.options else []
+
         _t = dict(tool_contract_id=self.task_id,
                   input_types=[i.to_dict() for i in self.input_file_types],
                   output_types=[i.to_dict() for i in self.output_file_types],
@@ -125,7 +141,7 @@ class ToolContractTask(object):
                   is_distributed=self.is_distributed,
                   name=self.name,
                   description=self.description,
-                  schema_options=self.options,
+                  schema_options=opts,
                   nproc=self.nproc,
                   resource_types=self.resources,
                   _comment="Created by v{v}".format(v=__version__))

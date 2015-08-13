@@ -12,10 +12,18 @@
         "description": "Dev app for Testing that supports emitting tool contracts", 
         "schema_options": [
             {
-                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "pb_option": {
+                    "default": 10, 
+                    "type": "integer", 
+                    "option_id": "pbcommand.task_options.dev_max_nlines", 
+                    "name": "Max Lines", 
+                    "description": "Max Number of lines to Copy"
+                }, 
+                "title": "JSON Schema for pbcommand.task_options.dev_max_nlines", 
                 "required": [
                     "pbcommand.task_options.dev_max_nlines"
                 ], 
+                "$schema": "http://json-schema.org/draft-04/schema#", 
                 "type": "object", 
                 "properties": {
                     "pbcommand.task_options.dev_max_nlines": {
@@ -24,8 +32,7 @@
                         "description": "Max Number of lines to Copy", 
                         "title": "Max Lines"
                     }
-                }, 
-                "title": "JSON Schema for pbcommand.task_options.dev_max_nlines"
+                }
             }
         ], 
         "output_types": [
@@ -37,7 +44,7 @@
                 "file_type_id": "PacBio.FileTypes.txt"
             }
         ], 
-        "_comment": "Created by v0.2.4", 
+        "_comment": "Created by v0.2.7", 
         "name": "Txt App", 
         "input_types": [
             {

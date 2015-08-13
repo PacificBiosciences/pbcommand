@@ -142,12 +142,22 @@ def to_option_schema(option_id, dtype_or_dtypes, display_name, description, defa
 
     _validate_task_option_id(option_id)
 
+    # Steps toward moving away from JSON schema as the format, but reuse
+    # the jsonschema defined types. Only non-union types are supported.
+    pbd = {"option_id": option_id,
+           "type": dtype_or_dtypes,
+           "default": default_value,
+           "name": display_name,
+           "description": description}
+
     d = {'$schema': "http://json-schema.org/draft-04/schema#",
          'type': 'object',
          'title': "JSON Schema for {o}".format(o=option_id),
          'properties': {option_id: {'description': description,
                                     'title': display_name,
-                                    'type': dtype_or_dtypes}}
+                                    'type': dtype_or_dtypes},
+                        },
+         "pb_option": pbd
          }
 
     d['required'] = [option_id]

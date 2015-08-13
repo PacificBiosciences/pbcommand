@@ -28,6 +28,14 @@
             }
           },
           {
+            "doc": "Resolved Task Options",
+            "name": "options",
+            "type": {
+              "type": "map",
+              "values": ["long", "boolean", "string", "int"]
+            }
+          },
+          {
             "name": "nproc",
             "type": "int"
           },

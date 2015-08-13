@@ -67,7 +67,7 @@ class TaskTypes(object):
 
 class SymbolTypes(object):
 
-    """*Symbols* that are understood durning resolving, such as max number of
+    """*Symbols* that are understood during resolving, such as max number of
     processors, Max Chunks"""
     MAX_NPROC = '$max_nproc'
     MAX_NCHUNKS = '$max_nchunks'

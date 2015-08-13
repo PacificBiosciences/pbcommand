@@ -12,10 +12,18 @@
         "description": "Dev app for Testing that supports emitting tool contracts", 
         "schema_options": [
             {
-                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "pb_option": {
+                    "default": 25, 
+                    "type": "integer", 
+                    "option_id": "pbcommand.task_options.dev_read_length", 
+                    "name": "Length filter", 
+                    "description": "Min Sequence Length filter"
+                }, 
+                "title": "JSON Schema for pbcommand.task_options.dev_read_length", 
                 "required": [
                     "pbcommand.task_options.dev_read_length"
                 ], 
+                "$schema": "http://json-schema.org/draft-04/schema#", 
                 "type": "object", 
                 "properties": {
                     "pbcommand.task_options.dev_read_length": {
@@ -24,8 +32,7 @@
                         "description": "Min Sequence Length filter", 
                         "title": "Length filter"
                     }
-                }, 
-                "title": "JSON Schema for pbcommand.task_options.dev_read_length"
+                }
             }
         ], 
         "output_types": [
@@ -37,7 +44,7 @@
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
         ], 
-        "_comment": "Created by v0.2.4", 
+        "_comment": "Created by v0.2.7", 
         "name": "Example Dev App", 
         "input_types": [
             {

@@ -22,11 +22,12 @@
                     "type": "string"
                   },
                   {
+                    "doc": "PacBio File Type identifier",
                     "name": "file_type_id",
                     "type": "string"
                   },
                   {
-                    "_comment": "Display Name",
+                    "doc": "Display Name",
                     "name": "title",
                     "type": "string"
                   },
@@ -51,15 +52,17 @@
                     "type": "string"
                   },
                   {
+                    "doc": "PacBio FileType identifier",
                     "name": "file_type_id",
                     "type": "string"
                   },
                   {
-                    "_comment": "Display Name",
+                    "doc": "Display Name",
                     "name": "title",
                     "type": "string"
                   },
                   {
+                    "doc": "Default file name",
                     "name": "default_name",
                     "type": "string"
                   },
@@ -72,18 +75,64 @@
             }
           },
           {
+            "name": "schema_options",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "PacBioOptions",
+                "fields": [
+                  {
+                    "name": "pb_option",
+                    "type": {
+                      "type": "record",
+                      "name": "pb_option",
+                      "fields": [
+                        {
+                          "name": "default",
+                          "type": [
+                            "int",
+                            "string",
+                            "boolean",
+                            "float"
+                          ]
+                        },
+                        {
+                          "name": "option_id",
+                          "type": "string"
+                        },
+                        {
+                          "name": "name",
+                          "type": "string"
+                        },
+                        {
+                          "name": "description",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "doc": "Number of processors to use",
             "name": "nproc",
             "type": "int"
           },
           {
+            "doc": "Globally unique Tool Contract identifier",
             "name": "tool_contract_id",
             "type": "string"
           },
           {
+            "doc": "Task class type, Standard, Scatter, Gather",
             "name": "task_type",
             "type": "string"
           },
           {
+            "doc": "Determine if the task will be submitted to the cluster resources",
             "name": "is_distributed",
             "type": "boolean"
           },
