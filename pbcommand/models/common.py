@@ -245,6 +245,9 @@ class FileTypes(object):
 
     BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", "application/octet-stream")
 
+    # THIS IS EXPERIMENT for internal analysis. DO NOT use
+    COND = FileType(to_file_ns("COND"), "file", "conditions.json", "application/json")
+
     @staticmethod
     def is_valid_id(file_type_id):
         return file_type_id in REGISTERED_FILE_TYPES
