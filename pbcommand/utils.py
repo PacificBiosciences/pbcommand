@@ -1,5 +1,6 @@
 """Utils for common funcs, such as setting up a log, composing functions."""
 import functools
+import os
 import sys
 import logging
 import argparse
@@ -87,6 +88,31 @@ def compose(*funcs):
             return f(g(x))
         return c
     return functools.reduce(compose_two, funcs)
+
+
+def which(exe_str):
+    """walk the exe_str in PATH to get current exe_str.
+
+    If path is found, the full path is returned. Else it returns None.
+    """
+    paths = os.environ.get('PATH', None)
+    state = None
+
+    if paths is None:
+        # log warning
+        msg = "PATH env var is not defined."
+        log.error(msg)
+        return state
+
+    for path in paths.split(":"):
+        exe_path = os.path.join(path, exe_str)
+        # print exe_path
+        if os.path.exists(exe_path):
+            state = exe_path
+            break
+
+    return state
+
 
 
 class Singleton(type):
