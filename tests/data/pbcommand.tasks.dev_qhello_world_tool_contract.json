@@ -5,7 +5,7 @@
         "serialization": "json"
     }, 
     "tool_contract": {
-        "_comment": "Created by v0.2.7", 
+        "_comment": "Created by v0.2.8", 
         "description": "Quick tool dev_qhello_world pbcommand.tasks.dev_qhello_world", 
         "input_types": [
             {
@@ -28,7 +28,31 @@
             }
         ], 
         "resource_types": [], 
-        "schema_options": [], 
+        "schema_options": [
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "pb_option": {
+                    "default": 1234, 
+                    "description": "Option alpha description", 
+                    "name": "Option alpha", 
+                    "option_id": "pbcommand.task_options.alpha", 
+                    "type": "integer"
+                }, 
+                "properties": {
+                    "pbcommand.task_options.alpha": {
+                        "default": 1234, 
+                        "description": "Option alpha description", 
+                        "title": "Option alpha", 
+                        "type": "integer"
+                    }
+                }, 
+                "required": [
+                    "pbcommand.task_options.alpha"
+                ], 
+                "title": "JSON Schema for pbcommand.task_options.alpha", 
+                "type": "object"
+            }
+        ], 
         "task_type": "pbsmrtpipe.task_types.standard", 
         "tool_contract_id": "pbcommand.tasks.dev_qhello_world"
     }, 

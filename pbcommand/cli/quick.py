@@ -6,6 +6,7 @@ from pbcommand.cli import get_default_argparser
 
 from pbcommand.models import (FileTypes, ToolContractTask, ToolContract,
                               InputFileType, OutputFileType)
+from pbcommand.models.parser import (to_option_schema, JsonSchemaTypes)
 from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
                              write_tool_contract)
@@ -40,6 +41,29 @@ def _file_type_to_output_file_type(file_type):
                           file_type.default_name)
 
 
+def __convert_to_option(jtype, namespace, key, value):
+    opt_id = ".".join([namespace, 'task_options', key])
+    name = "Option {n}".format(n=key)
+    desc = "Option {n} description".format(n=key)
+    opt = to_option_schema(opt_id, jtype, name, desc, value)
+    return opt
+
+
+def _convert_to_option(namespace, key, value):
+    if isinstance(value, basestring):
+        opt = __convert_to_option(JsonSchemaTypes.STR, namespace, key, value)
+    elif isinstance(value, bool):
+        opt = __convert_to_option(JsonSchemaTypes.BOOL, namespace, key, value)
+    elif isinstance(value, int):
+        opt = __convert_to_option(JsonSchemaTypes.INT, namespace, key, value)
+    elif isinstance(value, float):
+        opt = __convert_to_option(JsonSchemaTypes.NUM, namespace, key, value)
+    else:
+        raise TypeError("Unsupported option {k} type. {t} ".format(k=key, t=type(value)))
+
+    return opt
+
+
 class Registry(object):
     def __init__(self, tool_namespace, driver_base):
         self.namespace = tool_namespace
@@ -54,6 +78,12 @@ class Registry(object):
 
     def __call__(self, tool_id, version, input_types, output_types, options=None, nproc=1, is_distributed=True):
         def _w(func):
+            """
+
+            Task Options are provided as 'naked' non-namespaced values and
+            are automatically type detected and converted to a PacBioOption
+
+            """
             # support list or a single value
             itypes = input_types if isinstance(input_types, (list, tuple)) else [input_types]
             otypes = output_types if isinstance(output_types, (list, tuple)) else [output_types]
@@ -63,7 +93,12 @@ class Registry(object):
             desc = "Quick tool {n} {g}".format(n=tool_id, g=global_id)
             input_file_types = [_file_type_to_input_file_type(ft) for ft in itypes]
             output_file_types = [_file_type_to_output_file_type(ft) for ft in otypes]
-            tool_options = {} if options is None else options
+
+            if options is None:
+                tool_options = []
+            else:
+                tool_options = [_convert_to_option(self.namespace, key, value) for key, value in options.iteritems()]
+
             resource_types = []
             task = ToolContractTask(global_id, name, desc, version, is_distributed,
                                     input_file_types, output_file_types, tool_options, nproc, resource_types)

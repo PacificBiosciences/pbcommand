@@ -20,7 +20,7 @@ def _example_main(input_files, output_files, **kwargs):
     return 0
 
 
-@registry("dev_qhello_world", "0.2.1", FileTypes.FASTA, FileTypes.FASTA, nproc=1)
+@registry("dev_qhello_world", "0.2.1", FileTypes.FASTA, FileTypes.FASTA, nproc=1, options=dict(alpha=1234))
 def run_rtc(rtc):
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], nproc=rtc.task.nproc)
 
