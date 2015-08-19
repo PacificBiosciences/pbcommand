@@ -25,6 +25,50 @@ __all__ = ['PbReportError',
 
 import pbcommand
 
+_HAS_NUMPY = False
+
+try:
+    import numpy as np
+    _HAS_NUMPY = True
+except ImportError:
+    pass
+
+
+def _get_decoder():
+    """
+    There's a bit of nonsense here to support the exiting pbreports python
+    package.
+
+    numpy is only used for Report that have Table columns that are numpy arrays.
+    This really should have strictly defined in the original API to only support
+    native python lists. Similarly with numpy scalars in Report Attributes.
+
+    :return: None | numpy decoder
+    """
+    if _HAS_NUMPY:
+        class NumpyJsonEncoder(json.JSONEncoder):
+
+            def default(self, obj):
+                if isinstance(obj, np.core.numerictypes.floating):
+                    return float(obj)
+                if isinstance(obj, np.core.numerictypes.integer):
+                    return int(obj)
+                if isinstance(obj, np.ndarray) and obj.ndim == 1:
+                    return [float(x) for x in obj]
+                # Let the base class default method raise the TypeError
+                return json.JSONEncoder.default(self, obj)
+        return NumpyJsonEncoder
+    else:
+        return None
+
+
+def _to_json_with_decoder(d):
+    decoder_or_none = _get_decoder()
+    if decoder_or_none is None:
+        return json.dumps(d, sort_keys=True, indent=4)
+    else:
+        return json.dumps(d, cls=decoder_or_none, sort_keys=True, indent=4)
+
 
 class PbReportError(Exception):
     pass
@@ -588,7 +632,7 @@ class Report(BaseReportElement):
     def to_json(self):
         """Return a json string of the report"""
         try:
-            s = json.dumps(self.to_dict(), cls=NumpyJsonEncoder)
+            s = _to_json_with_decoder(self.to_dict())
         except TypeError as e:
             msg = "Unable to serialize report due to {e} \n".format(e=e)
             log.error(msg)
@@ -606,16 +650,3 @@ class Report(BaseReportElement):
         with open(file_name, 'w') as f:
             f.write(self.to_json())
         log.info("Wrote report {r}".format(r=file_name))
-
-
-class NumpyJsonEncoder(json.JSONEncoder):
-
-    def default(self, obj):
-        if isinstance(obj, np.core.numerictypes.floating):
-            return float(obj)
-        if isinstance(obj, np.core.numerictypes.integer):
-            return int(obj)
-        if isinstance(obj, np.ndarray) and obj.ndim == 1:
-            return [float(x) for x in obj]
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)

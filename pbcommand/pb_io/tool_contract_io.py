@@ -6,7 +6,7 @@ from avro.io import DatumWriter
 
 import pbcommand
 
-from pbcommand.schemas import RTC_SCHEMA
+from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA
 from pbcommand.models import (TaskTypes,
                               GatherToolContractTask,
                               ScatterToolContractTask)
@@ -338,11 +338,13 @@ def _write_records_to_avro(schema, _d_or_ds, output_file):
         with DataFileWriter(outs, DatumWriter(), schema) as writer:
             for record in _d_or_ds:
                 writer.append(record)
-
     log.debug("Write avro file to {p}".format(p=output_file))
+    return _d_or_ds
+
+
+def write_tool_contract_avro(tc, avro_output):
+    return _write_records_to_avro(TC_SCHEMA, tc.to_dict(), avro_output)
 
 
 def write_resolved_tool_contract_avro(rtc, avro_output):
-    d = rtc.to_dict()
-    _write_records_to_avro(RTC_SCHEMA, d, avro_output)
-    return rtc
+    return _write_records_to_avro(RTC_SCHEMA, rtc.to_dict(), avro_output)
