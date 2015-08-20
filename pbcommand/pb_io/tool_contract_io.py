@@ -9,7 +9,11 @@ import pbcommand
 from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA
 from pbcommand.models import (TaskTypes,
                               GatherToolContractTask,
-                              ScatterToolContractTask)
+                              ScatterToolContractTask,
+                              MalformedToolContractError,
+                              MalformedResolvedToolContractError,
+                              validate_tool_contract)
+
 from pbcommand.models.tool_contract import (ToolDriver,
                                             ToolContractTask,
                                             ToolContract,
@@ -48,14 +52,6 @@ class Constants(object):
 
     # Used in Gather Tasks
     GATHER_CHUNK_KEY = 'chunk_key'
-
-
-class MalformedToolContractError(ValueError):
-    pass
-
-
-class MalformedResolvedToolContractError(ValueError):
-    pass
 
 
 def load_or_raise(ex_type):
@@ -289,7 +285,8 @@ def tool_contract_from_d(d):
                       TaskTypes.STANDARD: _standard_tool_contract_from}
 
     if task_type in dispatch_funcs:
-        return dispatch_funcs[task_type](d)
+        tc = dispatch_funcs[task_type](d)
+        return validate_tool_contract(tc)
     else:
         raise ValueError("Unsupported task type {x}".format(x=task_type))
 

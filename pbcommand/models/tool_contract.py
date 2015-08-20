@@ -11,6 +11,14 @@ from pbcommand.models import TaskTypes
 __version__ = pbcommand.get_version()
 
 
+class MalformedToolContractError(ValueError):
+    pass
+
+
+class MalformedResolvedToolContractError(ValueError):
+    pass
+
+
 def _validate_type(value, type_or_types):
     return isinstance(value, type_or_types)
 
@@ -20,6 +28,26 @@ def _validate_or_raise(value, type_or_types):
         _d = dict(x=value, t=type(value), s=type_or_types)
         raise TypeError("Unsupported type for {x} {t}. Expected types {s}".format(**_d))
     return value
+
+
+def _is_empty_list(alist):
+    return len(alist) == 0
+
+
+def __validate_ioputs(msg, alist):
+    if _is_empty_list(alist):
+        raise MalformedToolContractError(msg)
+    return True
+
+
+def validate_tool_contract(tc):
+    """:type tc: ToolContract
+
+    Expand this out.
+    """
+    __validate_ioputs("Inputs must have at least 1 input.", tc.task.input_file_types)
+    __validate_ioputs("Outputs must have at least 1 output", tc.task.output_file_types)
+    return tc
 
 
 class _IOFileType(object):
@@ -197,7 +225,9 @@ class ToolContract(object):
         return "<{k} id:{i} >".format(**_d)
 
     def to_dict(self):
+        validate_tool_contract(self)
         _t = self.task.to_dict()
+
         _d = dict(version=self.task.version,
                   tool_contract_id=self.task.task_id,
                   driver=self.driver.to_dict(),
