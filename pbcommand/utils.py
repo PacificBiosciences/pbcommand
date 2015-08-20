@@ -81,13 +81,14 @@ def is_argparser_instance(func):
 
 def compose(*funcs):
     """Functional composition
+
     [f, g, h] will be f(g(h(x)))
     """
     def compose_two(f, g):
         def c(x):
             return f(g(x))
         return c
-    return functools.reduce(compose_two, funcs)
+    return functools.reduce(compose_two, funcs, lambda x: x)
 
 
 def which(exe_str):
