@@ -13,91 +13,66 @@ To integrate with the pbsmrtpipe workflow engine you must to be able to generate
 
 A **Tool Contract** contains the metadata of the exe, such as the file types of inputs, outputs and options.
 
-A hello world example:
+Example [Tool Contract Json](https://github.com/PacificBiosciences/pbcommand/blob/master/tests/data/dev_example_dev_txt_app_tool_contract.json) (and [Avro Schema](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/tool_contract.avsc))
 
-```javascript
-{
-    "version": "0.2.0", 
-    "driver": {
-        "exe": "python -m pbcommand.cli.example.dev_app --resolved-tool-contract ", 
-        "env": {}
-    }, 
-    "tool_contract_id": "pbcommand.tools.dev_app", 
-    "tool_contract": {
-        "input_types": [
-            {
-                "description": "PacBio Spec'ed fasta file", 
-                "title": "Fasta File", 
-                "id": "fasta_in", 
-                "file_type_id": "PacBio.FileTypes.Fasta"
-            }
-        ], 
-        "task_type": "pbsmrtpipe.task_types.standard", 
-        "resource_types": [], 
-        "nproc": 1, 
-        "schema_options": [
-            {
-                "$schema": "http://json-schema.org/draft-04/schema#", 
-                "required": [
-                    "pbcommand.task_options.dev_read_length"
-                ], 
-                "type": "object", 
-                "properties": {
-                    "pbcommand.task_options.dev_read_length": {
-                        "default": 25, 
-                        "type": "integer", 
-                        "description": "Min Sequence Length filter", 
-                        "title": "Length filter"
-                    }
-                }, 
-                "title": "JSON Schema for pbcommand.task_options.dev_read_length"
-            }
-        ], 
-        "output_types": [
-            {
-                "title": "Filtered Fasta file", 
-                "description": "Filtered Fasta file", 
-                "default_name": "filter.fasta", 
-                "id": "fasta_out", 
-                "file_type_id": "PacBio.FileTypes.Fasta"
-            }
-        ], 
-        "_comment": "Created by v0.1.0 at 2015-07-21T22:36:09.466032"
-    }
-}
-```
+Example [Resolved Tool Contract Json](https://github.com/PacificBiosciences/pbcommand/blob/master/tests/data/resolved_tool_contract_dev_app.json) (and [Avro Schema](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/resolved_tool_contract.avsc))
 
-A **Resolved Tool Contract** is a resolved **Tool Contract** where types and resources and resolved to specific entites. 
+There are two principle use cases, first wrapping/calling python functions that have been defined in external python packages, or scripts. Second, creating a CLI tool that supports emitting tool contracts, running resolved tool contracts and complete argparse style CLI.
 
-```javascript
-{
-  "_comment": "Example of a Resolved Tool Contract.",
-  "tool_contract": {
-    "tool_contract_id": "pbsmrtpipe.tools.dev_app",
-    "task_type": "pbsmrtpipe.task_types.standard",
-    "input_files": ["/tmp/file.fasta"],
-    "output_files": ["/tmp/file2.filtered.fasta"],
-    "options": {"pbsmrtpipe.options.dev_read_length": 50},
-    "nproc": 1,
-    "resources": [
-      ["$tmpdir", "/tmp/tmpdir"],
-      ["$logfile", "/tmp/task-dir/file.log"]]
-  },
-  "driver": {
-    "_comment": "This is the driver exe. The workflow will call ${exe} config.json",
-    "exe": "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract",
-    "env": {}
-  }
-}
+Example from **pbcommand.cli.examples**
+
+```python
+
+import sys
+import logging
+
+from pbcommand.models import FileTypes
+from pbcommand.cli import registry_builder, registry_runner
+
+log = logging.getLogger(__name__)
+
+registry = registry_builder("pbcommand", "python -m pbcommand.cli.examples.dev_quick_hello_world ")
+
+
+def _example_main(input_files, output_files, **kwargs):
+    log.info("Running example main with {i} {o} kw:{k}".format(i=input_files,
+                                                               o=output_files, k=kwargs))
+    # write mock output files, otherwise the End-to-End test will fail
+    xs = output_files if isinstance(output_files, (list, tuple)) else [output_files]
+    for x in xs:
+        with open(x, 'w') as writer:
+            writer.write("Mock data\n")
+    return 0
+
+
+@registry("dev_qhello_world", "0.2.1", FileTypes.FASTA, FileTypes.FASTA, nproc=1, options=dict(alpha=1234))
+def run_rtc(rtc):
+    return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], nproc=rtc.task.nproc)
+
+
+@registry("dev_fastq2fasta", "0.1.0", FileTypes.FASTQ, FileTypes.FASTA)
+def run_rtc(rtc):
+    return _example_main(rtc.task.input_files[0], rtc.task.output_files[0])
+
+
+if __name__ == '__main__':
+    sys.exit(registry_runner(registry, sys.argv[1:]))
+
 ```
 
 A driver is the commandline interface that the workflow engine will call.
 
 The driver will be called with "${exe} /path/to/resolved_tool_contract.json"
 
+The tool contracts can be emitted to a directory and used in [pbsmrtpipe](https://github.com/PacificBiosciences/pbsmrtpipe).
 
-Creating a Commandline Tool using tool contract
------------------------------------------------
+```bash
+$> python -m pbcommand.cli.examples.dev_quick_hello_world -o /path/to/my-tool-contracts
+```
+
+
+Creating a Full Commandline Tool with TC/RTC and argparse support
+-----------------------------------------------------------------
 
 Three Steps
 - define Parser
@@ -182,12 +157,13 @@ def main(argv=sys.argv):
     # New interface that supports running resolved tool contracts
     log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
     p = get_contract_parser()
-    return pbparser_runner(argv[1:], p,
-                                               _args_runner, # argparse runner func
-                                               _resolved_tool_contract_runner, # tool contract runner func
-                                               log, # log instance
-                                               setup_log # setup log func
-                                               )
+    return pbparser_runner(argv[1:], 
+                           p, 
+                           _args_runner, # argparse runner func
+                           _resolved_tool_contract_runner, # tool contract runner func
+                           log, # log instance
+                           setup_log # setup log func
+                           )
 if __name__ == '__main__':
     sys.exit(main())
 ```
@@ -206,7 +182,7 @@ And you can run the tool from a **Resolved Tool Contract**
 
 See the dev apps in ["pbcommand.cli.examples"](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/cli/examples/dev_app.py) for a complete application (They require pbcore to be installed).
 
-An example of **help** is shown below.
+In addition to TC/RTC support, there's a complete argparse support for the task options. An example of **help** is shown below.
 
 ```sh
 (pbcommand_test)pbcommand $> python -m 'pbcommand.cli.examples.dev_app' --help
