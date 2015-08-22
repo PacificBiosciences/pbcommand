@@ -1,4 +1,5 @@
 """Driver for creating a Resolved Tool Contract from a Tool Contract"""
+from collections import defaultdict
 
 import logging
 import os
@@ -62,7 +63,7 @@ def _resolve_options(tool_contract, tool_options):
     return resolved_options
 
 
-def _resolve_output_file(file_type, output_file_type, root_output_dir):
+def _resolve_output_file(registry_d, file_type, output_file_type, root_output_dir):
     """
     Resolved the Output File Type
 
@@ -70,18 +71,30 @@ def _resolve_output_file(file_type, output_file_type, root_output_dir):
     :type output_file_type: pbcommand.models.OutputFileType
     :return: Resolved output file name
     """
-    if not output_file_type.default_name:
-        base_name = ".".join([file_type.base_name, file_type.ext])
-        return os.path.join(root_output_dir, base_name)
-    elif isinstance(output_file_type.default_name, tuple):
+    def _get_fname(base, ext):
+        idx = base, ext
+        count = registry_d[idx]
+        xs = "" if count == 0 else "-" + str(count)
+        registry_d[idx] += 1
+        name = "".join([base, xs, ".", ext])
+        return os.path.join(root_output_dir, name)
+
+    # FIXME. THIS NEED TO BE FUNDAMENTALLY FIXED and updated to use the spec
+    # in the avro schema.
+    if isinstance(output_file_type.default_name, basestring):
+        a, b = os.path.splitext(output_file_type.default_name)
+        return _get_fname(a, b.replace('.', ''))
+    elif isinstance(output_file_type.default_name, (list, tuple)):
         base, ext = output_file_type.default_name
-        return os.path.join(root_output_dir, ".".join([base, ext]))
-    else:  # XXX should get rid of this eventually
-        return os.path.join(root_output_dir, output_file_type.default_name)
+        return _get_fname(base, ext)
+    else:
+        return _get_fname(file_type.base_name, file_type.ext)
 
 
 def _resolve_output_files(output_file_types, root_output_dir):
-    return [_resolve_output_file(REGISTERED_FILE_TYPES[f.file_type_id], f, root_output_dir) for f in output_file_types]
+    # store the files as {(base, ext): count}
+    _outs_registry = defaultdict(lambda : 0)
+    return [_resolve_output_file(_outs_registry, REGISTERED_FILE_TYPES[f.file_type_id], f, root_output_dir) for f in output_file_types]
 
 
 def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options):

@@ -36,7 +36,7 @@ def run_rtc(rtc):
 
 
 def _to_output(i, file_type):
-    default_name = "_".join([file_type.file_type_id, file_type.base_name + "_" + str(i), "." + file_type.ext])
+    default_name = "_".join([file_type.file_type_id, file_type.base_name + "_" + str(i) + "." + file_type.ext])
     label = "label_" + file_type.file_type_id
     desc = "File {f}".format(f=file_type)
     return OutputFileType(file_type.file_type_id, label, repr(file_type), desc, default_name)

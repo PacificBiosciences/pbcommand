@@ -58,6 +58,8 @@ class PbTestApp(unittest.TestCase):
     def _test_outputs_exists(self, rtc):
         """:type rtc: pbcommand.models.ResolvedToolContract"""
         log.debug("validating output file existence from {r}".format(r=rtc))
+        log.debug("Resolved Output files from {t}".format(t=rtc.task.task_id))
+        log.debug(rtc.task.output_files)
         for i, output_file in enumerate(rtc.task.output_files):
             msg = "Unable to find {i}-th output file {p}".format(i=i, p=output_file)
             self.assertTrue(os.path.exists(output_file), msg)
