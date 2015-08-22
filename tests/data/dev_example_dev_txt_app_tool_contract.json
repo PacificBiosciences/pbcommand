@@ -44,7 +44,7 @@
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
         ], 
-        "_comment": "Created by v0.2.8", 
+        "_comment": "Created by v0.2.11", 
         "name": "Example Dev App", 
         "input_types": [
             {

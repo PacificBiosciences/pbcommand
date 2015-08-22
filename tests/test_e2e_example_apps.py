@@ -29,3 +29,12 @@ class TestQuickDevHelloWorld(pbcommand.testkit.PbTestApp):
 
     REQUIRES_PBCORE = False
     INPUT_FILES = [get_data_file("example.txt")]
+
+
+class TestQuickTxt(pbcommand.testkit.PbTestApp):
+    """Runs dev_qhello_world """
+    DRIVER_EMIT = "python -m pbcommand.cli.examples.dev_quick_hello_world  emit-tool-contract pbcommand.tasks.dev_txt_hello "
+    DRIVER_RESOLVE = "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc "
+
+    REQUIRES_PBCORE = False
+    INPUT_FILES = [get_data_file("example.txt")]

@@ -26,16 +26,18 @@ def _example_main(*args, **kwargs):
     return 0
 
 
-def _file_type_to_input_file_type(file_type):
+def _file_type_to_input_file_type(file_type, index):
+    fid = "_".join([file_type.file_type_id, str(index)])
     return InputFileType(file_type.file_type_id,
-                         "Label " + file_type.file_type_id,
+                         "Label " + fid,
                          repr(file_type),
-                         "description for {f}".format(f=file_type))
+                         "description for {f}".format(f=fid))
 
 
-def _file_type_to_output_file_type(file_type):
+def _file_type_to_output_file_type(file_type, index):
+    fid = "_".join([file_type.file_type_id, str(index)])
     return OutputFileType(file_type.file_type_id,
-                          "Label " + file_type.file_type_id,
+                          "Label " + fid,
                           repr(file_type),
                           "description for {f}".format(f=file_type),
                           file_type.default_name)
@@ -91,8 +93,9 @@ class Registry(object):
             global_id = ".".join([self.namespace, 'tasks', tool_id])
             name = "Tool {n}".format(n=tool_id)
             desc = "Quick tool {n} {g}".format(n=tool_id, g=global_id)
-            input_file_types = [_file_type_to_input_file_type(ft) for ft in itypes]
-            output_file_types = [_file_type_to_output_file_type(ft) for ft in otypes]
+
+            input_file_types = [_file_type_to_input_file_type(ft, i) for i, ft in enumerate(itypes)]
+            output_file_types = [_file_type_to_output_file_type(ft, i) for i, ft in enumerate(otypes)]
 
             if options is None:
                 tool_options = []

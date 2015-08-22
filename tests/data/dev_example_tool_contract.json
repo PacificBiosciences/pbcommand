@@ -44,7 +44,7 @@
                 "file_type_id": "PacBio.FileTypes.txt"
             }
         ], 
-        "_comment": "Created by v0.2.8", 
+        "_comment": "Created by v0.2.11", 
         "name": "Txt App", 
         "input_types": [
             {

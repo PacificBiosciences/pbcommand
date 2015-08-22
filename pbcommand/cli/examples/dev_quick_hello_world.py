@@ -30,5 +30,10 @@ def run_rtc(rtc):
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0])
 
 
+@registry("dev_txt_hello", "0.1.0", FileTypes.TXT, (FileTypes.TXT, FileTypes.TXT), nproc=3, is_distributed=False)
+def run_rtc(rtc):
+    return _example_main(rtc.task.input_files, rtc.task.output_files)
+
+
 if __name__ == '__main__':
     sys.exit(registry_runner(registry, sys.argv[1:]))

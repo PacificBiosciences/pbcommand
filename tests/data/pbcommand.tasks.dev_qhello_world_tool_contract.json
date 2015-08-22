@@ -5,13 +5,13 @@
         "serialization": "json"
     }, 
     "tool_contract": {
-        "_comment": "Created by v0.2.8", 
+        "_comment": "Created by v0.2.11", 
         "description": "Quick tool dev_qhello_world pbcommand.tasks.dev_qhello_world", 
         "input_types": [
             {
-                "description": "description for <FileType id=PacBio.FileTypes.Fasta name=file.fasta >", 
+                "description": "description for PacBio.FileTypes.Fasta_0", 
                 "file_type_id": "PacBio.FileTypes.Fasta", 
-                "id": "Label PacBio.FileTypes.Fasta", 
+                "id": "Label PacBio.FileTypes.Fasta_0", 
                 "title": "<FileType id=PacBio.FileTypes.Fasta name=file.fasta >"
             }
         ], 
@@ -23,7 +23,7 @@
                 "default_name": "file.fasta", 
                 "description": "description for <FileType id=PacBio.FileTypes.Fasta name=file.fasta >", 
                 "file_type_id": "PacBio.FileTypes.Fasta", 
-                "id": "Label PacBio.FileTypes.Fasta", 
+                "id": "Label PacBio.FileTypes.Fasta_0", 
                 "title": "<FileType id=PacBio.FileTypes.Fasta name=file.fasta >"
             }
         ], 
