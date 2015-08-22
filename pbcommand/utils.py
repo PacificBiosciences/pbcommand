@@ -6,6 +6,7 @@ import logging
 import argparse
 import traceback
 import time
+import types
 
 log = logging.getLogger(__name__)
 
@@ -80,9 +81,28 @@ def is_argparser_instance(func):
 
 
 def compose(*funcs):
-    """Functional composition
-    [f, g, h] will be f(g(h(x)))
     """
+    Functional composition of a non-empty list
+
+    [f, g, h] will be f(g(h(x)))
+
+    fx = compose(f, g, h)
+
+    or
+
+    fx = compose(*[f, g, h])
+
+    """
+    if not funcs:
+        raise ValueError("Compose only supports non-empty lists")
+    for func in funcs:
+        if not isinstance(func, (types.BuiltinMethodType,
+                                 functools.partial,
+                                 types.MethodType,
+                                 types.BuiltinFunctionType,
+                                 types.FunctionType)):
+            raise TypeError("Only Function types are supported")
+
     def compose_two(f, g):
         def c(x):
             return f(g(x))
