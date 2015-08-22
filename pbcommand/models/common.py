@@ -170,6 +170,14 @@ class FileType(object):
         return "<{k} id={i} name={n} >".format(**_d)
 
 
+class MimeTypes(object):
+    JSON = 'application/json'
+    TXT = 'text/plain'
+    CSV = 'text/csv'
+    XML = 'application/xml'
+    BINARY = 'application/octet-stream'
+
+
 class FileTypes(object):
 
     """Registry of all PacBio Files types
@@ -179,78 +187,87 @@ class FileTypes(object):
     """
 
     # generic Txt file
-    TXT = FileType(to_file_ns('txt'), 'file', 'txt', 'text/plain')
+    TXT = FileType(to_file_ns('txt'), 'file', 'txt', MimeTypes.TXT)
 
     # THIS NEEDS TO BE CONSISTENT with scala code. When the datastore
     # is written to disk the file type id's might be translated to
     # the DataSet style file type ids.
-    REPORT = FileType(to_file_ns('JsonReport'), "report", "json", 'application/json')
-    CHUNK = FileType(to_file_ns("CHUNK"), "chunk", "json", 'application/json')
+    REPORT = FileType(to_file_ns('JsonReport'), "report", "json", MimeTypes.JSON)
 
-    FASTA = FileType(to_file_ns('Fasta'), "file", "fasta", 'text/plain')
-    FASTQ = FileType(to_file_ns('Fastq'), "file", "fastq", 'text/plain')
+    # this will go away soon in favor of using a more type based model to
+    # distinguish between scatter and gather file types
+    CHUNK = FileType(to_file_ns("CHUNK"), "chunk", "json", MimeTypes.JSON)
+    GCHUNK = FileType(to_file_ns("GCHUNK"), 'gather_chunk', "json", MimeTypes.JSON)
+    SCHUNK = FileType(to_file_ns("SCHUNK"), "scatter_chunk", "json", MimeTypes.JSON)
+
+    FASTA = FileType(to_file_ns('Fasta'), "file", "fasta", MimeTypes.TXT)
+    FASTQ = FileType(to_file_ns('Fastq'), "file", "fastq", MimeTypes.TXT)
 
     # Not sure this should be a special File Type?
-    INPUT_XML = FileType(to_file_ns('input_xml'), "input", "xml", 'application/xml')
-    FOFN = FileType(to_file_ns("generic_fofn"), "generic", "fofn", 'text/plain')
-    MOVIE_FOFN = FileType(to_file_ns('movie_fofn'), "movie", "fofn", 'text/plain')
-    RGN_FOFN = FileType(to_file_ns('rgn_fofn'), "region", "fofn", 'text/plain')
+    INPUT_XML = FileType(to_file_ns('input_xml'), "input", "xml", MimeTypes.XML)
+    FOFN = FileType(to_file_ns("generic_fofn"), "generic", "fofn", MimeTypes.TXT)
+    MOVIE_FOFN = FileType(to_file_ns('movie_fofn'), "movie", "fofn", MimeTypes.TXT)
+    RGN_FOFN = FileType(to_file_ns('rgn_fofn'), "region", "fofn", MimeTypes.TXT)
 
-    RS_MOVIE_XML = FileType(to_file_ns("rs_movie_metadata"), "file", "rs_movie.metadata.xml", "application/xml")
-    REF_ENTRY_XML = FileType(to_file_ns('reference_info_xml'), "reference.info.xml", "xml", 'application/xml')
+    RS_MOVIE_XML = FileType(to_file_ns("rs_movie_metadata"), "file", "rs_movie.metadata.xml", MimeTypes.XML)
+    REF_ENTRY_XML = FileType(to_file_ns('reference_info_xml'), "reference.info.xml", "xml", MimeTypes.XML)
 
-    ALIGNMENT_CMP_H5 = FileType(to_file_ns('alignment_cmp_h5'), "alignments", "cmp.h5", 'application/octet-stream')
+    ALIGNMENT_CMP_H5 = FileType(to_file_ns('alignment_cmp_h5'), "alignments", "cmp.h5", MimeTypes.BINARY)
     # I am not sure this should be a first class file
-    BLASR_M4 = FileType(to_file_ns('blasr_file'), 'blasr', 'm4', 'text/plain')
-    BAM = FileType(to_file_ns('bam'), "alignments", "bam", 'application/octet-stream')
-    BAMBAI = FileType(to_file_ns('bam_bai'), "alignments", "bam.bai", 'application/octet-stream')
+    BLASR_M4 = FileType(to_file_ns('blasr_file'), 'blasr', 'm4', MimeTypes.TXT)
+    BAM = FileType(to_file_ns('bam'), "alignments", "bam", MimeTypes.BINARY)
+    BAMBAI = FileType(to_file_ns('bam_bai'), "alignments", "bam.bai", MimeTypes.BINARY)
 
-    BED = FileType(to_file_ns('bed'), "file", "bed", 'text/plain')
-    SAM = FileType(to_file_ns('sam'), "alignments", "sam", 'application/octet-stream')
-    VCF = FileType(to_file_ns('vcf'), "file", "vcf", 'text/plain')
-    GFF = FileType(to_file_ns('gff'), "file", "gff", 'text/plain')
-    CSV = FileType(to_file_ns('csv'), "file", "csv", 'text/csv')
+    BED = FileType(to_file_ns('bed'), "file", "bed", MimeTypes.TXT)
+    SAM = FileType(to_file_ns('sam'), "alignments", "sam", MimeTypes.BINARY)
+    VCF = FileType(to_file_ns('vcf'), "file", "vcf", MimeTypes.TXT)
+    GFF = FileType(to_file_ns('gff'), "file", "gff", MimeTypes.TXT)
+    CSV = FileType(to_file_ns('csv'), "file", "csv", MimeTypes.CSV)
     XML = FileType(to_file_ns('xml'), "file", "xml", 'application/xml')
     # Generic Json File
-    JSON = FileType(to_file_ns("json"), "file", "json", "application/json")
+    JSON = FileType(to_file_ns("json"), "file", "json", MimeTypes.JSON)
     # Generic H5 File
-    H5 = FileType(to_file_ns("h5"), "file", "h5", "application/octet-stream")
+    H5 = FileType(to_file_ns("h5"), "file", "h5", MimeTypes.BINARY)
 
     # ******************* NEW SA3 File Types ********************
     # DataSet Types. The default file names should have well-defined agreed
     # upon format. See what Dave did for the bam files.
     # https://github.com/PacificBiosciences/PacBioFileFormats
-    DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", "application/xml")
-    DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", "application/xml")
-    DS_CCS = FileType(to_ds_ns("ConsensusReadSet"), "file", "ccsread.dataset.xml", "application/xml")
-    DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "reference.dataset.xml", "application/xml")
-    DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", "application/xml")
-    DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.dataset.xml", "application/xml")
-    DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcode.dataset.xml", "application/xml")
-    DS_ALIGN_CCS = FileType(to_ds_ns("ConsensusAlignmentSet"), "file", "alignedccs.dataset.xml", "application/xml")
+    DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", MimeTypes.XML)
+    DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", MimeTypes.XML)
+    DS_CCS = FileType(to_ds_ns("ConsensusReadSet"), "file", "ccsread.dataset.xml", MimeTypes.XML)
+    DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "reference.dataset.xml", MimeTypes.XML)
+    DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", MimeTypes.XML)
+    DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.dataset.xml", MimeTypes.XML)
+    DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcode.dataset.xml", MimeTypes.XML)
+    DS_ALIGN_CCS = FileType(to_ds_ns("ConsensusAlignmentSet"), "file", "alignedccs.dataset.xml", MimeTypes.XML)
 
     # Index Files
-    I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", "application/octet-stream")
-    I_SAW = FileType(to_index_ns("SaWriterIndex"), "file", "sa", "application/octet-stream")
+    I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", MimeTypes.BINARY)
+    I_SAW = FileType(to_index_ns("SaWriterIndex"), "file", "sa", MimeTypes.BINARY)
 
     # PacBio Defined Formats
-    FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", "text/plain")
+    FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
     # No ':' or '"' in the id
-    FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", "text/plain")
+    FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", MimeTypes.TXT)
 
     # FIXME. Add Bax/Bam Formats here. This should replace the exiting pre-SA3 formats.
-    BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", "application/octet-stream")
-    BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", "application/octet-stream")
-    BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", "application/octet-stream")
+    BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", MimeTypes.BINARY)
+    BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", MimeTypes.BINARY)
+    BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", MimeTypes.BINARY)
 
-    BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", "application/octet-stream")
+    BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", MimeTypes.BINARY)
 
     # THIS IS EXPERIMENT for internal analysis. DO NOT use
-    COND = FileType(to_file_ns("COND"), "file", "conditions.json", "application/json")
+    COND = FileType(to_file_ns("COND"), "file", "conditions.json", MimeTypes.JSON)
 
     @staticmethod
     def is_valid_id(file_type_id):
         return file_type_id in REGISTERED_FILE_TYPES
+
+    @staticmethod
+    def ALL():
+        return REGISTERED_FILE_TYPES
 
 
 class DataStoreFile(object):

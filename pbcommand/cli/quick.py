@@ -5,7 +5,7 @@ import sys
 from pbcommand.cli import get_default_argparser
 
 from pbcommand.models import (FileTypes, ToolContractTask, ToolContract,
-                              InputFileType, OutputFileType)
+                              InputFileType, OutputFileType, FileType)
 from pbcommand.models.parser import (to_option_schema, JsonSchemaTypes)
 from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
@@ -66,6 +66,22 @@ def _convert_to_option(namespace, key, value):
     return opt
 
 
+def _to_list(x):
+    if isinstance(x, (list, tuple)):
+        return x
+    else:
+        return [x]
+
+
+def _transform_output_ftype(x, i):
+    if isinstance(x, FileType):
+        return _file_type_to_output_file_type(x, i)
+    elif isinstance(x, OutputFileType):
+        return x
+    else:
+        raise TypeError("Unsupported type {t} value {x}".format(x=x, t=type(x)))
+
+
 class Registry(object):
     def __init__(self, tool_namespace, driver_base):
         self.namespace = tool_namespace
@@ -87,15 +103,15 @@ class Registry(object):
 
             """
             # support list or a single value
-            itypes = input_types if isinstance(input_types, (list, tuple)) else [input_types]
-            otypes = output_types if isinstance(output_types, (list, tuple)) else [output_types]
+            itypes = _to_list(input_types)
+            otypes = _to_list(output_types)
 
             global_id = ".".join([self.namespace, 'tasks', tool_id])
             name = "Tool {n}".format(n=tool_id)
             desc = "Quick tool {n} {g}".format(n=tool_id, g=global_id)
 
             input_file_types = [_file_type_to_input_file_type(ft, i) for i, ft in enumerate(itypes)]
-            output_file_types = [_file_type_to_output_file_type(ft, i) for i, ft in enumerate(otypes)]
+            output_file_types = [_transform_output_ftype(ft, i) for i, ft in enumerate(otypes)]
 
             if options is None:
                 tool_options = []
