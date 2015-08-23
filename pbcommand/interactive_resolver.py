@@ -13,7 +13,6 @@ from pbcommand.resolver import resolve_tool_contract
 
 try:
     from prompt_toolkit.filters import Always
-    from prompt_toolkit.history import History
     from prompt_toolkit.shortcuts import get_input
 except ImportError:
     sys.stderr.write("interactive resolver requires 'prompt_toolkit' (pip install prompt_toolkit)\n")
@@ -23,8 +22,6 @@ except ImportError:
 def run_main(tc):
     """:type tc: ToolContract"""
     print "Loaded tc {c}".format(c=tc)
-
-    h = History()
 
     if tc.task.nproc == SymbolTypes.MAX_NPROC:
         nproc = get_input('Enter max nproc: ')
@@ -45,10 +42,10 @@ def run_main(tc):
     tool_options = {}
     rtc = resolve_tool_contract(tc, input_files, output_dir, '/tmp', int(nproc), tool_options)
     print rtc
-    print "writing RTC"
-    file_name = tc.task.task_id + "_resolved_tool_contract.json"
 
+    file_name = tc.task.task_id + "_resolved_tool_contract.json"
     rtc_path = os.path.join(output_dir, file_name)
+    print "writing RTC to {f}".format(f=rtc_path)
     write_resolved_tool_contract(rtc, rtc_path)
 
     return rtc
