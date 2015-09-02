@@ -233,14 +233,15 @@ class FileTypes(object):
     # DataSet Types. The default file names should have well-defined agreed
     # upon format. See what Dave did for the bam files.
     # https://github.com/PacificBiosciences/PacBioFileFormats
-    DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "h5.subreads.xml", MimeTypes.XML)
-    DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreads.xml", MimeTypes.XML)
-    DS_CCS = FileType(to_ds_ns("ConsensusReadSet"), "file", "ccsread.dataset.xml", MimeTypes.XML)
-    DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "reference.dataset.xml", MimeTypes.XML)
-    DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "aligned.dataset.xml", MimeTypes.XML)
-    DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.dataset.xml", MimeTypes.XML)
-    DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcode.dataset.xml", MimeTypes.XML)
-    DS_ALIGN_CCS = FileType(to_ds_ns("ConsensusAlignmentSet"), "file", "alignedccs.dataset.xml", MimeTypes.XML)
+    DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "hdfsubreadset.xml", MimeTypes.XML)
+    DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreadset.xml", MimeTypes.XML)
+    DS_CCS = FileType(to_ds_ns("ConsensusReadSet"), "file", "consensusreadset.xml", MimeTypes.XML)
+    DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "referenceset.xml", MimeTypes.XML)
+    DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "alignmentset.xml", MimeTypes.XML)
+    DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.xml", MimeTypes.XML)
+    DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcodeset.xml", MimeTypes.XML)
+    DS_ALIGN_CCS = FileType(to_ds_ns("ConsensusAlignmentSet"), "file",
+                            "consensusalignmentset.xml", MimeTypes.XML)
 
     # Index Files
     I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", MimeTypes.BINARY)
