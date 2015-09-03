@@ -19,6 +19,18 @@ class TestReportModel(unittest.TestCase):
             },
         ])
 
+    def test_merge(self):
+        r = Report.merge([
+            Report.from_simple_dict("pbcommand_test",
+                                    {"n_reads": 50, "n_zmws": 10},
+                                    "pbcommand"),
+            Report.from_simple_dict("pbcommand_test",
+                                    {"n_reads": 250, "n_zmws": 50},
+                                    "pbcommand")])
+        attr = {a.id: a.value for a in r.attributes}
+        self.assertEqual(attr['pbcommand_n_reads'], 300)
+        self.assertEqual(attr['pbcommand_n_zmws'], 60)
+
 
 if __name__ == "__main__":
     unittest.main()
