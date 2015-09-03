@@ -3,6 +3,7 @@
 
 Author: Johann Miller and Michael Kocher
 """
+import warnings
 import abc
 import logging
 import json
@@ -650,3 +651,20 @@ class Report(BaseReportElement):
         with open(file_name, 'w') as f:
             f.write(self.to_json())
         log.info("Wrote report {r}".format(r=file_name))
+
+    @staticmethod
+    def from_simple_dict(report_id, raw_d, namespace):
+        """
+        Generate a Report with populated attributes, starting from a flat
+        dictionary (without namespace).
+        """
+        attributes = []
+        for k, v in raw_d.items():
+            ns = "_".join([namespace, k.lower()])
+            # These can't be none for some reason
+            if v is not None:
+                a = Attribute(ns, v, name=k)
+                attributes.append(a)
+            else:
+                warnings.warn("skipping null entry {k}->{v}".format(k=k, v=v))
+        return Report(report_id, attributes=attributes)
