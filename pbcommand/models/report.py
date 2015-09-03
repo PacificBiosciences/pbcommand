@@ -3,6 +3,9 @@
 
 Author: Johann Miller and Michael Kocher
 """
+
+from collections import defaultdict
+import warnings
 import abc
 import logging
 import json
@@ -650,3 +653,48 @@ class Report(BaseReportElement):
         with open(file_name, 'w') as f:
             f.write(self.to_json())
         log.info("Wrote report {r}".format(r=file_name))
+
+    @staticmethod
+    def from_simple_dict(report_id, raw_d, namespace):
+        """
+        Generate a Report with populated attributes, starting from a flat
+        dictionary (without namespace).
+        """
+        attributes = []
+        for k, v in raw_d.items():
+            ns = "_".join([namespace, k.lower()])
+            # These can't be none for some reason
+            if v is not None:
+                a = Attribute(ns, v, name=k)
+                attributes.append(a)
+            else:
+                warnings.warn("skipping null entry {k}->{v}".format(k=k, v=v))
+        return Report(report_id, attributes=attributes)
+
+    @staticmethod
+    def merge(reports):
+        report_id = reports[0].id
+        def _merge_attributes_d(attributes_list):
+            attrs = defaultdict(lambda : [])
+            for ax in attributes_list:
+                for a in ax:
+                    attrs[a.id].append(a.value)
+            return attrs
+        def _attributes_to_table(attributes_list, table_id, title):
+            attrs = _merge_attributes_d(attributes_list)
+            columns = [ Column(k.lower(), header=k, values=values)
+                        for k, values in attrs.iteritems() ]
+            table = Table(table_id, title=title, columns=columns)
+            return table
+        def _sum_attributes(attributes_list):
+            d = _merge_attributes_d(attributes_list)
+            return [ Attribute(k, sum(values), name=k)
+                     for k, values in d.iteritems() ]
+        attr_list = []
+        for report in reports:
+            assert report.id == report_id
+            attr_list.append(report.attributes)
+        table = _attributes_to_table(attr_list, 'chunk_metrics',
+                                     "Chunk Metrics")
+        merged_attributes = _sum_attributes(attr_list)
+        return Report(report_id, attributes=merged_attributes, tables=[table])
