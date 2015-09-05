@@ -176,6 +176,7 @@ class MimeTypes(object):
     CSV = 'text/csv'
     XML = 'application/xml'
     BINARY = 'application/octet-stream'
+    PICKLE = 'application/python-pickle'
 
 
 class FileTypes(object):
@@ -228,6 +229,8 @@ class FileTypes(object):
     JSON = FileType(to_file_ns("json"), "file", "json", MimeTypes.JSON)
     # Generic H5 File
     H5 = FileType(to_file_ns("h5"), "file", "h5", MimeTypes.BINARY)
+    # Generic Python pickle XXX EVIL
+    PICKLE = FileType(to_file_ns("pickle"), "file", "pickle", MimeTypes.PICKLE)
 
     # ******************* NEW SA3 File Types ********************
     # DataSet Types. The default file names should have well-defined agreed
