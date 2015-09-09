@@ -89,7 +89,7 @@ def _validate_id(prog, idtype, tid):
     if prog.match(tid):
         return tid
     else:
-        raise ValueError("Invalid format {t}: '{i}'".format(t=idtype, i=tid))
+        raise ValueError("Invalid format {t}: '{i}' {p}".format(t=idtype, i=tid, p=repr(prog.pattern)))
 
 _validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
 _validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
