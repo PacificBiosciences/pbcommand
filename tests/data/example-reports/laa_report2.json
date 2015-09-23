@@ -1,0 +1,51 @@
+{
+    "_changelist": "UNKNOWN", 
+    "_version": "0.2.14", 
+    "attributes": [], 
+    "dataset_uuids": [], 
+    "id": "pblaa_tasks_laa", 
+    "plotGroups": [], 
+    "tables": [
+        {
+            "columns": [
+                {
+                    "header": "BarcodeName", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.barcodename", 
+                    "values": ["Barcode4", "Barcode3"]
+                }, 
+                {
+                    "header": "FastaName", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.fastaname", 
+                    "values": ["BarcodeFasta4", "BarcodeFasta3"]
+                }, 
+                {
+                    "header": "CoarseCluster", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.coarsecluster", 
+                    "values": [4, 3]
+                }, 
+                {
+                    "header": "Phase", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.phase", 
+                    "values": [4, 3]
+                }, 
+                {
+                    "header": "TotalCoverage", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.totalcoverage", 
+                    "values": [4, 3]
+                }, 
+                {
+                    "header": "SequenceLength", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.sequencelength", 
+                    "values": [4, 3]
+                }, 
+                {
+                    "header": "PredictedAccuracy", 
+                    "id": "pblaa_tasks_laa.pblaa_result_table.predictedaccuracy", 
+                    "values": [4, 3]
+                }
+            ], 
+            "id": "pblaa_tasks_laa.pblaa_result_table", 
+            "title": "Pblaa Results By Barcode"
+        }
+    ]
+}

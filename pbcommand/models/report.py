@@ -474,6 +474,27 @@ class Table(BaseReportElement):
         else:
             raise KeyError("Unable to Column with id '{i}' to assign value {v}".format(i=column_id, v=value))
 
+    @staticmethod
+    def merge(tables):
+        table_id = tables[0].id
+        table_title = tables[0].title
+        column_ids = sorted([col.id for col in tables[0].columns])
+
+        col_collisions = {col_id: [] for col_id in column_ids}
+        for table in tables:
+            assert table.id == table_id
+            assert table.title == table_title
+            assert sorted([col.id for col in table.columns]) == column_ids
+            for col in table.columns:
+                col_collisions[col.id].append(col)
+        columns = {}
+        for col_id, cols in col_collisions.iteritems():
+            assert len(cols) == len(tables)
+            columns[col_id] = Column.merge(cols)
+        # order by table[0]'s column order:
+        columns = [columns[col.id] for col in tables[0].columns]
+        return Table(table_id, table_title, columns=columns)
+
 
 class Column(BaseReportElement):
 
@@ -519,6 +540,17 @@ class Column(BaseReportElement):
 
     def _get_attrs_complex_list(self):
         return []
+
+    @staticmethod
+    def merge(columns):
+        column_id = columns[0].id
+        column_header = columns[0].header
+        values = []
+        for col in columns:
+            assert col.id == column_id
+            assert col.header == column_header
+            values.extend(col.values)
+        return Column(column_id, column_header, values=values)
 
 
 class Report(BaseReportElement):
@@ -690,11 +722,27 @@ class Report(BaseReportElement):
             d = _merge_attributes_d(attributes_list)
             return [ Attribute(k, sum(values), name=k)
                      for k, values in d.iteritems() ]
+        def _merge_tables(tables):
+            """Pass through singletons, Table.merge dupes"""
+            id_collisions = defaultdict(list)
+            merged = []
+            for tab in tables:
+                id_collisions[tab.id].append(tab)
+            for tabs in id_collisions.values():
+                if len(tabs) == 1:
+                    merged.append(tabs[0])
+                else:
+                    merged.append(Table.merge(tabs))
+            return merged
         attr_list = []
+        table_list = []
         for report in reports:
             assert report.id == report_id
             attr_list.append(report.attributes)
+            table_list.extend(report.tables)
         table = _attributes_to_table(attr_list, 'chunk_metrics',
                                      "Chunk Metrics")
+        tables = _merge_tables(table_list)
+        tables.append(table)
         merged_attributes = _sum_attributes(attr_list)
-        return Report(report_id, attributes=merged_attributes, tables=[table])
+        return Report(report_id, attributes=merged_attributes, tables=tables)
