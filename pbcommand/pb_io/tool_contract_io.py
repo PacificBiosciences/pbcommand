@@ -97,8 +97,10 @@ def __core_resolved_tool_contract_task_from_d(d):
     # int
     nproc = _get("nproc")
     resource_types = _get("resources")
+    tmp_dir = _get("tmp_dir")
+    tmp_file = _get("tmp_file")
 
-    return tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types
+    return tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, tmp_dir, tmp_file
 
 
 def __to_rtc_from_d(d):
@@ -112,31 +114,33 @@ def __to_rtc_from_d(d):
 def _standard_resolved_tool_contract_from_d(d):
     """Load a 'Standard' CLI task type"""
 
-    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types = __core_resolved_tool_contract_task_from_d(d)
+    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, tmp_dir, tmp_file = __core_resolved_tool_contract_task_from_d(d)
 
     task = ResolvedToolContractTask(tool_contract_id, is_distributed,
                                     input_files, output_files,
-                                    tool_options, nproc, resource_types)
+                                    tool_options, nproc, resource_types,
+                                    tmp_dir, tmp_file)
     return __to_rtc_from_d(d)(task)
 
 
 def _scatter_resolved_tool_contract_from_d(d):
     """Load a Gathered Tool Contract """
-    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types = __core_resolved_tool_contract_task_from_d(d)
+    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, tmp_dir, tmp_file = __core_resolved_tool_contract_task_from_d(d)
     max_nchunks = d[Constants.RTOOL][Constants.MAX_NCHUNKS]
     chunk_keys = d[Constants.RTOOL][Constants.CHUNK_KEYS]
-    task = ResolvedScatteredToolContractTask(tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, max_nchunks, chunk_keys)
+    task = ResolvedScatteredToolContractTask(tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, max_nchunks, chunk_keys, tmp_dir, tmp_file)
 
     return __to_rtc_from_d(d)(task)
 
 
 def _gather_resolved_tool_contract_from_d(d):
-    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types = __core_resolved_tool_contract_task_from_d(d)
+    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, tmp_dir, tmp_file = __core_resolved_tool_contract_task_from_d(d)
 
     chunk_key = d[Constants.RTOOL][Constants.GATHER_CHUNK_KEY]
     task = ResolvedGatherToolContractTask(tool_contract_id, is_distributed,
                                       input_files, output_files,
-                                      tool_options, nproc, resource_types, chunk_key)
+                                      tool_options, nproc, resource_types,
+                                      chunk_key, tmp_dir, tmp_file)
     return __to_rtc_from_d(d)(task)
 
 
@@ -226,7 +230,9 @@ def __core_tool_contract_task_from(d):
     tool_options = _get("schema_options")
     nproc = _get("nproc")
     resource_types = _get("resource_types")
-    return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types
+    tmp_dir = d[Constants.TOOL].get("tmp_dir", None)
+    tmp_file = d[Constants.TOOL].get("tmp_file", None)
+    return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, tmp_dir, tmp_file
 
 
 def __to_tc_from_d(d):
@@ -239,18 +245,19 @@ def __to_tc_from_d(d):
 
 @_json_path_or_d
 def _standard_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types  = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, tmp_dir, tmp_file= __core_tool_contract_task_from(path_or_d)
     task = ToolContractTask(task_id, display_name, description, version,
                             is_distributed,
                             input_types,
                             output_types,
-                            tool_options, nproc, resource_types)
+                            tool_options, nproc, resource_types,
+                            tmp_dir, tmp_file)
     return __to_tc_from_d(path_or_d)(task)
 
 
 @_json_path_or_d
 def _scattered_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, tmp_dir, tmp_file = __core_tool_contract_task_from(path_or_d)
 
     chunk_keys = path_or_d[Constants.TOOL][Constants.CHUNK_KEYS]
     # int, or SymbolTypes.MAX_NCHUNKS
@@ -259,18 +266,21 @@ def _scattered_tool_contract_from(path_or_d):
                                    is_distributed,
                                    input_types,
                                    output_types,
-                                   tool_options, nproc, resource_types, chunk_keys, nchunks)
+                                   tool_options, nproc, resource_types,
+                                   chunk_keys, nchunks,
+                                   tmp_dir, tmp_file)
     return __to_tc_from_d(path_or_d)(task)
 
 
 @_json_path_or_d
 def _gather_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types, tmp_dir, tmp_file = __core_tool_contract_task_from(path_or_d)
     task = GatherToolContractTask(task_id, display_name, description, version,
                                   is_distributed,
                                   input_types,
                                   output_types,
-                                  tool_options, nproc, resource_types)
+                                  tool_options, nproc, resource_types,
+                                  tmp_dir, tmp_file)
     return __to_tc_from_d(path_or_d)(task)
 
 

@@ -1,5 +1,6 @@
 import pprint
 import unittest
+import tempfile
 import logging
 import os.path
 
@@ -43,8 +44,11 @@ class TestResolveContract(unittest.TestCase):
         root_output_dir = "/tmp"
         root_tmp_dir = root_output_dir
         max_nproc = 2
-        rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, {})
+        tmp_file = tempfile.NamedTemporaryFile().name
+        rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, {}, tmp_file=tmp_file)
         log.info(pprint.pformat(rtc))
         self.assertIsNotNone(rtc)
         self.assertEqual(os.path.basename(rtc.task.output_files[0]),
             "output.txt")
+        self.assertEqual(rtc.task.tmp_dir, "/tmp")
+        self.assertEqual(rtc.task.tmp_file, tmp_file)
