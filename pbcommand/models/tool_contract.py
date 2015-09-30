@@ -6,7 +6,7 @@ Author: Michael Kocher
 import abc
 
 import pbcommand
-from pbcommand.models import TaskTypes
+from pbcommand.models import TaskTypes, ResourceTypes
 
 __version__ = pbcommand.get_version()
 
@@ -250,6 +250,22 @@ class ResolvedToolContractTask(object):
         self.options = options
         self.nproc = nproc
         self.resources = resources
+
+    @property
+    def tmp_dir(self):
+        for resource in self.resources:
+            if "type_id" in resource:
+                if resource["type_id"] == ResourceTypes.TMP_DIR:
+                    return resource["path"]
+        return None
+
+    @property
+    def tmp_file(self):
+        for resource in self.resources:
+            if "type_id" in resource:
+                if resource["type_id"] == ResourceTypes.TMP_FILE:
+                    return resource["path"]
+        return None
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task_id,
