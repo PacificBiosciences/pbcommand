@@ -6,7 +6,7 @@ Author: Michael Kocher
 import abc
 
 import pbcommand
-from pbcommand.models import TaskTypes
+from pbcommand.models import TaskTypes, ResourceTypes
 
 __version__ = pbcommand.get_version()
 
@@ -123,7 +123,7 @@ class ToolContractTask(object):
 
     TASK_TYPE_ID = TaskTypes.STANDARD
 
-    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resources, tmp_dir=None, tmp_file=None):
+    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resources, tmp_dir=ResourceTypes.TMP_DIR, tmp_file=ResourceTypes.TMP_FILE):
         """
         Core metadata for a commandline task
 
