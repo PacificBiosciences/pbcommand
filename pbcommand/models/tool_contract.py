@@ -6,7 +6,7 @@ Author: Michael Kocher
 import abc
 
 import pbcommand
-from pbcommand.models import TaskTypes
+from pbcommand.models import TaskTypes, ResourceTypes
 
 __version__ = pbcommand.get_version()
 
@@ -123,7 +123,7 @@ class ToolContractTask(object):
 
     TASK_TYPE_ID = TaskTypes.STANDARD
 
-    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resources):
+    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resources, tmp_dir=ResourceTypes.TMP_DIR, tmp_file=ResourceTypes.TMP_FILE):
         """
         Core metadata for a commandline task
 
@@ -153,6 +153,8 @@ class ToolContractTask(object):
         self.options = tool_options
         self.nproc = nproc
         self.resources = resources
+        self.tmp_dir = tmp_dir
+        self.tmp_file = tmp_file
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task_id, t=self.is_distributed, n=self.name)
@@ -172,7 +174,9 @@ class ToolContractTask(object):
                   schema_options=opts,
                   nproc=self.nproc,
                   resource_types=self.resources,
-                  _comment="Created by v{v}".format(v=__version__))
+                  _comment="Created by v{v}".format(v=__version__),
+                  tmp_dir=self.tmp_dir,
+                  tmp_file=self.tmp_file)
         return _t
 
 
@@ -181,13 +185,14 @@ class ScatterToolContractTask(ToolContractTask):
     TASK_TYPE_ID = TaskTypes.SCATTERED
 
     def __init__(self, task_id, name, description, version, is_distributed,
-                 input_types, output_types, tool_options, nproc, resources, chunk_keys, max_nchunks):
+                 input_types, output_types, tool_options, nproc, resources,
+                 chunk_keys, max_nchunks, tmp_dir=None, tmp_file=None):
         """Scatter tasks have a special output signature of [FileTypes.CHUNK]
 
         The chunk keys are the expected to be written to the chunk.json file
         """
         super(ScatterToolContractTask, self).__init__(task_id, name, description, version, is_distributed,
-                                                      input_types, output_types, tool_options, nproc, resources)
+                                                      input_types, output_types, tool_options, nproc, resources, tmp_dir, tmp_file)
         self.chunk_keys = chunk_keys
         # int or $max_chunks symbol
         self.max_nchunks = max_nchunks
@@ -242,7 +247,7 @@ class ResolvedToolContractTask(object):
     TASK_TYPE_ID = TaskTypes.STANDARD
 
     def __init__(self, task_id, is_distributed, input_files, output_files,
-                 options, nproc, resources):
+                 options, nproc, resources, tmp_dir, tmp_file):
         self.task_id = task_id
         self.is_distributed = is_distributed
         self.input_files = input_files
@@ -250,6 +255,8 @@ class ResolvedToolContractTask(object):
         self.options = options
         self.nproc = nproc
         self.resources = resources
+        self.tmp_dir = tmp_dir
+        self.tmp_file = tmp_file
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task_id,
@@ -267,15 +274,17 @@ class ResolvedToolContractTask(object):
                   nproc=self.nproc,
                   resources=self.resources,
                   options=self.options,
-                  _comment=comment)
+                  _comment=comment,
+                  tmp_dir=self.tmp_dir,
+                  tmp_file=self.tmp_file)
         return tc
 
 
 class ResolvedScatteredToolContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.SCATTERED
 
-    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks, chunk_keys):
-        super(ResolvedScatteredToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks, chunk_keys, tmp_dir, tmp_file):
+        super(ResolvedScatteredToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources, tmp_dir, tmp_file)
         self.max_nchunks = max_nchunks
         # these can be used to verified the output chunk.json
         # after the task has been run
@@ -291,12 +300,12 @@ class ResolvedScatteredToolContractTask(ResolvedToolContractTask):
 class ResolvedGatherToolContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.GATHERED
 
-    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, chunk_key):
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, chunk_key, tmp_dir, tmp_file):
         """
         The chunk key is used in the pluck specific chunk values from
         PipelineChunks. This makes gather tasks (i.e., GffGather) generalized.
         """
-        super(ResolvedGatherToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+        super(ResolvedGatherToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources, tmp_dir, tmp_file)
         self.chunk_key = chunk_key
 
     def to_dict(self):

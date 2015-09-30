@@ -17,6 +17,8 @@
     "resources": [],
     "is_distributed": false,
     "task_type": "pbsmrtpipe.task_types.standard",
-    "tool_contract_id": "pbcommand.tools.dev_app"
+    "tool_contract_id": "pbcommand.tools.dev_app",
+    "tmp_dir": null,
+    "tmp_file": null
   }
 }
