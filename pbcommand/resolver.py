@@ -4,7 +4,8 @@ from collections import defaultdict
 import logging
 import os
 
-from pbcommand.models.common import SymbolTypes, REGISTERED_FILE_TYPES
+from pbcommand.models.common import (SymbolTypes, REGISTERED_FILE_TYPES,
+                                     ResourceTypes)
 from pbcommand.models.tool_contract import (ResolvedToolContract,
                                             ToolContract,
                                             ResolvedToolContractTask,
@@ -97,7 +98,7 @@ def _resolve_output_files(output_file_types, root_output_dir):
     return [_resolve_output_file(_outs_registry, REGISTERED_FILE_TYPES[f.file_type_id], f, root_output_dir) for f in output_file_types]
 
 
-def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options):
+def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=None, tmp_file=None):
 
     if len(input_files) != len(tool_contract.task.input_file_types):
         _d = dict(i=input_files, t=tool_contract.task.input_file_types)
@@ -111,11 +112,21 @@ def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_o
 
     log.warn("Resolved resources not support yet.")
     resources = []
+    if tmp_dir is not None:
+        resources.append({
+            "type_id": ResourceTypes.TMP_DIR,
+            "path": tmp_dir
+        })
+    if tmp_file is not None:
+        resources.append({
+            "type_id": ResourceTypes.TMP_FILE,
+            "path": tmp_file
+        })
 
     return output_files, resolved_options, nproc, resources
 
 
-def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options):
+def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, tmp_file=None):
     """
     Convert a ToolContract into a Resolved Tool Contract.
 
@@ -135,7 +146,7 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
     :rtype: ResolvedToolContract
     :return: A Resolved tool contract
     """
-    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, root_tmp_dir, tmp_file)
     task = ResolvedToolContractTask(tool_contract.task.task_id,
                                     tool_contract.task.is_distributed,
                                     input_files,
