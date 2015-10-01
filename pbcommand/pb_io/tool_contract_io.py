@@ -22,7 +22,8 @@ from pbcommand.models.tool_contract import (ToolDriver,
                                             InputFileType,
                                             OutputFileType,
                                             ResolvedScatteredToolContractTask,
-                                            ResolvedGatherToolContractTask)
+                                            ResolvedGatherToolContractTask,
+                                            ToolContractResolvedResource)
 
 log = logging.getLogger(__name__)
 
@@ -96,7 +97,8 @@ def __core_resolved_tool_contract_task_from_d(d):
     tool_options = _get("options")
     # int
     nproc = _get("nproc")
-    resource_types = _get("resources")
+
+    resource_types = [ToolContractResolvedResource.from_d(dx) for dx in _get("resources")]
 
     return tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types
 

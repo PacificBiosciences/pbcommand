@@ -97,6 +97,25 @@ class OutputFileType(_IOFileType):
                     default_name=self.default_name)
 
 
+class ToolContractResolvedResource(object):
+    def __init__(self, resource_type_id, path):
+        assert resource_type_id in ResourceTypes.ALL()
+        self.type_id = resource_type_id
+        self.path = path
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__,
+                  i=self.type_id, p=self.path)
+        return "<{k} {i} path:{p} >".format(**_d)
+
+    @staticmethod
+    def from_d(d):
+        return ToolContractResolvedResource(d['type_id'], d['path'])
+
+    def to_dict(self):
+        return dict(type_id=self.type_id, path=self.path)
+
+
 class ToolDriver(object):
 
     def __init__(self, driver_exe, env=None, serialization='json'):
@@ -152,6 +171,7 @@ class ToolContractTask(object):
         # self.options = _validate_or_raise(tool_options, (list, tuple))
         self.options = tool_options
         self.nproc = nproc
+        # List of ResourceTypes
         self.resources = resources
 
     def __repr__(self):
@@ -235,6 +255,14 @@ class ToolContract(object):
         return _d
 
 
+def _get_resource_by_type(rt, resources):
+    xs = []
+    for r in resources:
+        if r.type_id == rt:
+            xs.append(r)
+    return xs
+
+
 class ResolvedToolContractTask(object):
     # The interface is the same, but the types are "resolved" and have a
     # different
@@ -252,20 +280,12 @@ class ResolvedToolContractTask(object):
         self.resources = resources
 
     @property
-    def tmp_dir(self):
-        for resource in self.resources:
-            if "type_id" in resource:
-                if resource["type_id"] == ResourceTypes.TMP_DIR:
-                    return resource["path"]
-        return None
+    def tmpdir_resources(self):
+        return _get_resource_by_type(ResourceTypes.TMP_DIR, self.resources)
 
     @property
-    def tmp_file(self):
-        for resource in self.resources:
-            if "type_id" in resource:
-                if resource["type_id"] == ResourceTypes.TMP_FILE:
-                    return resource["path"]
-        return None
+    def tmpfile_resources(self):
+        return _get_resource_by_type(ResourceTypes.TMP_FILE, self.resources)
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task_id,
@@ -281,7 +301,7 @@ class ResolvedToolContractTask(object):
                   is_distributed=self.is_distributed,
                   tool_contract_id=self.task_id,
                   nproc=self.nproc,
-                  resources=self.resources,
+                  resources=[r.to_dict() for r in self.resources],
                   options=self.options,
                   _comment=comment)
         return tc

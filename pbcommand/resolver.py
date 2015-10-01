@@ -3,6 +3,7 @@ from collections import defaultdict
 
 import logging
 import os
+import uuid
 
 from pbcommand.models.common import (SymbolTypes, REGISTERED_FILE_TYPES,
                                      ResourceTypes)
@@ -10,7 +11,8 @@ from pbcommand.models.tool_contract import (ResolvedToolContract,
                                             ToolContract,
                                             ResolvedToolContractTask,
                                             ResolvedScatteredToolContractTask,
-                                            ResolvedGatherToolContractTask)
+                                            ResolvedGatherToolContractTask,
+                                            ToolContractResolvedResource)
 
 log = logging.getLogger(__name__)
 
@@ -92,13 +94,49 @@ def _resolve_output_file(registry_d, file_type, output_file_type, root_output_di
         return _get_fname(file_type.base_name, file_type.ext)
 
 
+def _resolve_resource_types(resources, output_dir, root_tmp_dir):
+    resolved_resources = []
+
+    def _add(rt_id, p):
+        r = ToolContractResolvedResource(rt_id, p)
+        resolved_resources.append(r)
+        return r
+
+    def _to_p(x):
+        return os.path.join(root_tmp_dir, x)
+
+    def _to_r(prefix, suffix=None):
+        u = uuid.uuid4()
+        name = "{x}-{u}".format(u=u, x=prefix)
+        if suffix is not None:
+            name += suffix
+        return _to_p(name)
+
+    # The names are not optimal, this would require more config
+    for resource in resources:
+        if resource == ResourceTypes.TMP_DIR:
+            path = _to_r("pb-tmp")
+            _add(resource, path)
+        elif resource == ResourceTypes.TMP_FILE:
+            _add(resource, _to_r("pb-tmp", "-file"))
+        elif resource == ResourceTypes.LOG_FILE:
+            u = uuid.uuid4()
+            name = "{x}-{u}-log".format(u=u, x="pb-tmp")
+            path = os.path.join(output_dir, name)
+            _add(resource, path)
+        else:
+            raise ValueError("Unsupported Resource Type {x}".format(x=resource))
+
+    return resolved_resources
+
+
 def _resolve_output_files(output_file_types, root_output_dir):
     # store the files as {(base, ext): count}
     _outs_registry = defaultdict(lambda : 0)
     return [_resolve_output_file(_outs_registry, REGISTERED_FILE_TYPES[f.file_type_id], f, root_output_dir) for f in output_file_types]
 
 
-def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=None, tmp_file=None):
+def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=None):
 
     if len(input_files) != len(tool_contract.task.input_file_types):
         _d = dict(i=input_files, t=tool_contract.task.input_file_types)
@@ -110,23 +148,12 @@ def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_o
 
     nproc = _resolve_nproc(tool_contract.task.nproc, max_nproc)
 
-    log.warn("Resolved resources not support yet.")
-    resources = []
-    if tmp_dir is not None:
-        resources.append({
-            "type_id": ResourceTypes.TMP_DIR,
-            "path": tmp_dir
-        })
-    if tmp_file is not None:
-        resources.append({
-            "type_id": ResourceTypes.TMP_FILE,
-            "path": tmp_file
-        })
+    resolved_resources = _resolve_resource_types(tool_contract.task.resources, root_output_dir, tmp_dir)
 
-    return output_files, resolved_options, nproc, resources
+    return output_files, resolved_options, nproc, resolved_resources
 
 
-def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, tmp_file=None):
+def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options):
     """
     Convert a ToolContract into a Resolved Tool Contract.
 
@@ -146,7 +173,7 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
     :rtype: ResolvedToolContract
     :return: A Resolved tool contract
     """
-    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, root_tmp_dir, tmp_file)
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, root_tmp_dir)
     task = ResolvedToolContractTask(tool_contract.task.task_id,
                                     tool_contract.task.is_distributed,
                                     input_files,
@@ -159,7 +186,7 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
 
 
 def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys):
-    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=root_tmp_dir)
     resolved_max_chunks = _resolve_max_nchunks(tool_contract.task.max_nchunks, max_nchunks)
     task = ResolvedScatteredToolContractTask(tool_contract.task.task_id,
                                              tool_contract.task.is_distributed,
@@ -172,7 +199,7 @@ def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, r
 
 
 def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key):
-    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options)
+    output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=root_tmp_dir)
     task = ResolvedGatherToolContractTask(tool_contract.task.task_id,
                                           tool_contract.task.is_distributed,
                                           input_files,

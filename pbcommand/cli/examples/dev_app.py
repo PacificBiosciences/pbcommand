@@ -5,7 +5,7 @@ import sys
 
 from pbcommand.utils import setup_log
 from pbcommand.cli import pbparser_runner
-from pbcommand.models import TaskTypes, FileTypes, get_pbparser
+from pbcommand.models import TaskTypes, FileTypes, get_pbparser, ResourceTypes
 
 
 # This has the same functionality as the dev_simple_app
@@ -13,7 +13,7 @@ from .dev_simple_app import run_main
 
 log = logging.getLogger(__name__)
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 # Used for the tool contract id. Must have the form {namespace}.tasks.{name}
 # to prevent namespace collisions. For python tools, the namespace should be
@@ -50,12 +50,17 @@ def get_contract_parser():
     desc = "Dev app for Testing that supports emitting tool contracts"
     subcomponents = [("my_subcomponent", "1.2.3")]
 
+    resource_types = (ResourceTypes.TMP_FILE,
+                      ResourceTypes.TMP_FILE,
+                      ResourceTypes.TMP_DIR)
+
     p = get_pbparser(TOOL_ID,
                      __version__,
                      "Example Dev App",
                      desc,
                      driver_exe,
                      is_distributed=False,
+                     resource_types=resource_types,
                      subcomponents=subcomponents)
 
     add_args_and_options(p)

@@ -5,7 +5,7 @@
         "serialization": "json"
     }, 
     "tool_contract": {
-        "_comment": "Created by v0.2.11", 
+        "_comment": "Created by v0.2.14", 
         "description": "Quick tool dev_qhello_world pbcommand.tasks.dev_qhello_world", 
         "input_types": [
             {

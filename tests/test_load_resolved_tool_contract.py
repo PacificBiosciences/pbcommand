@@ -37,7 +37,7 @@ class TestLoadResolvedContract(unittest.TestCase):
 class TestResolveContract(unittest.TestCase):
 
     def test_01(self):
-        name = "dev_example_tool_contract.json"
+        name = "dev_example_dev_txt_app_tool_contract.json"
         p = get_data_file(name)
         tc = load_tool_contract_from(p)
         input_files = ["/tmp/file.txt"]
@@ -45,10 +45,14 @@ class TestResolveContract(unittest.TestCase):
         root_tmp_dir = root_output_dir
         tmp_file = tempfile.NamedTemporaryFile().name
         max_nproc = 2
-        rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, {}, tmp_file=tmp_file)
+        tool_options = {}
+        rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options)
         log.info(pprint.pformat(rtc))
         self.assertIsNotNone(rtc)
         self.assertEqual(os.path.basename(rtc.task.output_files[0]),
             "output.txt")
-        self.assertEqual(rtc.task.tmp_dir, "/tmp")
-        self.assertEqual(rtc.task.tmp_file, tmp_file)
+        # Validate Resolved Resource Types
+        log.debug("Resources {t}".format(t=rtc.task.resources))
+        self.assertEqual(len(rtc.task.tmpdir_resources), 1)
+        self.assertEqual(len(rtc.task.tmpfile_resources), 2)
+        #self.assertEqual(rtc.task.tmp_file, tmp_file)

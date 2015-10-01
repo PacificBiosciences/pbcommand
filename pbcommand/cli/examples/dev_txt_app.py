@@ -9,7 +9,7 @@ import sys
 
 from pbcommand.utils import setup_log
 from pbcommand.cli import pbparser_runner
-from pbcommand.models import TaskTypes, FileTypes, get_pbparser
+from pbcommand.models import TaskTypes, FileTypes, get_pbparser, ResourceTypes
 
 TOOL_ID = "pbcommand.tasks.dev_txt_app"
 VERSION = "0.1.0"
@@ -24,9 +24,16 @@ def get_parser():
     subcomponents = [("pbcommand", VERSION),
                      ("my_component", "0.1.0"),
                      ("my_component_id", "1.2.3")]
+    # ResourceTypes.*
+    resource_types = (ResourceTypes.TMP_FILE,
+                      ResourceTypes.TMP_FILE,
+                      ResourceTypes.TMP_DIR)
+
     # Create an instance of a Pacbio Parser
     p = get_pbparser(TOOL_ID, VERSION, "Txt App", desc, driver_exe,
-                     is_distributed=False, subcomponents=subcomponents)
+                     is_distributed=False, resource_types=resource_types,
+                     subcomponents=subcomponents)
+
     # Add Input Files types
     p.add_input_file_type(FileTypes.TXT, "txt_in", "Txt file", "Generic Text File")
     # Add output files types

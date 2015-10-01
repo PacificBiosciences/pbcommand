@@ -5,7 +5,7 @@
         "serialization": "json"
     }, 
     "tool_contract": {
-        "_comment": "Created by v0.2.11", 
+        "_comment": "Created by v0.2.14", 
         "description": "Quick tool dev_txt_custom_outs pbcommand.tasks.dev_txt_custom_outs", 
         "input_types": [
             {
@@ -20,14 +20,14 @@
         "nproc": 1, 
         "output_types": [
             {
-                "default_name": "PacBio.FileTypes.txt_file_0_.txt", 
+                "default_name": "PacBio.FileTypes.txt_file_0.txt", 
                 "description": "File <FileType id=PacBio.FileTypes.txt name=file.txt >", 
                 "file_type_id": "PacBio.FileTypes.txt", 
                 "id": "label_PacBio.FileTypes.txt", 
                 "title": "<FileType id=PacBio.FileTypes.txt name=file.txt >"
             }, 
             {
-                "default_name": "PacBio.FileTypes.txt_file_1_.txt", 
+                "default_name": "PacBio.FileTypes.txt_file_1.txt", 
                 "description": "File <FileType id=PacBio.FileTypes.txt name=file.txt >", 
                 "file_type_id": "PacBio.FileTypes.txt", 
                 "id": "label_PacBio.FileTypes.txt", 

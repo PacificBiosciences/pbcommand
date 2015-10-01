@@ -20,7 +20,7 @@
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
         ], 
-        "_comment": "Created by v0.2.11", 
+        "_comment": "Created by v0.2.14", 
         "name": "Fasta Chunk Gather", 
         "input_types": [
             {
