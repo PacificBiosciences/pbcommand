@@ -110,10 +110,10 @@ class ToolContractResolvedResource(object):
 
     @staticmethod
     def from_d(d):
-        return ToolContractResolvedResource(d['type_id'], d['path'])
+        return ToolContractResolvedResource(d['resource_type'], d['path'])
 
     def to_dict(self):
-        return dict(type_id=self.type_id, path=self.path)
+        return dict(resource_type=self.type_id, path=self.path)
 
 
 class ToolDriver(object):
