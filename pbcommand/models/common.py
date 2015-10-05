@@ -189,6 +189,8 @@ class FileTypes(object):
 
     # generic Txt file
     TXT = FileType(to_file_ns('txt'), 'file', 'txt', MimeTypes.TXT)
+    # Generic Log file
+    LOG = FileType(to_file_ns('log'), 'file', 'log', MimeTypes.TXT)
 
     # THIS NEEDS TO BE CONSISTENT with scala code. When the datastore
     # is written to disk the file type id's might be translated to
