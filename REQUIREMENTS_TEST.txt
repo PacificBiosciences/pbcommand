@@ -1,2 +1,3 @@
 nose
 tox
+numpy # this is required for pbreports serialization
