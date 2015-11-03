@@ -278,19 +278,21 @@ class FileTypes(object):
 
 class DataStoreFile(object):
 
-    def __init__(self, uuid, file_id, type_id, path):
+    def __init__(self, uuid, source_id, type_id, path, is_chunked=False):
         # adding this for consistency. In the scala code, the unique id must be
         # a uuid format
         self.uuid = uuid
         # this must globally unique. This is used to provide context to where
         # the file originated from (i.e., the tool author
-        self.file_id = file_id
+        self.file_id = source_id
         # Consistent with a value in FileTypes
         self.file_type_id = type_id
         self.path = path
         self.file_size = os.path.getsize(path)
         self.created_at = datetime.datetime.fromtimestamp(os.path.getctime(path))
         self.modified_at = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+        # Was the file produced by Chunked task
+        self.is_chunked = is_chunked
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
@@ -306,14 +308,19 @@ class DataStoreFile(object):
                     path=self.path,
                     fileSize=self.file_size,
                     createdAt=_datetime_to_string(self.created_at),
-                    modifiedAt=_datetime_to_string(self.modified_at))
+                    modifiedAt=_datetime_to_string(self.modified_at),
+                    isChunked=self.is_chunked)
 
     @staticmethod
     def from_dict(d):
         # FIXME. This isn't quite right.
         to_a = lambda x: x.encode('ascii', 'ignore')
         to_k = lambda x: to_a(d[x])
-        return DataStoreFile(to_k('uniqueId'), to_k('sourceId'), to_k('fileTypeId'), to_k('path'))
+        is_chunked = d.get('isChunked', False)
+        return DataStoreFile(to_k('uniqueId'),
+                             to_k('sourceId'),
+                             to_k('fileTypeId'),
+                             to_k('path'), is_chunked=is_chunked)
 
 
 def _datetime_to_string(dt):
