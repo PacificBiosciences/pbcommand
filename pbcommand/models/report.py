@@ -684,7 +684,7 @@ class Report(BaseReportElement):
         """
         with open(file_name, 'w') as f:
             f.write(self.to_json())
-        log.info("Wrote report {r}".format(r=file_name))
+        # log.info("Wrote report {r}".format(r=file_name))
 
     @staticmethod
     def from_simple_dict(report_id, raw_d, namespace):
