@@ -40,3 +40,7 @@ run-auto-pep8:
 
 build-java-classes:
 	avro-tools compile schema pbcommand/schemas java-classes/
+
+extract-readme-snippets:
+	rm -rf readme-snippet-*.py
+	pandoc -t markdown README.md  | pandoc --filter ./extract-readme-snippets.py

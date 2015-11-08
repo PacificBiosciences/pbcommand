@@ -35,9 +35,8 @@ registry = registry_builder("pbcommand", "python -m pbcommand.cli.examples.dev_q
 
 
 def _example_main(input_files, output_files, **kwargs):
-    log.info("Running example main with {i} {o} kw:{k}".format(i=input_files,
-                                                               o=output_files, k=kwargs))
-    # write mock output files, otherwise the End-to-End test will fail
+    # Simple Function that should imported from your library code
+    # write mock output files for testing purposes, otherwise the End-to-End test will fail
     xs = output_files if isinstance(output_files, (list, tuple)) else [output_files]
     for x in xs:
         with open(x, 'w') as writer:
@@ -92,6 +91,7 @@ Define a function that will add inputs, outputs and options to your parser.
 ```python
 from pbcommand.models import FileTypes
 
+
 def add_args_and_options(p):
     # FileType, label, name, description
     p.add_input_file_type(FileTypes.FASTA, "fasta_in", "Fasta File", "PacBio Spec'ed fasta file")
@@ -106,8 +106,13 @@ def add_args_and_options(p):
 Define Parser
 
 ```python
-from pbcommand.models import TaskTypes, ResourceTypes, SymbolTypes
+from pbcommand.models import TaskTypes, SymbolTypes, get_pbparser
+
+
 def get_contract_parser():
+    tool_id = "example_namespace.tasks.my_id"
+    version = "0.1.0"  # or reuse __version__
+    display_name = "My Exaple Tool"
     # Number of processors to use, can also be SymbolTypes.MAX_NPROC
     nproc = 1
     # Log file, tmp dir, tmp file. See ResourceTypes in models, ResourceTypes.TMP_DIR
@@ -115,13 +120,12 @@ def get_contract_parser():
     # Commandline exe to call "{exe}" /path/to/resolved-tool-contract.json
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
-    task_type = TaskTypes.LOCAL 
+    is_distributed = False 
     # TaskTypes.DISTRIBUTED if you want your task to be submitted to the cluster manager (e.g., SGE) if 
     # one is provided to the workflow engine.
-    p = get_pbparser(TOOL_ID, __version__, desc, driver_exe, task_type, nproc, resource_types)
+    p = get_pbparser(tool_id, version, display_name, desc, driver_exe, is_distributed=is_distributed, nproc=nproc, resource_types=resource_types)
     add_args_and_options(p)
     return p
-
 ```
         
 
@@ -131,13 +135,16 @@ Define a Wrapping layer to call your main from both the tool contract and raw ar
 def _args_runner(args):
     # this is the args from parser.parse_args()
     # the properties of args are defined as "labels" in the add_args_and_options func.
-    return run_my_main(args.fasta_in, fasta_out, args.read_length)
+    return run_my_main(args.fasta_in, args.fasta_out, args.read_length)
+
     
 def _resolved_tool_contract_runner(resolved_tool_contract):
+    """
+    :type resolved_tool_contract: pbcommand.models.ResolvedToolContract"""
     rtc = resolved_tool_contract
     # all options are referenced by globally namespaced id. This allows tools to use other tools options
     # e.g., pbalign to use blasr defined options.
-    return run_my_main(rtc.inputs[0], rtc.outputs[0], rtc.options["pbcommand.task_options.dev_read_length"])
+    return run_my_main(rtc.task.input_files[0], rtc.task.outputs[0], rtc.task.options["pbcommand.task_options.dev_read_length"])
 ```
     
     
@@ -148,17 +155,17 @@ Add running layer
 ```python
 import sys
 import logging
-import pbcommand.utils setup_log
+from pbcommand.utils import setup_log
 from pbcommand.cli import pbparser_runner
 
 log = logging.getLogger(__name__)
 
+
 def main(argv=sys.argv):
     # New interface that supports running resolved tool contracts
-    log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v=__version__))
-    p = get_contract_parser()
+    log.info("Starting {f} version {v} pbcommand example dev app".format(f=__file__, v="0.1.0"))
     return pbparser_runner(argv[1:], 
-                           p, 
+                           get_contract_parser(), 
                            _args_runner, # argparse runner func
                            _resolved_tool_contract_runner, # tool contract runner func
                            log, # log instance
