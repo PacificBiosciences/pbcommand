@@ -192,6 +192,7 @@ def __args_rtc_runner(registry):
         else:
             exit_code = func(rtc)
             log.info("Completed running {r} exitcode {e}".format(r=rtc, e=exit_code))
+            return exit_code
     return _w
 
 
