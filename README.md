@@ -112,7 +112,7 @@ from pbcommand.models import TaskTypes, SymbolTypes, get_pbparser
 def get_contract_parser():
     tool_id = "example_namespace.tasks.my_id"
     version = "0.1.0"  # or reuse __version__
-    display_name = "My Exaple Tool"
+    display_name = "My Example Tool"
     # Number of processors to use, can also be SymbolTypes.MAX_NPROC
     nproc = 1
     # Log file, tmp dir, tmp file. See ResourceTypes in models, ResourceTypes.TMP_DIR
@@ -121,7 +121,7 @@ def get_contract_parser():
     driver_exe = "python -m pbcommand.cli.example.dev_app --resolved-tool-contract "
     desc = "Dev app for Testing that supports emitting tool contracts"
     is_distributed = False 
-    # TaskTypes.DISTRIBUTED if you want your task to be submitted to the cluster manager (e.g., SGE) if 
+    # set to True if you want your task to be submitted to the cluster manager (e.g., SGE) if 
     # one is provided to the workflow engine.
     p = get_pbparser(tool_id, version, display_name, desc, driver_exe, is_distributed=is_distributed, nproc=nproc, resource_types=resource_types)
     add_args_and_options(p)
