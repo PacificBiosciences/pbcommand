@@ -263,6 +263,9 @@ class FileTypes(object):
     BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", MimeTypes.BINARY)
 
     BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", MimeTypes.BINARY)
+    BAZ = FileType("PacBio.ReadFile.BazFile", "file", "baz", MimeTypes.BINARY)
+    TRC = FileType("PacBio.ReadFile.TraceFile", "file", "trc", MimeTypes.BINARY)
+    PLS = FileType("PacBio.ReadFile.PulseFile", "file", "pls", MimeTypes.BINARY)
 
     # THIS IS EXPERIMENT for internal analysis. DO NOT use
     COND = FileType(to_file_ns("COND"), "file", "conditions.json", MimeTypes.JSON)
