@@ -80,11 +80,12 @@ def _to_table(d):
 
 
 def dict_to_report(dct):
-    if '_version' in dct:
-        version = dct['_version']
-        if version not in SUPPORTED_VERSIONS:
-            # should this raise an exception?
-            log.warn("{v} is an unsupported version. Supported versions {vs}".format(v=version, vs=SUPPORTED_VERSIONS))
+    # MK. We'll revisit this at some point.
+    # if '_version' in dct:
+    #     version = dct['_version']
+    #     if version not in SUPPORTED_VERSIONS:
+    #         # should this raise an exception?
+    #         log.warn("{v} is an unsupported version. Supported versions {vs}".format(v=version, vs=SUPPORTED_VERSIONS))
 
     report_id = dct['id']
 
