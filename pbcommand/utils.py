@@ -8,6 +8,7 @@ import traceback
 import time
 import types
 import subprocess
+from contextlib import contextmanager
 
 log = logging.getLogger(__name__)
 
@@ -224,3 +225,11 @@ def nfs_refresh(path, ntimes=3, sleep_time=1.0):
         time.sleep(sleep_time)
     log.warn("NFS refresh failed. unable to resolve {p}".format(p=path))
     return False
+
+
+@contextmanager
+def ignored(*exceptions):
+    try:
+        yield
+    except exceptions:
+        pass
