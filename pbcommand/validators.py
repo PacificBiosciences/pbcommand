@@ -1,64 +1,24 @@
 import os
 import logging
 import functools
-import subprocess
-
+from pbcommand.utils import nfs_exists_check
 
 log = logging.getLogger(__name__)
 
 
 def trigger_nfs_refresh(ff):
-    """
-    Central place for all NFS hackery
-
-    Return whether a file or a dir ff exists or not.
-    Call ls instead of python os.path.exists to eliminate NFS errors.
-
-    Added try/catch black hole exception cases to help trigger an NFS refresh
-
-    :rtype bool:
-
-    # Yuan Li and various people contributed.
-    """
-    # try to trigger refresh for File case
-    try:
-        f = open(ff, 'r')
-        f.close()
-    except Exception:
-        pass
-
-    # try to trigger refresh for Directory case
-    try:
-        _ = os.stat(ff)
-        _ = os.listdir(ff)
-    except Exception:
-        pass
-
-    # Call externally
-    cmd = "ls %s" % ff
-    _, rcode, _ = subprocess.check_call(cmd)
-
-    return rcode == 0
-
-
-def _trigger_nfs_refresh_and_ignore(ff):
-    """
-
-    :rtype str
-    """
-    _ = trigger_nfs_refresh(ff)
-    return ff
+    # keeping this for backward compatibility
+    return nfs_exists_check(ff)
 
 
 def _validate_resource(func, resource):
     """Validate the existence of a file/dir"""
-    # Attempt to trigger an NFS metadata refresh
-    _ = trigger_nfs_refresh(resource)
+    _ = nfs_exists_check(resource)
 
     if func(resource):
         return os.path.abspath(resource)
     else:
-        raise IOError("Unable to find {f}".format(f=resource))
+        raise IOError("Unable to find '{f}'".format(f=resource))
 
 
 validate_file = functools.partial(_validate_resource, os.path.isfile)
@@ -82,7 +42,7 @@ def validate_fofn(fofn):
     :raises: IOError if any file is not found.
     :return: (str) abspath of the input fofn
     """
-    _ = trigger_nfs_refresh(fofn)
+    _ = nfs_exists_check(fofn)
 
     if os.path.isfile(fofn):
         file_names = fofn_to_files(os.path.abspath(fofn))
@@ -95,7 +55,7 @@ def validate_fofn(fofn):
 def fofn_to_files(fofn):
     """Util func to convert a bas/bax fofn file to a list of bas/bax files."""
 
-    _ = trigger_nfs_refresh(fofn)
+    _ = nfs_exists_check(fofn)
 
     if os.path.exists(fofn):
         with open(fofn, 'r') as f:
@@ -105,7 +65,7 @@ def fofn_to_files(fofn):
             if not os.path.isfile(bas_file):
                 # try one more time to find the file by
                 # performing an NFS refresh
-                found = trigger_nfs_refresh(bas_file)
+                found = nfs_exists_check(bas_file)
                 if not found:
                     raise IOError("Unable to find bas/bax file '{f}'".format(f=bas_file))
 

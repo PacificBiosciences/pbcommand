@@ -7,6 +7,7 @@ import argparse
 import traceback
 import time
 import types
+import subprocess
 
 log = logging.getLogger(__name__)
 
@@ -134,7 +135,6 @@ def which(exe_str):
     return state
 
 
-
 class Singleton(type):
 
     """
@@ -157,3 +157,70 @@ class Singleton(type):
         if cls.instance is None:
             cls.instance = super(Singleton, cls).__call__(*args)
         return cls.instance
+
+
+def nfs_exists_check(ff):
+    """
+    Central place for all NFS hackery
+
+    Return whether a file or a dir ff exists or not.
+    Call listdir() instead of os.path.exists() to eliminate NFS errors.
+
+    Added try/catch black hole exception cases to help trigger an NFS refresh
+
+    :rtype bool:
+    """
+    try:
+        # All we really need is opendir(), but listdir() is usually fast.
+        os.listdir(os.path.dirname(os.path.realpath(ff)))
+        # But is it a file or a directory? We do not know until it actually exists.
+        if os.path.exists(ff):
+            return True
+        # Might be a directory, so refresh itself too.
+        # Not sure this is necessary, since we already ran this on parent,
+        # but it cannot hurt.
+        os.listdir(os.path.realpath(ff))
+        if os.path.exists(ff):
+            return True
+    except OSError:
+        pass
+
+    # The rest is probably unnecessary, but it cannot hurt.
+
+    # try to trigger refresh for File case
+    try:
+        f = open(ff, 'r')
+        f.close()
+    except Exception:
+        pass
+
+    # try to trigger refresh for Directory case
+    try:
+        _ = os.stat(ff)
+        _ = os.listdir(ff)
+    except Exception:
+        pass
+
+    # Call externally
+    # this is taken from Yuan
+    cmd = "ls %s" % ff
+    rcode = 1
+    try:
+        p = subprocess.Popen([cmd], shell=True)
+        rcode = p.wait()
+    except Exception:
+        pass
+
+    return rcode == 0
+
+
+def nfs_refresh(path, ntimes=3, sleep_time=1.0):
+    while True:
+        if nfs_exists_check(path):
+            return True
+        ntimes -= 1
+        if ntimes <= 0:
+            break
+        time.sleep(sleep_time)
+    log.warn("NFS refresh failed. unable to resolve {p}".format(p=path))
+    return False
