@@ -190,6 +190,8 @@ def __args_rtc_runner(registry):
             sys.stderr.write("ERROR. Unknown tool contract id {x}".format(x=rtc.task.task_id))
             return -1
         else:
+            log.info("Running id:{i} Resolved Tool Contract {r}".format(r=rtc, i=rtc.task.task_id))
+            log.info("Runner func {f}".format(f=func))
             exit_code = func(rtc)
             log.info("Completed running {r} exitcode {e}".format(r=rtc, e=exit_code))
             return exit_code
