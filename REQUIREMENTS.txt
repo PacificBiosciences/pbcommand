@@ -1,3 +1,4 @@
 xmlbuilder
 jsonschema
 avro
+requests
