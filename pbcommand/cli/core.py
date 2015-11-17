@@ -21,6 +21,8 @@ import time
 import traceback
 import sys
 
+import pbcommand
+
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
                                       EMIT_TOOL_CONTRACT_OPTION)
 from pbcommand.models import PbParser
@@ -68,6 +70,7 @@ def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
     # signature
     setup_log_func(alog, **log_options)
+    alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
 
     try:
         # the code in func should catch any exceptions. The try/catch

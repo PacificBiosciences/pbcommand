@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import sys
+
+import pbcommand
 from pbcommand.cli import get_default_argparser
 
 from pbcommand.models import (FileTypes, ToolContractTask, ToolContract,
@@ -181,6 +183,7 @@ def __args_rtc_runner(registry):
         # FIXME.
         setup_log(log, level=logging.DEBUG)
 
+        log.info("Loading pbcommand {v}".format(v=pbcommand.get_version()))
         log.info("Registry {r}".format(r=registry))
         log.info("loading RTC from {i}".format(i=args.rtc_path))
         rtc = load_resolved_tool_contract_from(args.rtc_path)
