@@ -252,6 +252,13 @@ class FileTypes(object):
     I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", MimeTypes.BINARY)
     I_SAW = FileType(to_index_ns("SaWriterIndex"), "file", "sa", MimeTypes.BINARY)
 
+    # PacBio BAM pbi
+    I_PBI = FileType(to_index_ns("PacBioIndex"), "file", "pbi", MimeTypes.BINARY)
+
+    # SMRT VIew specific files
+    I_INDEXER = FileType(to_index_ns("Indexer"), "file", "fasta.index", MimeTypes.TXT)
+    I_FCI = FileType(to_index_ns("FastaContigIndex"), "file", "fasta.contig.index", MimeTypes.TXT)
+
     # PacBio Defined Formats
     FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
     # No ':' or '"' in the id
