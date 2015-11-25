@@ -20,6 +20,7 @@ import sys
 import logging
 import functools
 import time
+import tempfile
 import traceback
 import xml.etree.ElementTree as ET
 
@@ -29,7 +30,7 @@ from pbcommand.utils import setup_log, compose
 from pbcommand.validators import validate_file
 from pbcommand.common_options import add_base_options
 from pbcommand.utils import which_or_raise
-
+from pbcommand.engine import run_cmd
 __version__ = "0.1.0"
 
 log = logging.getLogger(__name__)
@@ -98,9 +99,18 @@ def walker(root_dir, file_filter_func):
                 yield path
 
 
+def _get_metatype(path):
+    return ET.parse(path).getroot().attrib['MetaType']
+
+
 def is_dataset(path):
     """peek into the XML to get the MetaType"""
-    return ET.parse(path).getroot().attrib['MetaType']
+
+    try:
+        _get_metatype(path)
+        return True
+    except Exception as e:
+        return False
 
 
 def is_xml_dataset(path):
@@ -116,18 +126,19 @@ def dataset_walker(root_dir):
 
 
 def import_dataset(sal, path):
-    dataset_meta_type = is_dataset(path)
+    is_dataset(path)
+    dataset_meta_type = _get_metatype(path)
     log.info("{s} importing dataset type {t} path:{p}".format(
         t=dataset_meta_type, p=path, s=sal))
 
-    return sal.run_import_dataset_by_type(dataset_meta_type, path)
-
+    sal.run_import_dataset_by_type(dataset_meta_type, path)
+    return 0
 
 def import_datasets(sal, root_dir):
-    for path in dataset_walker(root_dir):
-        result = import_dataset(sal, path)
-        # yield result
-
+    rcodes = [import_dataset(sal, path) for path in dataset_walker(root_dir)]
+    if all(v == 0 for v in rcodes):
+        return 0
+    return 1
 
 def run_import_datasets(host, port, xml_or_dir):
     sal = ServiceAccessLayer(host, port)
@@ -142,8 +153,16 @@ def args_runner_import_datasets(args):
 
 def is_movie_metadata(path):
     """Peek into XML to see if it's a movie metadata XML file"""
-    # FIXME
-    return False
+    #try:
+    try:
+        text = ET.parse(path).getroot().tag.split('}')[0]
+    except Exception as e:
+        log.warn(e)
+
+    if text == 'TransferReport':
+        return True
+    else:
+        return False
 
 
 def is_xml_movie_metadata(path):
@@ -157,17 +176,46 @@ def movie_metadata_walker(root_dir):
     f = is_movie_metadata
     return walker(root_dir, f)
 
+def _metadata_to_dataset(metadata_xml):
+    output = tempfile.NamedTemporaryFile(suffix=".hdfsubreadset.xml").name
+    log.debug("Generating temporary dataset: {x}".format(x=output))
+
+    cmd = '{m} {p} {o}'.format(m=Constants.RS_MOVIE_TO_DS, p=metadata_xml, o=output)
+
+    ### the output from movie-metadata-to-dataset is not properly wrapped in pbds namespace,
+    ### but the tempfile indicated in the stdout is. Not sure why there are two outputs
+    stderr_path = tempfile.NamedTemporaryFile(suffix=".stderr").name
+    stderr_fh = open(stderr_path, 'w')
+
+    run_cmd(cmd, stdout_fh=sys.stdout, stderr_fh=stderr_fh)
+
+    with open(stderr_path, 'r') as f:
+        stderr = f.readlines()
+
+    def _get_tmpfile(stderr):
+        for line in stderr:
+            path = line.split(' ')[-1].rstrip()
+            if os.path.exists(path):
+                if is_dataset(path):
+                    return path
+
+    tmp_dataset_xml = _get_tmpfile(stderr)
+    return tmp_dataset_xml
+
 
 def import_rs_movie(sal, path):
-    # FIXME
-    log.info("Mock RS movie-metadata XML {p}".format(p=path))
-    return True
+    log.info("RS movie-metadata XML {p}".format(p=path))
+    hdfsubreadset = _metadata_to_dataset(path)
+    log.info("Writing to temporary dataset: {t}".format(t=hdfsubreadset))
+    import_dataset(sal, hdfsubreadset)
+    return 0
 
 
 def import_rs_movies(sal, root_dir):
-    for path in movie_metadata_walker(root_dir):
-        result = import_rs_movie(sal, path)
-        yield result
+    rcodes = [import_rs_movie(sal, path) for path in dataset_walker(root_dir)]
+    if all(v == 0 for v in rcodes):
+        return 0
+    return 1
 
 
 def run_import_rs_movies(host, port, xml_or_dir):
