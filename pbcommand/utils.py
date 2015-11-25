@@ -13,6 +13,11 @@ from contextlib import contextmanager
 log = logging.getLogger(__name__)
 
 
+class ExternalCommandNotFoundError(Exception):
+    """External command is not found in Path"""
+    pass
+
+
 def setup_log(alog, level=logging.INFO, file_name=None, log_filter=None,
               str_formatter='[%(levelname)s] %(asctime)-15sZ [%(name)s %(funcName)s %(lineno)d] %(message)s'):
     """Core Util to setup log handler
@@ -134,6 +139,14 @@ def which(exe_str):
             break
 
     return state
+
+
+def which_or_raise(cmd):
+    resolved_cmd = which(cmd)
+    if resolved_cmd is None:
+        raise ExternalCommandNotFoundError("Unable to find required cmd '{c}'".format(c=cmd))
+    else:
+        return resolved_cmd
 
 
 class Singleton(type):
