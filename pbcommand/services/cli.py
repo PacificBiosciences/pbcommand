@@ -21,6 +21,7 @@ import logging
 import functools
 import time
 import traceback
+import xml.etree.ElementTree as ET
 
 from pbcommand.cli import get_default_argparser, pacbio_args_runner
 from pbcommand.services import ServiceAccessLayer
@@ -99,8 +100,7 @@ def walker(root_dir, file_filter_func):
 
 def is_dataset(path):
     """peek into the XML to get the MetaType"""
-    # FIXME
-    return False
+    return ET.parse(path).getroot().attrib['MetaType']
 
 
 def is_xml_dataset(path):
@@ -115,17 +115,18 @@ def dataset_walker(root_dir):
     return walker(root_dir, filter_func)
 
 
-def import_dataset(sal, dataset_meta_type, path):
-    log.info("Mock {s} importing dataset type {t} path:{p}".format(t=dataset_meta_type, p=path, s=sal))
-    # FIXME
-    return True
+def import_dataset(sal, path):
+    dataset_meta_type = is_dataset(path)
+    log.info("{s} importing dataset type {t} path:{p}".format(
+        t=dataset_meta_type, p=path, s=sal))
+
+    return sal.run_import_dataset_by_type(dataset_meta_type, path)
 
 
 def import_datasets(sal, root_dir):
     for path in dataset_walker(root_dir):
-        meta_type = ""
-        result = import_dataset(sal, meta_type, path)
-        yield result
+        result = import_dataset(sal, path)
+        # yield result
 
 
 def run_import_datasets(host, port, xml_or_dir):
@@ -257,6 +258,7 @@ def args_executer(args):
     :rtype int
     """
     try:
+
         return_code = args.func(args)
     except Exception as e:
         log.error(e, exc_info=True)
@@ -301,4 +303,4 @@ def main(argv=None):
     argv_ = sys.argv if argv is None else argv
     parser = get_parser()
 
-    return pacbio_args_runner(argv_[1:], parser, args_executer, setup_log, log)
+    return main_runner(argv_[1:], parser, args_executer, setup_log, log)
