@@ -134,11 +134,13 @@ def import_dataset(sal, path):
     sal.run_import_dataset_by_type(dataset_meta_type, path)
     return 0
 
+
 def import_datasets(sal, root_dir):
     rcodes = [import_dataset(sal, path) for path in dataset_walker(root_dir)]
     if all(v == 0 for v in rcodes):
         return 0
     return 1
+
 
 def run_import_datasets(host, port, xml_or_dir):
     sal = ServiceAccessLayer(host, port)
@@ -153,7 +155,7 @@ def args_runner_import_datasets(args):
 
 def is_movie_metadata(path):
     """Peek into XML to see if it's a movie metadata XML file"""
-    #try:
+    # try:
     try:
         text = ET.parse(path).getroot().tag.split('}')[0]
     except Exception as e:
@@ -176,14 +178,16 @@ def movie_metadata_walker(root_dir):
     f = is_movie_metadata
     return walker(root_dir, f)
 
+
 def _metadata_to_dataset(metadata_xml):
     output = tempfile.NamedTemporaryFile(suffix=".hdfsubreadset.xml").name
     log.debug("Generating temporary dataset: {x}".format(x=output))
 
     cmd = '{m} {p} {o}'.format(m=Constants.RS_MOVIE_TO_DS, p=metadata_xml, o=output)
 
-    ### the output from movie-metadata-to-dataset is not properly wrapped in pbds namespace,
-    ### but the tempfile indicated in the stdout is. Not sure why there are two outputs
+    # the output from movie-metadata-to-dataset is not properly wrapped in pbds namespace,
+    # but the tempfile indicated in the stdout is. Not sure why there are two
+    # outputs
     stderr_path = tempfile.NamedTemporaryFile(suffix=".stderr").name
     stderr_fh = open(stderr_path, 'w')
 
@@ -285,12 +289,10 @@ def get_parser():
         subparser_builder(sp, subparser_id, description, options_func, exe_func)
 
     ds_desc = "Import DataSet XML "
-    builder('import-dataset', ds_desc,
-            add_sal_and_xml_dir_options, args_runner_import_datasets)
+    builder('import-dataset', ds_desc, add_sal_and_xml_dir_options, args_runner_import_datasets)
 
     rs_desc = "Import RS Metadata XML"
-    builder("import-rs-movie", rs_desc,
-            add_sal_and_xml_dir_options, args_runner_import_rs_movies)
+    builder("import-rs-movie", rs_desc, add_sal_and_xml_dir_options, args_runner_import_rs_movies)
 
     fasta_desc = "Import Fasta (and convert to ReferenceSet)"
     builder("import-fasta", fasta_desc, add_import_fasta_opts, args_run_import_fasta)
