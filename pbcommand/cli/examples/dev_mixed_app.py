@@ -16,7 +16,7 @@ options = alpha, beta
 import sys
 import logging
 
-from pbcommand.models import TaskTypes, FileTypes, get_pbparser
+from pbcommand.models import FileTypes, get_pbparser
 from pbcommand.cli import pbparser_runner
 from pbcommand.utils import setup_log
 

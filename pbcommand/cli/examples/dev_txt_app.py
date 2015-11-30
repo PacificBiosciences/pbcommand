@@ -9,7 +9,7 @@ import sys
 
 from pbcommand.utils import setup_log
 from pbcommand.cli import pbparser_runner
-from pbcommand.models import TaskTypes, FileTypes, get_pbparser, ResourceTypes
+from pbcommand.models import FileTypes, get_pbparser, ResourceTypes
 
 TOOL_ID = "pbcommand.tasks.dev_txt_app"
 VERSION = "0.1.0"

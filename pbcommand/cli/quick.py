@@ -4,9 +4,9 @@ import os
 import sys
 
 import pbcommand
-from pbcommand.cli import get_default_argparser
+from .core import get_default_argparser
 
-from pbcommand.models import (FileTypes, ToolContractTask, ToolContract,
+from pbcommand.models import (ToolContractTask, ToolContract,
                               InputFileType, OutputFileType, FileType)
 from pbcommand.models.parser import (to_option_schema, JsonSchemaTypes)
 from pbcommand.models.tool_contract import ToolDriver

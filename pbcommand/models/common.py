@@ -12,10 +12,14 @@ import re
 import warnings
 import functools
 import datetime
+from collections import namedtuple
 
 log = logging.getLogger(__name__)
 
 REGISTERED_FILE_TYPES = {}
+
+# Light weight Dataset metatadata. Use pbcore for full dataset functionality
+DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype')
 
 
 class PacBioNamespaces(object):
@@ -170,6 +174,11 @@ class FileType(object):
         return "<{k} id={i} name={n} >".format(**_d)
 
 
+class DataSetFileType(FileType):
+    """File types that are a DataSet Type"""
+    pass
+
+
 class MimeTypes(object):
     JSON = 'application/json'
     TXT = 'text/plain'
@@ -238,14 +247,14 @@ class FileTypes(object):
     # DataSet Types. The default file names should have well-defined agreed
     # upon format. See what Dave did for the bam files.
     # https://github.com/PacificBiosciences/PacBioFileFormats
-    DS_SUBREADS_H5 = FileType(to_ds_ns("HdfSubreadSet"), "file", "hdfsubreadset.xml", MimeTypes.XML)
-    DS_SUBREADS = FileType(to_ds_ns("SubreadSet"), "file", "subreadset.xml", MimeTypes.XML)
-    DS_CCS = FileType(to_ds_ns("ConsensusReadSet"), "file", "consensusreadset.xml", MimeTypes.XML)
-    DS_REF = FileType(to_ds_ns("ReferenceSet"), "file", "referenceset.xml", MimeTypes.XML)
-    DS_ALIGN = FileType(to_ds_ns("AlignmentSet"), "file", "alignmentset.xml", MimeTypes.XML)
-    DS_CONTIG = FileType(to_ds_ns("ContigSet"), "file", "contigset.xml", MimeTypes.XML)
-    DS_BARCODE = FileType(to_ds_ns("BarcodeSet"), "file", "barcodeset.xml", MimeTypes.XML)
-    DS_ALIGN_CCS = FileType(to_ds_ns("ConsensusAlignmentSet"), "file",
+    DS_SUBREADS_H5 = DataSetFileType(to_ds_ns("HdfSubreadSet"), "file", "hdfsubreadset.xml", MimeTypes.XML)
+    DS_SUBREADS = DataSetFileType(to_ds_ns("SubreadSet"), "file", "subreadset.xml", MimeTypes.XML)
+    DS_CCS = DataSetFileType(to_ds_ns("ConsensusReadSet"), "file", "consensusreadset.xml", MimeTypes.XML)
+    DS_REF = DataSetFileType(to_ds_ns("ReferenceSet"), "file", "referenceset.xml", MimeTypes.XML)
+    DS_ALIGN = DataSetFileType(to_ds_ns("AlignmentSet"), "file", "alignmentset.xml", MimeTypes.XML)
+    DS_CONTIG = DataSetFileType(to_ds_ns("ContigSet"), "file", "contigset.xml", MimeTypes.XML)
+    DS_BARCODE = DataSetFileType(to_ds_ns("BarcodeSet"), "file", "barcodeset.xml", MimeTypes.XML)
+    DS_ALIGN_CCS = DataSetFileType(to_ds_ns("ConsensusAlignmentSet"), "file",
                             "consensusalignmentset.xml", MimeTypes.XML)
 
     # Index Files
@@ -280,6 +289,10 @@ class FileTypes(object):
     @staticmethod
     def is_valid_id(file_type_id):
         return file_type_id in REGISTERED_FILE_TYPES
+
+    @staticmethod
+    def ALL_DATASET_TYPES():
+        return {i: f for i, f in REGISTERED_FILE_TYPES.iteritems() if isinstance(f, DataSetFileType)}
 
     @staticmethod
     def ALL():

@@ -6,7 +6,8 @@ Author: Michael Kocher
 import abc
 
 import pbcommand
-from pbcommand.models import TaskTypes, ResourceTypes
+
+from .common import TaskTypes, ResourceTypes
 
 __version__ = pbcommand.get_version()
 
