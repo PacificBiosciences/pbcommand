@@ -13,9 +13,9 @@ import re
 # import error.
 #import jsonschema
 
+from pbcommand.models import SymbolTypes
 from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
                                       add_subcomponent_versions_option)
-from pbcommand.models import SymbolTypes
 from .tool_contract import (ToolDriver,
                             InputFileType, OutputFileType,
                             ToolContract, ToolContractTask,

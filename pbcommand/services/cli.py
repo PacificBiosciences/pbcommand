@@ -24,14 +24,17 @@ import tempfile
 import traceback
 import xml.etree.ElementTree as ET
 
-from pbcommand.cli import get_default_argparser, pacbio_args_runner
+
+from pbcommand.cli import get_default_argparser
 from pbcommand.services import ServiceAccessLayer
-from pbcommand.utils import setup_log, compose
 from pbcommand.validators import validate_file
 from pbcommand.common_options import add_base_options
-from pbcommand.utils import which_or_raise
 from pbcommand.engine import run_cmd
-__version__ = "0.1.0"
+from pbcommand.utils import (which_or_raise,
+                             is_dataset,
+                             walker, setup_log, compose)
+
+__version__ = "0.1.1"
 
 log = logging.getLogger(__name__)
 
@@ -91,28 +94,6 @@ def run_file_or_dir(file_func, dir_func, xml_or_dir):
         raise ValueError("Unsupported value {x}".format(x=xml_or_dir))
 
 
-def walker(root_dir, file_filter_func):
-    for root, dnames, fnames in os.walk(root_dir):
-        for fname in fnames:
-            path = os.path.join(root, fname)
-            if file_filter_func(path):
-                yield path
-
-
-def _get_metatype(path):
-    return ET.parse(path).getroot().attrib['MetaType']
-
-
-def is_dataset(path):
-    """peek into the XML to get the MetaType"""
-
-    try:
-        _get_metatype(path)
-        return True
-    except Exception as e:
-        return False
-
-
 def is_xml_dataset(path):
     if _is_xml(path):
         if is_dataset(path):
@@ -125,32 +106,38 @@ def dataset_walker(root_dir):
     return walker(root_dir, filter_func)
 
 
-def import_dataset(sal, path):
-    is_dataset(path)
-    dataset_meta_type = _get_metatype(path)
-    log.info("{s} importing dataset type {t} path:{p}".format(
-        t=dataset_meta_type, p=path, s=sal))
+def import_local_dataset(sal, path):
+    """:type sal: ServiceAccessLayer"""
 
-    sal.run_import_dataset_by_type(dataset_meta_type, path)
+    # this will raise if the import wasn't successful
+    _ = sal.run_import_local_dataset(path)
     return 0
 
 
 def import_datasets(sal, root_dir):
-    rcodes = [import_dataset(sal, path) for path in dataset_walker(root_dir)]
-    if all(v == 0 for v in rcodes):
-        return 0
-    return 1
+    # FIXME. Need to add a flag to keep importing even if an import fails
+    rcodes = []
+    for path in dataset_walker(root_dir):
+        try:
+            import_local_dataset(sal, path)
+            rcodes.append(0)
+        except Exception as e:
+            log.error("Failed to import dataset {e}".format(e))
+            rcodes.append(1)
+
+    state = all(v == 0 for v in rcodes)
+    return 0 if state else 1
 
 
-def run_import_datasets(host, port, xml_or_dir):
+def run_import_local_datasets(host, port, xml_or_dir):
     sal = ServiceAccessLayer(host, port)
-    file_func = functools.partial(import_dataset, sal)
+    file_func = functools.partial(import_local_dataset, sal)
     dir_func = functools.partial(import_datasets, sal)
     return run_file_or_dir(file_func, dir_func, xml_or_dir)
 
 
 def args_runner_import_datasets(args):
-    return run_import_datasets(args.host, args.port, args.xml_or_dir)
+    return run_import_local_datasets(args.host, args.port, args.xml_or_dir)
 
 
 def is_movie_metadata(path):
@@ -211,7 +198,7 @@ def import_rs_movie(sal, path):
     log.info("RS movie-metadata XML {p}".format(p=path))
     hdfsubreadset = _metadata_to_dataset(path)
     log.info("Writing to temporary dataset: {t}".format(t=hdfsubreadset))
-    import_dataset(sal, hdfsubreadset)
+    import_local_dataset(sal, hdfsubreadset)
     return 0
 
 

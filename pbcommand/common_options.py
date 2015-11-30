@@ -1,6 +1,5 @@
 """Common options and utils that can me used in commandline utils"""
 import argparse
-import logging
 import sys
 
 from pbcommand.utils import compose

@@ -5,89 +5,24 @@
 import json
 import logging
 import pprint
-from collections import namedtuple
-import requests
 import time
 
-from pbcommand.models import FileTypes
+import requests
+from requests import RequestException
+
+from pbcommand.models import FileTypes, DataSetFileType
+from pbcommand.utils import get_dataset_metadata
+
+from pbcommand.services.models import (SMRTServiceBaseError,
+                                       JobResult, JobStates,
+                                       JobExeError,
+                                       JobTypes)
 
 log = logging.getLogger(__name__)
 
 
-# This are mirrored from the BaseSMRTServer
-class LogLevels(object):
-    TRACE = "TRACE"
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    NOTICE = "NOTICE"
-    WARN = "WARN"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
-    FATAL = "FATAL"
-
-    ALL = (TRACE, DEBUG, INFO, NOTICE, WARN, ERROR, CRITICAL, FATAL)
-
-    @classmethod
-    def is_valid(cls, level):
-        return level in cls.ALL
-
-
-HEADERS = {'Content-type': 'application/json'}
-SERVICE_LOGGER_RESOURCE_ID = "pbsmrtpipe"
-
-LogResource = namedtuple("LogResource", "id name description")
-LogMessage = namedtuple("LogMessage", "sourceId level message")
-
-PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
-                                    "Secondary Analysis Pbsmrtpipe Job logger")
-
-
-class JobExeError(ValueError):
-    """Service Job Failure"""
-    pass
-
-# "Job" is the raw output from the jobs/1234
-JobResult = namedtuple("JobResult", "job run_time errors")
-
-
-class ServiceEntryPoint(object):
-    """Entry Points to initialize Pipelines"""
-    def __init__(self, entry_id, dataset_type, path_or_uri):
-        self.entry_id = entry_id
-        self.dataset_type = dataset_type
-        # int (only supported), UUID or path to XML dataset will be added
-        self._resource = path_or_uri
-
-    @property
-    def resource(self):
-        return self._resource
-
-    def __repr__(self):
-        return "<{k} {e} {d} {r} >".format(k=self.__class__.__name__, e=self.entry_id, r=self._resource, d=self.dataset_type)
-
-
-class JobStates(object):
-    RUNNING = "RUNNING"
-    CREATED = "CREATED"
-    FAILED = "FAILED"
-    SUCCESSFUL = "SUCCESSFUL"
-
-    ALL = (RUNNING, CREATED, FAILED)
-
-    # End points
-    ALL_COMPLETED = (FAILED, SUCCESSFUL)
-
-
-class JobTypes(object):
-    IMPORT_DS = "import-dataset"
-    IMPORT_DSTORE = "import-datastore"
-    PB_PIPE = "pbsmrtpipe"
-    MOCK_PB_PIPE = "mock-pbsmrtpipe"
-
-
-class ServiceResourceTypes(object):
-    REPORTS = "reports"
-    DATASTORE = "datastore"
+class Constants(object):
+    HEADERS = {'Content-type': 'application/json'}
 
 
 def _post_requests(headers):
@@ -105,15 +40,35 @@ def _get_requests(headers):
     return wrapper
 
 
-rqpost = _post_requests(HEADERS)
-rqget = _get_requests(HEADERS)
+rqpost = _post_requests(Constants.HEADERS)
+rqget = _get_requests(Constants.HEADERS)
+
+
+def _parse_base_service_error(response):
+    """:type response: requests.Response
+
+    Don't trust the services. Try to parse the response to SMRT Server Error
+    datastructure (even if a 200 is returned)
+    """
+    if response.ok:
+        try:
+            d = response.json()
+            emsg = SMRTServiceBaseError.from_d(d)
+            raise emsg
+        except (KeyError, TypeError):
+            # couldn't parse response -> error,
+            # so everything is fine
+            return response
+    else:
+        return response
 
 
 def _process_rget(func):
     # apply the tranform func to the output of GET request if it was successful
     def wrapper(total_url):
         r = rqget(total_url)
-        if r.status_code != 200:
+        _parse_base_service_error(r)
+        if not r.ok:
             log.error("Failed ({s}) GET to {x}".format(x=total_url, s=r.status_code))
         r.raise_for_status()
         j = r.json()
@@ -122,11 +77,38 @@ def _process_rget(func):
     return wrapper
 
 
+def _process_rget_or_none(func):
+    """
+    apply the tranform func to the output of GET request if it was successful, else returns None
+
+    This is intended to be used for looking up Results by Id where the a 404
+    is found.
+    """
+    def wrapper(total_url):
+        r = rqget(total_url)
+        if r.ok:
+            try:
+                _parse_base_service_error(r)
+                j = r.json()
+                return func(j)
+            except (RequestException, SMRTServiceBaseError):
+                # FIXME
+                # this should be a tighter exception case
+                # only look for 404
+                return None
+        else:
+            return None
+
+    return wrapper
+
+
 def _process_rpost(func):
     # apply the transform func to the output of POST request if it was successful
     def wrapper(total_url, payload_d):
         r = rqpost(total_url, payload_d)
-        if r.status_code != 200:
+        _parse_base_service_error(r)
+        # FIXME This should be strict to only return a 201
+        if r.status_code not in (200, 201):
             log.error("Failed ({s} to call {u}".format(u=total_url, s=r.status_code))
             log.error("payload")
             log.error("\n" + pprint.pformat(payload_d))
@@ -146,9 +128,15 @@ def _null_func(x):
     return x
 
 
-def _import_dataset_by_type(dataset_type_id):
+def _import_dataset_by_type(dataset_type_or_id):
+
+    if isinstance(dataset_type_or_id, DataSetFileType):
+        ds_type_id = dataset_type_or_id.file_type_id
+    else:
+        ds_type_id = dataset_type_or_id
+
     def wrapper(total_url, path):
-        _d = dict(datasetType=dataset_type_id, path=path)
+        _d = dict(datasetType=ds_type_id, path=path)
         f = _process_rpost(_null_func)
         return f(total_url, _d)
 
@@ -291,6 +279,23 @@ class ServiceAccessLayer(object):
 
     def run_import_dataset_reference(self, path, time_out=10):
         return self._run_import_and_block(self.import_dataset_reference, path, time_out=time_out)
+
+    def run_import_local_dataset(self, path):
+        """Import a file from FS that is local to where the services are running"""
+        dataset_meta_type = get_dataset_metadata(path)
+        result = self.get_dataset_by_uuid(dataset_meta_type.uuid)
+        if result is None:
+            return self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
+        else:
+            # this will be dataset resource
+            return result
+
+    def get_dataset_by_uuid(self, int_or_uuid):
+        """The recommend model is to look up DataSet type by explicit MetaType
+
+        Returns None if the dataset was not found
+        """
+        return _process_rget_or_none(_null_func)(_to_url(self.uri, "/secondary-analysis/datasets/{i}".format(i=int_or_uuid)))
 
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
         """Get a Dataset using the DataSetMetaType and (int|uuid) of the dataset"""

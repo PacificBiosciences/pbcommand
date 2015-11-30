@@ -10,6 +10,10 @@ import types
 import subprocess
 from contextlib import contextmanager
 
+import xml.etree.ElementTree as ET
+
+from pbcommand.models import FileTypes, DataSetMetaData
+
 log = logging.getLogger(__name__)
 
 
@@ -246,3 +250,46 @@ def ignored(*exceptions):
         yield
     except exceptions:
         pass
+
+
+def get_dataset_metadata(path):
+    """
+    Returns DataSetMeta data or raises ValueError, KeyError
+
+    :param path:
+    :return:
+    """
+    f = ET.parse(path).getroot().attrib
+    mt = f['MetaType']
+    uuid = f['UniqueId']
+    if mt in FileTypes.ALL_DATASET_TYPES().keys():
+        return DataSetMetaData(uuid, mt)
+    else:
+        raise ValueError("Unsupported dataset type '{t}'".format(t=mt))
+
+
+def get_dataset_metadata_or_none(path):
+    """
+    Returns DataSetMeta data, else None
+
+    :param path:
+    :return:
+    """
+    try:
+        return get_dataset_metadata(path)
+    except:
+        return None
+
+
+def is_dataset(path):
+    """peek into the XML to get the MetaType"""
+    return get_dataset_metadata_or_none(path) is not None
+
+
+def walker(root_dir, file_filter_func):
+    """Filter files F(path) -> bool"""
+    for root, dnames, fnames in os.walk(root_dir):
+        for fname in fnames:
+            path = os.path.join(root, fname)
+            if file_filter_func(path):
+                yield path
