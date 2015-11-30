@@ -9,11 +9,9 @@ import argparse
 import functools
 import re
 
-# there's a problem with functools32 and jsonschema. This import raise an
-# import error.
-#import jsonschema
+import jsonschema
 
-from pbcommand.models import SymbolTypes
+from .common import SymbolTypes
 from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
                                       add_subcomponent_versions_option)
 from .tool_contract import (ToolDriver,
@@ -101,13 +99,11 @@ def to_opt_id(namespace, s):
 
 
 def validate_value(schema, v):
-    import jsonschema
     return jsonschema.validate(v, schema)
 
 
 def is_valid(schema, v):
     """Returns a bool if the schema is valid"""
-    import jsonschema
     try:
         validate_value(schema, v)
         return True
@@ -120,7 +116,6 @@ def validate_schema(f):
     """Deco for validate the returned jsonschema against Draft 4 of the spec"""
     def w(*args, **kwargs):
         schema = f(*args, **kwargs)
-        import jsonschema
         _ = jsonschema.Draft4Validator(schema)
         return schema
     return w

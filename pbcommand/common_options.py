@@ -2,7 +2,6 @@
 import argparse
 import sys
 
-from pbcommand.utils import compose
 
 RESOLVED_TOOL_CONTRACT_OPTION = "--resolved-tool-contract"
 EMIT_TOOL_CONTRACT_OPTION = "--emit-tool-contract"
@@ -33,18 +32,12 @@ def add_emit_tool_contract_option(p):
 
 
 def add_base_options(p):
-    funcs = [add_debug_option,
-             add_log_level_option]
-    fs = compose(*funcs)
-    return fs(p)
+    return add_debug_option(add_log_level_option(p))
 
 
 def add_base_options_with_emit_tool_contract(p):
-    funcs = [add_base_options,
-             add_resolved_tool_contract_option,
-             add_emit_tool_contract_option]
-    fs = compose(*funcs)
-    return fs(p)
+    # can't use compose here because of circular imports via parser
+    return add_base_options(add_resolved_tool_contract_option(add_emit_tool_contract_option(p)))
 
 
 def _to_print_message_action(msg):
