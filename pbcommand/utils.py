@@ -277,7 +277,7 @@ def get_dataset_metadata_or_none(path):
     """
     try:
         return get_dataset_metadata(path)
-    except:
+    except Exception:
         return None
 
 
