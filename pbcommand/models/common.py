@@ -257,31 +257,40 @@ class FileTypes(object):
     DS_ALIGN_CCS = DataSetFileType(to_ds_ns("ConsensusAlignmentSet"), "file",
                             "consensusalignmentset.xml", MimeTypes.XML)
 
-    # Index Files
+    # PacBio Defined Formats
+    ### Index Files
+
+    # ReferenceSet specific
     I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", MimeTypes.BINARY)
     I_SAW = FileType(to_index_ns("SaWriterIndex"), "file", "sa", MimeTypes.BINARY)
-
-    # PacBio BAM pbi
-    I_PBI = FileType(to_index_ns("PacBioIndex"), "file", "pbi", MimeTypes.BINARY)
 
     # SMRT VIew specific files
     I_INDEXER = FileType(to_index_ns("Indexer"), "file", "fasta.index", MimeTypes.TXT)
     I_FCI = FileType(to_index_ns("FastaContigIndex"), "file", "fasta.contig.index", MimeTypes.TXT)
 
-    # PacBio Defined Formats
+    # PacBio BAM pbi
+    I_PBI = FileType(to_index_ns("PacBioIndex"), "file", "pbi", MimeTypes.BINARY)
+    # This is duplicated from the old pre-DS era models. see BAMBAI
+    I_BAI = FileType(to_index_ns("BamIndex"), "file", "bam.bai", MimeTypes.BINARY)
+
+    # Fasta type files
     FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
     # No ':' or '"' in the id
     FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", MimeTypes.TXT)
+    CONTIG_FA = FileType("PacBio.ContigFile.ContigFastaFile", "file", "contig.fasta", MimeTypes.TXT)
 
-    # FIXME. Add Bax/Bam Formats here. This should replace the exiting pre-SA3 formats.
+    # BAM dialects
     BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", MimeTypes.BINARY)
     BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", MimeTypes.BINARY)
     BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", MimeTypes.BINARY)
+    BAM_CCS_ALN = FileType("PacBio.AlignmentFile.ConsensusAlignmentBamFile", "file", "ccs_align.bam", MimeTypes.BINARY)
+    # MK TODO. Add remaining SubreadSet files types, Scraps, HqRegion, etc..
 
-    BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", MimeTypes.BINARY)
     BAZ = FileType("PacBio.ReadFile.BazFile", "file", "baz", MimeTypes.BINARY)
     TRC = FileType("PacBio.ReadFile.TraceFile", "file", "trc", MimeTypes.BINARY)
     PLS = FileType("PacBio.ReadFile.PulseFile", "file", "pls", MimeTypes.BINARY)
+    # RS era
+    BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", MimeTypes.BINARY)
 
     # THIS IS EXPERIMENT for internal analysis. DO NOT use
     COND = FileType(to_file_ns("COND"), "file", "conditions.json", MimeTypes.JSON)
