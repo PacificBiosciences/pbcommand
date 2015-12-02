@@ -16,7 +16,7 @@ from pbcommand.utils import get_dataset_metadata
 from pbcommand.services.models import (SMRTServiceBaseError,
                                        JobResult, JobStates,
                                        JobExeError,
-                                       JobTypes)
+                                       JobTypes, LogLevels)
 
 log = logging.getLogger(__name__)
 
