@@ -257,6 +257,18 @@ class ServiceAccessLayer(object):
         _d = dict(t=job_type, i=job_id,r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
         return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
 
+    def get_analysis_jobs(self):
+        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.PB_PIPE, p=ServiceAccessLayer.ROOT_JOBS)))
+
+    def get_import_dataset_jobs(self):
+        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS)))
+
+    def get_merge_dataset_jobs(self):
+        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.MERGE_DS, p=ServiceAccessLayer.ROOT_JOBS)))
+
+    def get_fasta_convert_jobs(self):
+        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.CONVERT_FASTA, p=ServiceAccessLayer.ROOT_JOBS)))
+
     def get_analysis_job_by_id(self, job_id):
         """Get an Analysis job by id or UUID"""
         return self.get_job_by_type_and_id(JobTypes.PB_PIPE, job_id)

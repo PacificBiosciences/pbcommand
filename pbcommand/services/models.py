@@ -89,6 +89,12 @@ class JobTypes(object):
     CONVERT_FASTA = 'convert-fasta-reference'
 
 
+    @classmethod
+    def ALL(cls):
+        return (cls.IMPORT_DS, cls.IMPORT_DSTORE, cls.MERGE_DS,
+                cls.PB_PIPE, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
+
+
 class ServiceResourceTypes(object):
     REPORTS = "reports"
     DATASTORE = "datastore"
