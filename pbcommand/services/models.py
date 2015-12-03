@@ -83,8 +83,10 @@ class JobStates(object):
 class JobTypes(object):
     IMPORT_DS = "import-dataset"
     IMPORT_DSTORE = "import-datastore"
+    MERGE_DS = "merge-datasets"
     PB_PIPE = "pbsmrtpipe"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
+    CONVERT_FASTA = 'convert-fasta-reference'
 
 
 class ServiceResourceTypes(object):

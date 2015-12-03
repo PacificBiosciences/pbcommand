@@ -13,10 +13,9 @@ from requests import RequestException
 from pbcommand.models import FileTypes, DataSetFileType
 from pbcommand.utils import get_dataset_metadata
 
-from pbcommand.services.models import (SMRTServiceBaseError,
-                                       JobResult, JobStates,
-                                       JobExeError,
-                                       JobTypes, LogLevels)
+from .models import (SMRTServiceBaseError,
+                     JobResult, JobStates, JobExeError, JobTypes,
+                     LogLevels, ServiceEntryPoint, ServiceResourceTypes)
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +38,9 @@ def _get_requests(headers):
 
     return wrapper
 
-
+# These are exposed publicly as a utility, but shouldn't be used in any API
+# call. The _process_* are the entry points for API calls to make sure an
+# errors are handled correctly.
 rqpost = _post_requests(Constants.HEADERS)
 rqget = _get_requests(Constants.HEADERS)
 
@@ -63,17 +64,22 @@ def _parse_base_service_error(response):
         return response
 
 
-def _process_rget(func):
-    # apply the tranform func to the output of GET request if it was successful
-    def wrapper(total_url):
-        r = rqget(total_url)
-        _parse_base_service_error(r)
-        if not r.ok:
-            log.error("Failed ({s}) GET to {x}".format(x=total_url, s=r.status_code))
-        r.raise_for_status()
-        j = r.json()
-        return func(j)
+def _process_rget(total_url):
+    """Process get request and return JSON response. Raise if not successful"""
+    r = rqget(total_url)
+    _parse_base_service_error(r)
+    if not r.ok:
+        log.error("Failed ({s}) GET to {x}".format(x=total_url, s=r.status_code))
+    r.raise_for_status()
+    j = r.json()
+    return j
 
+
+def _process_rget_with_transform(func):
+    """Post process the JSON result (if successful) with F(json_d) -> T"""
+    def wrapper(total_url):
+        j = _process_rget(total_url)
+        return func(j)
     return wrapper
 
 
@@ -85,37 +91,34 @@ def _process_rget_or_none(func):
     is found.
     """
     def wrapper(total_url):
-        r = rqget(total_url)
-        if r.ok:
-            try:
-                _parse_base_service_error(r)
-                j = r.json()
-                return func(j)
-            except (RequestException, SMRTServiceBaseError):
-                # FIXME
-                # this should be a tighter exception case
-                # only look for 404
-                return None
-        else:
+        try:
+            return _process_rget_with_transform(func)(total_url)
+        except (RequestException, SMRTServiceBaseError):
+            # FIXME
+            # this should be a tighter exception case
+            # only look for 404
             return None
 
     return wrapper
 
 
-def _process_rpost(func):
-    # apply the transform func to the output of POST request if it was successful
-    def wrapper(total_url, payload_d):
-        r = rqpost(total_url, payload_d)
-        _parse_base_service_error(r)
-        # FIXME This should be strict to only return a 201
-        if r.status_code not in (200, 201):
-            log.error("Failed ({s} to call {u}".format(u=total_url, s=r.status_code))
-            log.error("payload")
-            log.error("\n" + pprint.pformat(payload_d))
-        r.raise_for_status()
-        j = r.json()
-        return func(j)
+def _process_rpost(total_url, payload_d):
+    r = rqpost(total_url, payload_d)
+    _parse_base_service_error(r)
+    # FIXME This should be strict to only return a 201
+    if r.status_code not in (200, 201):
+        log.error("Failed ({s} to call {u}".format(u=total_url, s=r.status_code))
+        log.error("payload")
+        log.error("\n" + pprint.pformat(payload_d))
+    r.raise_for_status()
+    j = r.json()
+    return j
 
+
+def _process_rpost_with_transform(func):
+    def wrapper(total_url, payload_d):
+        j = _process_rpost(total_url, payload_d)
+        return func(j)
     return wrapper
 
 
@@ -137,8 +140,7 @@ def _import_dataset_by_type(dataset_type_or_id):
 
     def wrapper(total_url, path):
         _d = dict(datasetType=ds_type_id, path=path)
-        f = _process_rpost(_null_func)
-        return f(total_url, _d)
+        return _process_rpost(total_url, _d)
 
     return wrapper
 
@@ -207,14 +209,24 @@ def _job_id_or_error(job_or_error, custom_err_msg=None):
         raise JobExeError("Failed to create job. {e}. Raw Response {x}".format(e=emsg, x=job_or_error))
 
 
+def _to_host(h):
+    prefix = "http://"
+    return h if h.startswith(prefix) else prefix + h
+
+
 class ServiceAccessLayer(object):
     """General Access Layer for interfacing with the job types on Secondary SMRT Server"""
+
+    ROOT_JM = "/secondary-analysis/job-manager"
+    ROOT_JOBS = ROOT_JM + "/jobs"
+    ROOT_DS = "/secondary-analysis/datasets"
+    ROOT_PT = '/secondary-analysis/resolved-pipeline-templates'
 
     # in sec when blocking to run a job
     JOB_DEFAULT_TIMEOUT = 60 * 30
 
     def __init__(self, base_url, port, debug=False):
-        self.base_url = base_url
+        self.base_url = _to_host(base_url)
         self.port = port
         # This will display verbose details with respect to the failed request
         self.debug = debug
@@ -231,23 +243,43 @@ class ServiceAccessLayer(object):
 
     def get_status(self):
         """Get status of the server"""
-        return _process_rget(_null_func)(_to_url(self.uri, "/status"))
+        return _process_rget(_to_url(self.uri, "/status"))
 
     def get_job_by_id(self, job_id):
         """Get a Job by int id"""
-        return _process_rget(_null_func)(_to_url(self.uri, "/secondary-analysis/job-manager/jobs/{i}".format(i=job_id)))
+        return _process_rget(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)))
 
     def get_job_by_type_and_id(self, job_type, job_id):
-        return _process_rget(_null_func)(_to_url(self.uri, "/secondary-analysis/job-manager/jobs/{t}/{i}".format(i=job_id, t=job_type)))
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
 
     def _get_job_resource_type(self, job_type, job_id, resource_type_id):
         # grab the datastore or the reports
-        _d = dict(t=job_type, i=job_id,r=resource_type_id)
-        return _process_rget(_null_func)(_to_url(self.uri,"/secondary-analysis/job-manager/jobs/{t}/{i}/{r}".format(**_d)))
+        _d = dict(t=job_type, i=job_id,r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+
+    def get_analysis_job_by_id(self, job_id):
+        """Get an Analysis job by id or UUID"""
+        return self.get_job_by_type_and_id(JobTypes.PB_PIPE, job_id)
+
+    def get_analysis_job_datastore(self, job_id):
+        """Get DataStore output from (pbsmrtpipe) analysis job"""
+        return self._get_job_resource_type(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE)
+
+    def get_analysis_job_reports(self, job_id):
+        """Get Reports output from (pbsmrtpipe) analysis job"""
+        return self._get_job_resource_type(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS)
+
+    def get_import_dataset_job_datastore(self, job_id):
+        """Get a List of Service DataStore files from an import DataSet job"""
+        return self._get_job_resource_type(JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.DATASTORE)
+
+    def get_merget_dataset_job_datastore(self, job_id):
+        return self._get_job_resource_type(JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
 
     def _import_dataset(self, dataset_type, path):
         # This returns a job resource
-        return _import_dataset_by_type(dataset_type)(self._to_url("/secondary-analysis/job-manager/jobs/import-dataset"), path)
+        url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_DS))
+        return _import_dataset_by_type(dataset_type)(url, path)
 
     def run_import_dataset_by_type(self, dataset_type, path_to_xml):
         job_or_error = self._import_dataset(dataset_type, path_to_xml)
@@ -295,15 +327,15 @@ class ServiceAccessLayer(object):
 
         Returns None if the dataset was not found
         """
-        return _process_rget_or_none(_null_func)(_to_url(self.uri, "/secondary-analysis/datasets/{i}".format(i=int_or_uuid)))
+        return _process_rget_or_none(_null_func)(_to_url(self.uri, "{p}/{i}".format(i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)))
 
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
         """Get a Dataset using the DataSetMetaType and (int|uuid) of the dataset"""
         ds_endpoint = _get_endpoint_or_raise(dataset_type)
-        return _process_rget(_null_func)(_to_url(self.uri, "/secondary-analysis/datasets/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid)))
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)))
 
     def _get_datasets_by_type(self, dstype):
-        return _process_rget(_null_func)(_to_url(self.uri, "/secondary-analysis/datasets/{i}".format(i=dstype)))
+        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=dstype, p=ServiceAccessLayer.ROOT_DS)))
 
     def get_subreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
@@ -326,6 +358,12 @@ class ServiceAccessLayer(object):
     def get_alignmentset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_ALIGN, int_or_uuid)
 
+    def get_ccsreadset_by_id(self, int_or_uuid):
+        return self.get_dataset_by_id(FileTypes.DS_CCS, int_or_uuid)
+
+    def get_ccsreadsets(self):
+        return self._get_datasets_by_type("ccsreads")
+
     def get_alignmentsets(self):
         return self._get_datasets_by_type("alignments")
 
@@ -335,8 +373,7 @@ class ServiceAccessLayer(object):
                  name=name,
                  organism=organism,
                  ploidy=ploidy)
-
-        return _process_rpost(_null_func)(self._to_url("/secondary-analysis/job-manager/jobs/convert-fasta-reference"), d)
+        return _process_rpost(self._to_url("{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d)
 
     def run_import_fasta(self, fasta_path, name, organism, ploidy, time_out=JOB_DEFAULT_TIMEOUT):
         """Import a Reference into a Block"""""
@@ -348,15 +385,15 @@ class ServiceAccessLayer(object):
 
     def create_logger_resource(self, idx, name, description):
         _d = dict(id=idx, name=name, description=description)
-        return _process_rpost(_null_func)(_to_url(self.uri, "/loggers"), _d)
+        return _process_rpost(_to_url(self.uri, "/loggers"), _d)
 
     def log_progress_update(self, job_type_id, job_id, message, level, source_id):
         """This is the generic job logging mechanism"""
         _d = dict(message=message, level=level, sourceId=source_id)
-        return _process_rpost(_null_func)(_to_url(self.uri, "/secondary-analysis/job-manager/jobs/{t}/{i}/log".format(t=job_type_id, i=job_id)), _d)
+        return _process_rpost(_to_url(self.uri, "{p}/{t}/{i}/log".format(t=job_type_id, i=job_id, p=ServiceAccessLayer.ROOT_JOBS)), _d)
 
     def get_pipeline_template_by_id(self, pipeline_template_id):
-        return _process_rget(_null_func)(_to_url(self.uri, "/secondary-analysis/resolved-pipeline-templates/{i}".format(i=pipeline_template_id)))
+        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)))
 
     def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints):
         """Creates and runs a pbsmrtpipe pipeline by pipeline template id"""
@@ -374,7 +411,7 @@ class ServiceAccessLayer(object):
         task_options = []
         workflow_options = []
         d = dict(name=name, pipelineId=pipeline_template_id, entryPoints=seps, taskOptions=task_options, workflowOptions=workflow_options)
-        return _process_rpost(_null_func)(_to_url(self.uri, "/secondary-analysis/job-manager/jobs/{p}".format(p=JobTypes.PB_PIPE)), d)
+        return _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d)
 
     def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, time_out=JOB_DEFAULT_TIMEOUT):
         """Blocks and runs a job with a timeout"""
@@ -394,14 +431,13 @@ def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=
     # Need to clarify the model here. Trying to pass the most minimal
     # data necessary to pbsmrtpipe.
     _d = dict(message=message, level=level, sourceId=source_id)
-    func = _process_rpost(_null_func)
     if ignore_errors:
         try:
-            return func(total_url, _d)
+            return _process_rpost(total_url, _d)
         except Exception as e:
             log.warn("Failed Request to {u} data: {d}. {e}".format(u=total_url, d=_d, e=e))
     else:
-        return func(total_url, _d)
+        return _process_rpost(total_url, _d)
 
 
 def add_datastore_file(total_url, datastore_file, ignore_errors=True):
@@ -410,12 +446,11 @@ def add_datastore_file(total_url, datastore_file, ignore_errors=True):
     :type datastore_file: DataStoreFile
     """
     _d = datastore_file.to_dict()
-    func = _process_rpost(_null_func)
     if ignore_errors:
         try:
-            return func(total_url, _d)
+            return _process_rpost(total_url, _d)
         except Exception as e:
             log.warn("Failed Request to {u} data: {d}. {e}".format(u=total_url, d=_d, e=e))
     else:
-        return func(total_url, _d)
+        return _process_rpost(total_url, _d)
 

@@ -403,12 +403,15 @@ class DataStore(object):
         self._write_json(file_name, 'w+')
 
     @staticmethod
+    def load_from_d(d):
+        ds_files = [DataStoreFile.from_dict(x) for x in d['files']]
+        return DataStore(ds_files)
+
+    @staticmethod
     def load_from_json(path):
         with open(path, 'r') as reader:
             d = json.loads(reader.read())
-
-        ds_files = [DataStoreFile.from_dict(x) for x in d['files']]
-        return DataStore(ds_files)
+        return DataStore.load_from_d(d)
 
 
 def _is_chunk_key(k):
