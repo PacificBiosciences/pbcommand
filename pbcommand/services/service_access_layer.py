@@ -18,6 +18,7 @@ from .models import (SMRTServiceBaseError,
                      LogLevels, ServiceEntryPoint, ServiceResourceTypes)
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler()) # to prevent the annoying 'No handlers .. ' msg
 
 
 class Constants(object):
@@ -290,7 +291,7 @@ class ServiceAccessLayer(object):
 
     def _import_dataset(self, dataset_type, path):
         # This returns a job resource
-        url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_DS))
+        url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
         return _import_dataset_by_type(dataset_type)(url, path)
 
     def run_import_dataset_by_type(self, dataset_type, path_to_xml):
@@ -331,6 +332,7 @@ class ServiceAccessLayer(object):
         if result is None:
             return self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
         else:
+            log.debug("DataSet already imported. Skipping importing. {r}".format(r=result))
             # this will be dataset resource
             return result
 

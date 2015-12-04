@@ -40,6 +40,9 @@ __version__ = "0.1.1"
 log = logging.getLogger(__name__)
 
 
+_LOG_FORMAT = '[%(levelname)s] %(asctime)-15s %(message)s'
+
+
 class Constants(object):
     FASTA_TO_REFERENCE = "fasta-to-reference"
     RS_MOVIE_TO_DS = "movie-metadata-to-dataset"
@@ -112,6 +115,7 @@ def import_local_dataset(sal, path):
 
     # this will raise if the import wasn't successful
     _ = sal.run_import_local_dataset(path)
+    log.info("Successfully import dataset from {f}".format(f=path))
     return 0
 
 
@@ -123,7 +127,7 @@ def import_datasets(sal, root_dir):
             import_local_dataset(sal, path)
             rcodes.append(0)
         except Exception as e:
-            log.error("Failed to import dataset {e}".format(e))
+            log.error("Failed to import dataset {e}".format(e=e))
             rcodes.append(1)
 
     state = all(v == 0 for v in rcodes)
@@ -311,7 +315,8 @@ def args_executer(args):
     return return_code
 
 
-def main_runner(argv, parser, exe_runner_func, setup_log_func, alog):
+def main_runner(argv, parser, exe_runner_func, setup_log_func, alog,
+                level=logging.DEBUG, str_formatter=_LOG_FORMAT):
     """
     Fundamental interface to commandline applications
     """
@@ -322,7 +327,7 @@ def main_runner(argv, parser, exe_runner_func, setup_log_func, alog):
     # setup log
     if hasattr(args, 'debug'):
         if args.debug:
-            setup_log_func(alog, level=logging.INFO)
+            setup_log_func(alog, level=level, str_formatter=str_formatter)
         else:
             alog.addHandler(logging.NullHandler())
     else:
