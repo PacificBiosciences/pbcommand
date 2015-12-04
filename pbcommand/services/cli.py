@@ -14,6 +14,7 @@ pbservice run-merge-dataset path/to/file.json
 
 
 """
+import argparse
 
 import os
 import sys
@@ -260,7 +261,8 @@ def subparser_builder(subparser, subparser_id, description, options_func, exe_fu
     :param exe_func: Function to run F(args) -> Int
     :return:
     """
-    p = subparser.add_parser(subparser_id, help=description)
+    p = subparser.add_parser(subparser_id, help=description,
+                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     options_func(p)
     p.set_defaults(func=exe_func)
     return p
@@ -275,13 +277,14 @@ def get_parser():
     def builder(subparser_id, description, options_func, exe_func):
         subparser_builder(sp, subparser_id, description, options_func, exe_func)
 
-    ds_desc = "Import DataSet XML "
+    local_desc = " The file location must be accessible from the host where the Services are running (often on a shared file system)"
+    ds_desc = "Import Local DataSet XML." + local_desc
     builder('import-dataset', ds_desc, add_sal_and_xml_dir_options, args_runner_import_datasets)
 
     rs_desc = "Import RS Metadata XML"
     builder("import-rs-movie", rs_desc, add_sal_and_xml_dir_options, args_runner_import_rs_movies)
 
-    fasta_desc = "Import Fasta (and convert to ReferenceSet)"
+    fasta_desc = "Import Fasta (and convert to ReferenceSet)." + local_desc
     builder("import-fasta", fasta_desc, add_import_fasta_opts, args_run_import_fasta)
 
     return p
@@ -319,7 +322,7 @@ def main_runner(argv, parser, exe_runner_func, setup_log_func, alog):
     # setup log
     if hasattr(args, 'debug'):
         if args.debug:
-            setup_log_func(alog, level=logging.DEBUG)
+            setup_log_func(alog, level=logging.INFO)
         else:
             alog.addHandler(logging.NullHandler())
     else:
