@@ -47,6 +47,10 @@ class Constants(object):
     FASTA_TO_REFERENCE = "fasta-to-reference"
     RS_MOVIE_TO_DS = "movie-metadata-to-dataset"
 
+    # Currently only small-ish files are supported, users should
+    # use fasta-to-reference offline and import the reference set
+    MAX_FASTA_FILE_MB = 100
+
 
 def _is_xml(path):
     return path.endswith(".xml")
@@ -59,7 +63,25 @@ def validate_xml_file_or_dir(path):
     elif os.path.isfile(px) and _is_xml(px):
         return px
     else:
-        raise ValueError("Expected dir or file '{p}'".format(p=path))
+        raise argparse.ArgumentTypeError("Expected dir or file '{p}'".format(p=path))
+
+
+def _get_size_mb(path):
+    return os.stat(path).st_size / 1024.0 / 1024.0
+
+
+def validate_file_and_size(max_size_mb):
+    def _wrapper(path):
+        p = validate_file(path)
+        sx = _get_size_mb(path)
+        if sx > max_size_mb:
+            raise argparse.ArgumentTypeError("Fasta file is too large {s:.2f} MB > {m:.2f} MB. Create a ReferenceSet using {e}, then import using `pbservice import-dataset /path/to/referenceset.xml` ".format(e=Constants.FASTA_TO_REFERENCE, s=sx, m=Constants.MAX_FASTA_FILE_MB))
+        else:
+            return p
+    return _wrapper
+
+
+validate_max_fasta_file_size = validate_file_and_size(Constants.MAX_FASTA_FILE_MB)
 
 
 def add_sal_options(p):
@@ -228,11 +250,12 @@ def args_runner_import_rs_movies(args):
 
 def add_import_fasta_opts(p):
     px = p.add_argument
-    px('fasta_path', type=validate_file, help="Path to Fasta File")
+    px('fasta_path', type=validate_max_fasta_file_size, help="Path to Fasta File")
     px('--name', required=True, type=str, help="Name of ReferenceSet")
     px('--organism', required=True, type=str, help="Organism")
     px('--ploidy', required=True, type=str, help="Ploidy")
-    px('--block', type=bool, default=False, help="Block during importing process")
+    px('--block', action='store_true', default=False,
+       help="Block during importing process")
     add_sal_options(p)
     add_base_options(p)
     return p
@@ -240,8 +263,11 @@ def add_import_fasta_opts(p):
 
 def run_import_fasta(host, port, fasta_path, name, organism, ploidy, block=False):
     sal = ServiceAccessLayer(host, port)
+    log.info("importing ({s:.2f} MB) {f} ".format(s=_get_size_mb(fasta_path), f=fasta_path))
     if block is True:
-        sal.run_import_fasta(fasta_path, name, organism, ploidy)
+        result = sal.run_import_fasta(fasta_path, name, organism, ploidy)
+        log.info("Successfully imported {f}".format(f=fasta_path))
+        log.info("result {r}".format(r=result))
     else:
         sal.import_fasta(fasta_path, name, organism, ploidy)
 
