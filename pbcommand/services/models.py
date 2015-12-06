@@ -29,6 +29,23 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
                                     "Secondary Analysis Pbsmrtpipe Job logger")
 
 
+class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type created_at')):
+    @staticmethod
+    def from_d(d):
+        def sx(x):
+            return d[x]
+
+        def se(x):
+            return sx(x).encode('ascii', 'ignore')
+
+        # wait till iso8601 is in the build
+        #def to_t(x):
+        #    return iso8601.parse_date(se(x))
+
+        return ServiceJob(sx('id'), sx('uuid'), se('name'), se('state'),
+                          se('path'), se('jobTypeId'), se('createdAt'))
+
+
 class JobExeError(ValueError):
     """Service Job failed to complete successfully"""
     pass

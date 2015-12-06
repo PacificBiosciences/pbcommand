@@ -15,7 +15,8 @@ from pbcommand.utils import get_dataset_metadata
 
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,
-                     LogLevels, ServiceEntryPoint, ServiceResourceTypes)
+                     LogLevels, ServiceEntryPoint,
+                     ServiceResourceTypes, ServiceJob)
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler()) # to prevent the annoying 'No handlers .. ' msg
@@ -84,9 +85,15 @@ def _process_rget_with_transform(func):
     return wrapper
 
 
+def _process_rget_with_jobs_transform(total_url):
+    # defining an internal method, because this used in several places
+    jobs_d = _process_rget(total_url)
+    return [ServiceJob.from_d(job_d) for job_d in jobs_d]
+
+
 def _process_rget_or_none(func):
     """
-    apply the tranform func to the output of GET request if it was successful, else returns None
+    apply the transform func to the output of GET request if it was successful, else returns None
 
     This is intended to be used for looking up Results by Id where the a 404
     is found.
@@ -251,24 +258,27 @@ class ServiceAccessLayer(object):
         return _process_rget(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)))
 
     def get_job_by_type_and_id(self, job_type, job_id):
-        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
+        return _process_rget_with_transform(ServiceJob.from_d)(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
 
     def _get_job_resource_type(self, job_type, job_id, resource_type_id):
         # grab the datastore or the reports
         _d = dict(t=job_type, i=job_id,r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+        return _process_rget_with_transform(ServiceJob.from_d)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+
+    def _get_jobs_by_job_type(self, job_type):
+        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
 
     def get_analysis_jobs(self):
-        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.PB_PIPE, p=ServiceAccessLayer.ROOT_JOBS)))
+        return self._get_jobs_by_job_type(JobTypes.PB_PIPE)
 
     def get_import_dataset_jobs(self):
-        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS)))
+        return self._get_jobs_by_job_type(JobTypes.IMPORT_DS)
 
     def get_merge_dataset_jobs(self):
-        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.MERGE_DS, p=ServiceAccessLayer.ROOT_JOBS)))
+        return self._get_jobs_by_job_type(JobTypes.MERGE_DS)
 
     def get_fasta_convert_jobs(self):
-        return _process_rget(_to_url(self.uri, "{p}/{t}".format(t=JobTypes.CONVERT_FASTA, p=ServiceAccessLayer.ROOT_JOBS)))
+        self._get_jobs_by_job_type(JobTypes.CONVERT_FASTA)
 
     def get_analysis_job_by_id(self, job_id):
         """Get an Analysis job by id or UUID"""
@@ -332,7 +342,7 @@ class ServiceAccessLayer(object):
         if result is None:
             return self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
         else:
-            log.debug("DataSet already imported. Skipping importing. {r}".format(r=result))
+            log.debug("{f} already imported. Skipping importing. {r}".format(r=result, f=dataset_meta_type.metatype))
             # this will be dataset resource
             return result
 
