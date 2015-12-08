@@ -2,6 +2,10 @@
 from collections import namedtuple
 
 
+def to_ascii(s):
+    return s.encode('ascii', 'ignore')
+
+
 # This are mirrored from the BaseSMRTServer
 class LogLevels(object):
     TRACE = "TRACE"
@@ -83,6 +87,15 @@ class ServiceEntryPoint(object):
 
     def __repr__(self):
         return "<{k} {e} {d} {r} >".format(k=self.__class__.__name__, e=self.entry_id, r=self._resource, d=self.dataset_type)
+
+    @staticmethod
+    def from_d(d):
+        return ServiceEntryPoint(to_ascii(d['entryId']), to_ascii(d['fileTypeId']), d['datasetId'])
+
+    def to_d(self):
+        return dict(entryId=self.entry_id,
+                    fileTypeId=self.dataset_type,
+                    datasetId=self.resource)
 
 
 class JobStates(object):

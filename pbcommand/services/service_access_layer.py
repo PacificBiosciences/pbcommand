@@ -18,6 +18,8 @@ from .models import (SMRTServiceBaseError,
                      LogLevels, ServiceEntryPoint,
                      ServiceResourceTypes, ServiceJob)
 
+from .utils import to_ascii, to_sal_summary
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler()) # to prevent the annoying 'No handlers .. ' msg
 
@@ -154,12 +156,10 @@ def _import_dataset_by_type(dataset_type_or_id):
 
 
 def _block_for_job_to_complete(sal, job_id, time_out=600):
-    def _to_ascii(v):
-        return v.encode('ascii', 'ignore')
 
     job = sal.get_job_by_id(job_id)
-    state = _to_ascii(job['state'])
-    name = _to_ascii(job['name'])
+    state = to_ascii(job['state'])
+    name = to_ascii(job['name'])
 
     job_result = JobResult(job, 0, "")
     started_at = time.time()
@@ -172,7 +172,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=600):
         log.debug("Running pipeline {n} state: {s} runtime:{r:.2f} sec".format(n=name, s=state, r=run_time))
         time.sleep(sleep_time)
         job = sal.get_job_by_id(job_id)
-        state = _to_ascii(job['state'])
+        state = to_ascii(job['state'])
         job_result = JobResult(job, run_time, "")
         if time_out is not None:
             if run_time > time_out:
@@ -248,6 +248,9 @@ class ServiceAccessLayer(object):
 
     def __repr__(self):
         return "<{k} {u} >".format(k=self.__class__.__name__, u=self.uri)
+
+    def to_summary(self):
+        return to_sal_summary(self)
 
     def get_status(self):
         """Get status of the server"""
@@ -435,7 +438,8 @@ class ServiceAccessLayer(object):
         task_options = []
         workflow_options = []
         d = dict(name=name, pipelineId=pipeline_template_id, entryPoints=seps, taskOptions=task_options, workflowOptions=workflow_options)
-        return _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d)
+        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d)
+        return ServiceJob.from_d(raw_d)
 
     def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, time_out=JOB_DEFAULT_TIMEOUT):
         """Blocks and runs a job with a timeout"""

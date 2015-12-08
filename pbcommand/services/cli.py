@@ -15,8 +15,10 @@ pbservice run-merge-dataset path/to/file.json
 
 """
 import argparse
+import json
 
 import os
+import pprint
 import sys
 import logging
 import functools
@@ -27,13 +29,16 @@ import xml.etree.ElementTree as ET
 
 
 from pbcommand.cli import get_default_argparser
-from pbcommand.services import ServiceAccessLayer
+from pbcommand.models import FileTypes
+from pbcommand.services import ServiceAccessLayer, ServiceEntryPoint
 from pbcommand.validators import validate_file
 from pbcommand.common_options import add_base_options
 from pbcommand.engine import run_cmd
 from pbcommand.utils import (which_or_raise,
                              is_dataset,
                              walker, setup_log, compose)
+
+from .utils import to_ascii
 
 __version__ = "0.1.1"
 
@@ -84,11 +89,23 @@ def validate_file_and_size(max_size_mb):
 validate_max_fasta_file_size = validate_file_and_size(Constants.MAX_FASTA_FILE_MB)
 
 
+def add_block_option(p):
+    p.add_argument('--block', action='store_true', default=False,
+                   help="Block during importing process")
+    return p
+
+
 def add_sal_options(p):
     p.add_argument('--host', type=str,
                    default="http://localhost", help="Server host")
     p.add_argument('--port', type=int, default=8070, help="Server Port")
     return p
+
+
+def add_base_and_sal_options(p):
+    fx = [add_base_options, add_sal_options]
+    f = compose(*fx)
+    return f(p)
 
 
 def add_xml_or_dir_option(p):
@@ -254,8 +271,7 @@ def add_import_fasta_opts(p):
     px('--name', required=True, type=str, help="Name of ReferenceSet")
     px('--organism', required=True, type=str, help="Organism")
     px('--ploidy', required=True, type=str, help="Ploidy")
-    px('--block', action='store_true', default=False,
-       help="Block during importing process")
+    add_block_option(p)
     add_sal_options(p)
     add_base_options(p)
     return p
@@ -278,6 +294,90 @@ def args_run_import_fasta(args):
     log.debug(args)
     return run_import_fasta(args.host, args.port, args.fasta_path,
                             args.name, args.organism, args.ploidy, block=args.block)
+
+
+def _io_load_pipeline_template_d(d):
+    """Translate a dict to args for scenario runner inputs"""
+    job_name = to_ascii(d['name'])
+    pipeline_template_id = to_ascii(d["pipelineId"])
+    service_epoints = [ServiceEntryPoint.from_d(x) for x in d['entryPoints']]
+    return job_name, pipeline_template_id, service_epoints
+
+
+def add_run_analysis_job_opts(p):
+    p.add_argument('json_path', type=validate_file, help="Path to JSON pipeline")
+    add_sal_options(p)
+    add_base_options(p)
+    add_block_option(p)
+    return
+
+
+def run_analysis_job(host, port, json_path, block=False):
+    with open(json_path, 'r') as f:
+        d = json.loads(f.read())
+
+    log.debug("Loaded \n" + pprint.pformat(d))
+    job_name, pipeline_id, service_entry_points = _io_load_pipeline_template_d(d)
+
+    sal = ServiceAccessLayer(host, port)
+    status = sal.get_status()
+    log.info("Status {x}".format(x=status['message']))
+
+    resolved_service_entry_points = []
+    for service_entry_point in service_entry_points:
+        if isinstance(service_entry_point.resource, int):
+            resolved_service_entry_points.append(service_entry_point)
+        else:
+            # the value was provided as a DataSet UUID
+            ds = sal.get_dataset_by_uuid(service_entry_point.resource)
+            dataset_id = ds['id']
+            ep = ServiceEntryPoint(service_entry_point.entry_id, service_entry_point.dataset_type, dataset_id)
+            resolved_service_entry_points.append(ep)
+
+    if block:
+        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
+        job_id = job_result.job['id']
+        # service job
+        result = sal.get_analysis_job_by_id(job_id)
+    else:
+        # service job or error
+        result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
+
+    log.info("Result {r}".format(r=result))
+    return 0
+
+
+def args_run_analysis_job(args):
+    log.debug(args)
+    return run_analysis_job(args.host, args.port, args.json_path, block=args.block)
+
+
+def args_emit_analysis_template(args):
+    ep1 = ServiceEntryPoint("eid_ref_dataset", FileTypes.DS_REF.file_type_id, 1)
+    ep1_d = ep1.to_d()
+    ep1_d['_comment'] = "datasetId can be provided as the DataSet UUID or Int. The entryId(s) can be obtained by running 'pbsmrtpipe show-pipeline-templates {PIPELINE-ID}'"
+    d = dict(name="Job name",
+             pipelineId="pbsmrtpipe.pipelines.dev_diagnostic",
+             entryPoints=[ep1_d],
+             taskOptions=[],
+             workflowOptions=[])
+
+    sx = json.dumps(d, sort_keys=True, indent=4)
+    print sx
+
+    return 0
+
+
+def args_get_summary(args):
+
+    host = args.host
+    port = args.port
+
+    sal = ServiceAccessLayer(host, port)
+
+    print sal.to_summary()
+
+    return 0
 
 
 def subparser_builder(subparser, subparser_id, description, options_func, exe_func):
@@ -307,15 +407,25 @@ def get_parser():
     def builder(subparser_id, description, options_func, exe_func):
         subparser_builder(sp, subparser_id, description, options_func, exe_func)
 
+    status_desc = "Get System Status, DataSet and Job Summary"
+    builder('status', status_desc, add_base_and_sal_options, args_get_summary)
+
     local_desc = " The file location must be accessible from the host where the Services are running (often on a shared file system)"
     ds_desc = "Import Local DataSet XML." + local_desc
     builder('import-dataset', ds_desc, add_sal_and_xml_dir_options, args_runner_import_datasets)
 
-    rs_desc = "Import RS Metadata XML"
-    builder("import-rs-movie", rs_desc, add_sal_and_xml_dir_options, args_runner_import_rs_movies)
+    # Removing this functionality. This should be in pbconvert (or re-purposed from pbimport)
+    # rs_desc = "Import RS Metadata XML"
+    # builder("import-rs-movie", rs_desc, add_sal_and_xml_dir_options, args_runner_import_rs_movies)
 
     fasta_desc = "Import Fasta (and convert to ReferenceSet)." + local_desc
     builder("import-fasta", fasta_desc, add_import_fasta_opts, args_run_import_fasta)
+
+    run_analysis_desc = "Run Secondary Analysis Pipeline using a analysis.json"
+    builder("run-analysis", run_analysis_desc, add_run_analysis_job_opts, args_run_analysis_job)
+
+    emit_analysis_json_desc = "Emit an analysis.json Template to stdout that can be run using 'run-analysis'"
+    builder("emit-analysis-template", emit_analysis_json_desc, add_base_options, args_emit_analysis_template)
 
     return p
 
