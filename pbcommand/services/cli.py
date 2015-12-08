@@ -30,7 +30,9 @@ import xml.etree.ElementTree as ET
 
 from pbcommand.cli import get_default_argparser
 from pbcommand.models import FileTypes
-from pbcommand.services import ServiceAccessLayer, ServiceEntryPoint
+from pbcommand.services import (ServiceAccessLayer,
+                                ServiceEntryPoint,
+                                JobExeError)
 from pbcommand.validators import validate_file
 from pbcommand.common_options import add_base_options
 from pbcommand.engine import run_cmd
@@ -43,6 +45,7 @@ from .utils import to_ascii
 __version__ = "0.1.1"
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler()) # suppress warning message
 
 
 _LOG_FORMAT = '[%(levelname)s] %(asctime)-15s %(message)s'
@@ -296,7 +299,7 @@ def args_run_import_fasta(args):
                             args.name, args.organism, args.ploidy, block=args.block)
 
 
-def _io_load_pipeline_template_d(d):
+def _load_analysis_job_json(d):
     """Translate a dict to args for scenario runner inputs"""
     job_name = to_ascii(d['name'])
     pipeline_template_id = to_ascii(d["pipelineId"])
@@ -304,8 +307,20 @@ def _io_load_pipeline_template_d(d):
     return job_name, pipeline_template_id, service_epoints
 
 
+def _validate_analysis_job_json(path):
+    px = validate_file(path)
+    with open(px, 'r') as f:
+        d = json.loads(f.read())
+
+    try:
+        _load_analysis_job_json(d)
+        return px
+    except (KeyError, TypeError, ValueError) as e:
+        raise argparse.ArgumentTypeError("Invalid analysis.json format for '{p}' {e}".format(p=px, e=repr(e)))
+
+
 def add_run_analysis_job_opts(p):
-    p.add_argument('json_path', type=validate_file, help="Path to JSON pipeline")
+    p.add_argument('json_path', type=_validate_analysis_job_json, help="Path to analysis.json file")
     add_sal_options(p)
     add_base_options(p)
     add_block_option(p)
@@ -313,11 +328,15 @@ def add_run_analysis_job_opts(p):
 
 
 def run_analysis_job(host, port, json_path, block=False):
+    """Run analysis (pbsmrtpipe) job
+
+    :rtype ServiceJob:
+    """
     with open(json_path, 'r') as f:
         d = json.loads(f.read())
 
     log.debug("Loaded \n" + pprint.pformat(d))
-    job_name, pipeline_id, service_entry_points = _io_load_pipeline_template_d(d)
+    job_name, pipeline_id, service_entry_points = _load_analysis_job_json(d)
 
     sal = ServiceAccessLayer(host, port)
     status = sal.get_status()
@@ -325,20 +344,23 @@ def run_analysis_job(host, port, json_path, block=False):
 
     resolved_service_entry_points = []
     for service_entry_point in service_entry_points:
-        if isinstance(service_entry_point.resource, int):
-            resolved_service_entry_points.append(service_entry_point)
-        else:
-            # the value was provided as a DataSet UUID
-            ds = sal.get_dataset_by_uuid(service_entry_point.resource)
-            dataset_id = ds['id']
-            ep = ServiceEntryPoint(service_entry_point.entry_id, service_entry_point.dataset_type, dataset_id)
-            resolved_service_entry_points.append(ep)
+        # Always lookup/resolve the dataset by looking up the id
+        ds = sal.get_dataset_by_uuid(service_entry_point.resource)
+        if ds is None:
+            raise ValueError("Failed to find DataSet with id {r} {s}".format(s=service_entry_point, r=service_entry_point.resource))
+
+        dataset_id = ds['id']
+        ep = ServiceEntryPoint(service_entry_point.entry_id, service_entry_point.dataset_type, dataset_id)
+        log.debug("Resolved dataset {e}".format(e=ep))
+        resolved_service_entry_points.append(ep)
 
     if block:
         job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
         job_id = job_result.job['id']
         # service job
         result = sal.get_analysis_job_by_id(job_id)
+        if not result.was_successful():
+            raise JobExeError("Job {i} failed".format(i=job_id))
     else:
         # service job or error
         result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)

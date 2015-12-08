@@ -206,10 +206,8 @@ def _job_id_or_error(job_or_error, custom_err_msg=None):
 
     :raises: JobExeError
     """
-    if 'id' in job_or_error:
-        job_id = job_or_error['id']
-        log.info("created job {i}".format(i=job_id))
-        return job_id
+    if isinstance(job_or_error, ServiceJob):
+        return job_or_error.id
     else:
         emsg = job_or_error.get('message', "Unknown")
         if custom_err_msg is not None:
@@ -284,7 +282,10 @@ class ServiceAccessLayer(object):
         self._get_jobs_by_job_type(JobTypes.CONVERT_FASTA)
 
     def get_analysis_job_by_id(self, job_id):
-        """Get an Analysis job by id or UUID"""
+        """Get an Analysis job by id or UUID
+
+        :rtype: ServiceJob
+        """
         return self.get_job_by_type_and_id(JobTypes.PB_PIPE, job_id)
 
     def get_analysis_job_datastore(self, job_id):

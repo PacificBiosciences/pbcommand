@@ -1,5 +1,6 @@
 """Services Specific Data Models"""
 from collections import namedtuple
+import uuid
 
 
 def to_ascii(s):
@@ -49,6 +50,9 @@ class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type crea
         return ServiceJob(sx('id'), sx('uuid'), se('name'), se('state'),
                           se('path'), se('jobTypeId'), se('createdAt'))
 
+    def was_successful(self):
+        return self.state == JobStates.SUCCESSFUL
+
 
 class JobExeError(ValueError):
     """Service Job failed to complete successfully"""
@@ -73,6 +77,16 @@ class SMRTServiceBaseError(Exception):
 JobResult = namedtuple("JobResult", "job run_time errors")
 
 
+def _to_resource_id(x):
+    if isinstance(x, int):
+        return x
+    try:
+        _ = uuid.UUID(x)
+        return x
+    except ValueError as e:
+        raise ValueError("Resource id '{x}' must be given as int or uuid".format(x=x))
+
+
 class ServiceEntryPoint(object):
     """Entry Points to initialize Pipelines"""
     def __init__(self, entry_id, dataset_type, path_or_uri):
@@ -90,7 +104,8 @@ class ServiceEntryPoint(object):
 
     @staticmethod
     def from_d(d):
-        return ServiceEntryPoint(to_ascii(d['entryId']), to_ascii(d['fileTypeId']), d['datasetId'])
+        i = _to_resource_id(d['datasetId'])
+        return ServiceEntryPoint(to_ascii(d['entryId']), to_ascii(d['fileTypeId']), i)
 
     def to_d(self):
         return dict(entryId=self.entry_id,
