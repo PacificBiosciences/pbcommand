@@ -112,6 +112,10 @@ def _process_rget_or_none(func):
     return wrapper
 
 
+def _process_rget_with_job_transform_or_none(total_url):
+    return _process_rget_or_none(ServiceJob.from_d)(total_url)
+
+
 def _process_rpost(total_url, payload_d):
     r = rqpost(total_url, payload_d)
     _parse_base_service_error(r)
@@ -150,7 +154,7 @@ def _import_dataset_by_type(dataset_type_or_id):
 
     def wrapper(total_url, path):
         _d = dict(datasetType=ds_type_id, path=path)
-        return _process_rpost(total_url, _d)
+        return _process_rpost_with_transform(ServiceJob.from_d)(total_url, _d)
 
     return wrapper
 
@@ -158,8 +162,9 @@ def _import_dataset_by_type(dataset_type_or_id):
 def _block_for_job_to_complete(sal, job_id, time_out=600):
 
     job = sal.get_job_by_id(job_id)
-    state = to_ascii(job['state'])
-    name = to_ascii(job['name'])
+
+    if job is None:
+        raise JobExeError("Failed to find job {i}".format(i=job_id))
 
     job_result = JobResult(job, 0, "")
     started_at = time.time()
@@ -167,12 +172,12 @@ def _block_for_job_to_complete(sal, job_id, time_out=600):
     sleep_time = 2
     while True:
         run_time = time.time() - started_at
-        if state in JobStates.ALL_COMPLETED:
+        if job.state in JobStates.ALL_COMPLETED:
             break
-        log.debug("Running pipeline {n} state: {s} runtime:{r:.2f} sec".format(n=name, s=state, r=run_time))
+
+        log.debug("Running pipeline {n} state: {s} runtime:{r:.2f} sec".format(n=job.name, s=job.state, r=run_time))
         time.sleep(sleep_time)
         job = sal.get_job_by_id(job_id)
-        state = to_ascii(job['state'])
         job_result = JobResult(job, run_time, "")
         if time_out is not None:
             if run_time > time_out:
@@ -254,17 +259,18 @@ class ServiceAccessLayer(object):
         """Get status of the server"""
         return _process_rget(_to_url(self.uri, "/status"))
 
+    def get_job_by_type_and_id(self, job_type, job_id):
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
+
     def get_job_by_id(self, job_id):
         """Get a Job by int id"""
-        return _process_rget(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)))
-
-    def get_job_by_type_and_id(self, job_type, job_id):
-        return _process_rget_with_transform(ServiceJob.from_d)(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
+        # FIXME. Make this an internal method It's ambiguous which job type type you're asking for
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)))
 
     def _get_job_resource_type(self, job_type, job_id, resource_type_id):
         # grab the datastore or the reports
-        _d = dict(t=job_type, i=job_id,r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget_with_transform(ServiceJob.from_d)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+        _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
 
     def _get_jobs_by_job_type(self, job_type):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
@@ -282,7 +288,7 @@ class ServiceAccessLayer(object):
         self._get_jobs_by_job_type(JobTypes.CONVERT_FASTA)
 
     def get_analysis_job_by_id(self, job_id):
-        """Get an Analysis job by id or UUID
+        """Get an Analysis job by id or UUID or return None
 
         :rtype: ServiceJob
         """
@@ -300,7 +306,7 @@ class ServiceAccessLayer(object):
         """Get a List of Service DataStore files from an import DataSet job"""
         return self._get_job_resource_type(JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.DATASTORE)
 
-    def get_merget_dataset_job_datastore(self, job_id):
+    def get_merge_dataset_job_datastore(self, job_id):
         return self._get_job_resource_type(JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
 
     def _import_dataset(self, dataset_type, path):
@@ -340,15 +346,21 @@ class ServiceAccessLayer(object):
         return self._run_import_and_block(self.import_dataset_reference, path, time_out=time_out)
 
     def run_import_local_dataset(self, path):
-        """Import a file from FS that is local to where the services are running"""
+        """Import a file from FS that is local to where the services are running
+
+        Returns a JobResult instance
+
+        :rtype: JobResult
+        """
         dataset_meta_type = get_dataset_metadata(path)
         result = self.get_dataset_by_uuid(dataset_meta_type.uuid)
         if result is None:
+            log.info("Importing dataset {p}".format(p=path))
             return self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
         else:
             log.debug("{f} already imported. Skipping importing. {r}".format(r=result, f=dataset_meta_type.metatype))
-            # this will be dataset resource
-            return result
+            # need to clean this up
+            return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
     def get_dataset_by_uuid(self, int_or_uuid):
         """The recommend model is to look up DataSet type by explicit MetaType
@@ -401,7 +413,7 @@ class ServiceAccessLayer(object):
                  name=name,
                  organism=organism,
                  ploidy=ploidy)
-        return _process_rpost(self._to_url("{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d)
+        return _process_rpost_with_transform(ServiceJob.from_d)(self._to_url("{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d)
 
     def run_import_fasta(self, fasta_path, name, organism, ploidy, time_out=JOB_DEFAULT_TIMEOUT):
         """Import a Reference into a Block"""""
