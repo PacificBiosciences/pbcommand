@@ -160,11 +160,21 @@ def _import_dataset_by_type(dataset_type_or_id):
 
 
 def _block_for_job_to_complete(sal, job_id, time_out=600):
+    """
+    Waits for job to complete
+
+    :param sal: ServiceAccessLayer
+    :param job_id: Job Id
+    :param time_out:
+
+    :rtype: JobResult
+    :raises: KeyError if job is not found, or JobExeError if the job fails or times out
+    """
 
     job = sal.get_job_by_id(job_id)
 
     if job is None:
-        raise JobExeError("Failed to find job {i}".format(i=job_id))
+        raise KeyError("Failed to find job {i}".format(i=job_id))
 
     job_result = JobResult(job, 0, "")
     started_at = time.time()
@@ -178,6 +188,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=600):
         log.debug("Running pipeline {n} state: {s} runtime:{r:.2f} sec".format(n=job.name, s=job.state, r=run_time))
         time.sleep(sleep_time)
         job = sal.get_job_by_id(job_id)
+        # FIXME, there's currently not a good way to get errors for jobs
         job_result = JobResult(job, run_time, "")
         if time_out is not None:
             if run_time > time_out:

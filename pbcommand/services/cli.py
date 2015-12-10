@@ -356,7 +356,7 @@ def run_analysis_job(host, port, json_path, block=False):
 
     if block:
         job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
-        job_id = job_result.job['id']
+        job_id = job_result.job.id
         # service job
         result = sal.get_analysis_job_by_id(job_id)
         if not result.was_successful():
