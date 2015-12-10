@@ -1,6 +1,7 @@
 """Services Specific Data Models"""
 from collections import namedtuple
 import uuid
+import iso8601
 
 
 def to_ascii(s):
@@ -43,12 +44,11 @@ class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type crea
         def se(x):
             return sx(x).encode('ascii', 'ignore')
 
-        # wait till iso8601 is in the build
-        #def to_t(x):
-        #    return iso8601.parse_date(se(x))
+        def to_t(x):
+           return iso8601.parse_date(se(x))
 
         return ServiceJob(sx('id'), sx('uuid'), se('name'), se('state'),
-                          se('path'), se('jobTypeId'), se('createdAt'))
+                          se('path'), se('jobTypeId'), to_t('createdAt'))
 
     def was_successful(self):
         return self.state == JobStates.SUCCESSFUL

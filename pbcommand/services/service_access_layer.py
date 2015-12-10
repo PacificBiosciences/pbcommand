@@ -425,7 +425,7 @@ class ServiceAccessLayer(object):
 
     def create_logger_resource(self, idx, name, description):
         _d = dict(id=idx, name=name, description=description)
-        return _process_rpost(_to_url(self.uri, "/loggers"), _d)
+        return _process_rpost(_to_url(self.uri, "/smrt-base/loggers"), _d)
 
     def log_progress_update(self, job_type_id, job_id, message, level, source_id):
         """This is the generic job logging mechanism"""

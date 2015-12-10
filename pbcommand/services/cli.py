@@ -390,7 +390,7 @@ def args_emit_analysis_template(args):
     return 0
 
 
-def args_get_summary(args):
+def args_get_sal_summary(args):
 
     host = args.host
     port = args.port
@@ -400,6 +400,52 @@ def args_get_summary(args):
     print sal.to_summary()
 
     return 0
+
+
+def add_get_job_options(p):
+    add_base_and_sal_options(p)
+    p.add_argument("job_id", type=int, help="Job id")
+    return p
+
+
+def run_get_job_summary(host, port, job_id):
+    sal = get_sal_and_status(host, port)
+    job = sal.get_job_by_id(job_id)
+
+    if job is None:
+        log.info("Unable to find job {i} from {u}".format(i=job_id, u=sal.uri))
+    else:
+        print job
+
+    return 0
+
+
+def args_get_job_summary(args):
+    return run_get_job_summary(args.host, args.port, args.job_id)
+
+
+def add_get_dataset_options(p):
+    add_base_and_sal_options(p)
+    p.add_argument('id_or_uuid', help="DataSet Id or UUID")
+    return p
+
+
+def run_get_dataset_summary(host, port, dataset_id_or_uuid):
+
+    sal = get_sal_and_status(host, port)
+
+    ds = sal.get_dataset_by_uuid(dataset_id_or_uuid)
+
+    if ds is None:
+        log.info("Unable to find DataSet '{i}' on {u}".format(i=dataset_id_or_uuid, u=sal.uri))
+    else:
+        print ds
+
+    return 0
+
+
+def args_run_dataset_summary(args):
+    return run_get_dataset_summary(args.host, args.port, args.id_or_uuid)
 
 
 def subparser_builder(subparser, subparser_id, description, options_func, exe_func):
@@ -430,7 +476,7 @@ def get_parser():
         subparser_builder(sp, subparser_id, description, options_func, exe_func)
 
     status_desc = "Get System Status, DataSet and Job Summary"
-    builder('status', status_desc, add_base_and_sal_options, args_get_summary)
+    builder('status', status_desc, add_base_and_sal_options, args_get_sal_summary)
 
     local_desc = " The file location must be accessible from the host where the Services are running (often on a shared file system)"
     ds_desc = "Import Local DataSet XML." + local_desc
@@ -443,11 +489,18 @@ def get_parser():
     fasta_desc = "Import Fasta (and convert to ReferenceSet)." + local_desc
     builder("import-fasta", fasta_desc, add_import_fasta_opts, args_run_import_fasta)
 
-    run_analysis_desc = "Run Secondary Analysis Pipeline using a analysis.json"
+    run_analysis_desc = "Run Secondary Analysis Pipeline using an analysis.json"
     builder("run-analysis", run_analysis_desc, add_run_analysis_job_opts, args_run_analysis_job)
 
     emit_analysis_json_desc = "Emit an analysis.json Template to stdout that can be run using 'run-analysis'"
     builder("emit-analysis-template", emit_analysis_json_desc, add_base_options, args_emit_analysis_template)
+
+    # Get Summary Job by Id
+    job_summary_desc = "Get Job Summary by Job Id"
+    builder('get-job', job_summary_desc, add_get_job_options, args_get_job_summary)
+
+    ds_summary_desc = "Get DataSet Summary by DataSet Id or UUID"
+    builder('get-dataset', ds_summary_desc, add_get_dataset_options, args_run_dataset_summary)
 
     return p
 
