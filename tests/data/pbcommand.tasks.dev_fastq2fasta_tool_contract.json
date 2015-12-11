@@ -5,7 +5,7 @@
         "serialization": "json"
     }, 
     "tool_contract": {
-        "_comment": "Created by v0.2.14", 
+        "_comment": "Created by v0.3.5", 
         "description": "Quick tool dev_fastq2fasta pbcommand.tasks.dev_fastq2fasta", 
         "input_types": [
             {
@@ -28,7 +28,54 @@
             }
         ], 
         "resource_types": [], 
-        "schema_options": [], 
+        "schema_options": [
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "pb_option": {
+                    "default": 1234.0, 
+                    "description": "Beta Description", 
+                    "name": "Beta Name", 
+                    "option_id": "pbcommand.task_options.beta", 
+                    "type": "number"
+                }, 
+                "properties": {
+                    "pbcommand.task_options.beta": {
+                        "default": 1234.0, 
+                        "description": "Beta Description", 
+                        "title": "Beta Name", 
+                        "type": "number"
+                    }
+                }, 
+                "required": [
+                    "pbcommand.task_options.beta"
+                ], 
+                "title": "JSON Schema for pbcommand.task_options.beta", 
+                "type": "object"
+            }, 
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#", 
+                "pb_option": {
+                    "default": true, 
+                    "description": "Option gamma description", 
+                    "name": "Option gamma", 
+                    "option_id": "pbcommand.task_options.gamma", 
+                    "type": "boolean"
+                }, 
+                "properties": {
+                    "pbcommand.task_options.gamma": {
+                        "default": true, 
+                        "description": "Option gamma description", 
+                        "title": "Option gamma", 
+                        "type": "boolean"
+                    }
+                }, 
+                "required": [
+                    "pbcommand.task_options.gamma"
+                ], 
+                "title": "JSON Schema for pbcommand.task_options.gamma", 
+                "type": "object"
+            }
+        ], 
         "task_type": "pbsmrtpipe.task_types.standard", 
         "tool_contract_id": "pbcommand.tasks.dev_fastq2fasta"
     }, 

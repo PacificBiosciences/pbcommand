@@ -3,4 +3,4 @@ from .core import (pacbio_args_runner,
                    pbparser_runner,
                    get_default_argparser)
 
-from .quick import (registry_runner, registry_builder)
+from .quick import (registry_runner, registry_builder, QuickOpt)

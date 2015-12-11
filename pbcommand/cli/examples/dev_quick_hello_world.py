@@ -2,7 +2,7 @@ import sys
 import logging
 
 from pbcommand.models import FileTypes, OutputFileType
-from pbcommand.cli import registry_builder, registry_runner
+from pbcommand.cli import registry_builder, registry_runner, QuickOpt
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,8 @@ def run_rtc(rtc):
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], nproc=rtc.task.nproc)
 
 
-@registry("dev_fastq2fasta", "0.1.0", FileTypes.FASTQ, FileTypes.FASTA)
+@registry("dev_fastq2fasta", "0.1.0", FileTypes.FASTQ, FileTypes.FASTA,
+          options=dict(beta=QuickOpt(1234.0, "Beta Name", "Beta Description"), gamma=True))
 def run_rtc(rtc):
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0])
 

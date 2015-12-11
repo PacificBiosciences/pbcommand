@@ -3,6 +3,8 @@ import logging
 import os
 import sys
 
+from collections import namedtuple
+
 import pbcommand
 from .core import get_default_argparser
 
@@ -21,6 +23,9 @@ __all__ = ['registry_builder', 'registry_runner', 'Registry']
 
 class Constants(object):
     RTC_DRIVER = 'run-rtc'
+
+
+QuickOpt = namedtuple("QuickOpt", "value name description")
 
 
 def _example_main(*args, **kwargs):
@@ -45,27 +50,38 @@ def _file_type_to_output_file_type(file_type, index):
                           file_type.default_name)
 
 
-def __convert_to_option(jtype, namespace, key, value):
+def __convert_to_option(jtype, namespace, key, value, name=None, description=None):
+    """Convert to Option dict
+
+    This really should have been a concrete type, at least a namedtuple
+    """
     opt_id = ".".join([namespace, 'task_options', key])
-    name = "Option {n}".format(n=key)
-    desc = "Option {n} description".format(n=key)
+    name = "Option {n}".format(n=key) if name is None else name
+    desc = "Option {n} description".format(n=key) if description is None else description
     opt = to_option_schema(opt_id, jtype, name, desc, value)
     return opt
 
 
-def _convert_to_option(namespace, key, value):
+def _convert_to_option(namespace, key, value, name=None, description=None):
     if isinstance(value, basestring):
-        opt = __convert_to_option(JsonSchemaTypes.STR, namespace, key, value)
+        opt = __convert_to_option(JsonSchemaTypes.STR, namespace, key, value, name=name, description=description)
     elif isinstance(value, bool):
-        opt = __convert_to_option(JsonSchemaTypes.BOOL, namespace, key, value)
+        opt = __convert_to_option(JsonSchemaTypes.BOOL, namespace, key, value, name=name, description=description)
     elif isinstance(value, int):
-        opt = __convert_to_option(JsonSchemaTypes.INT, namespace, key, value)
+        opt = __convert_to_option(JsonSchemaTypes.INT, namespace, key, value, name=name, description=description)
     elif isinstance(value, float):
-        opt = __convert_to_option(JsonSchemaTypes.NUM, namespace, key, value)
+        opt = __convert_to_option(JsonSchemaTypes.NUM, namespace, key, value, name=name, description=description)
     else:
         raise TypeError("Unsupported option {k} type. {t} ".format(k=key, t=type(value)))
 
     return opt
+
+
+def _convert_quick_option(namespace, key, quick_opt):
+    """:type quick_opt: QuickOpt"""
+    return _convert_to_option(namespace, key, quick_opt.value,
+                              name=quick_opt.name,
+                              description=quick_opt.description)
 
 
 def _to_list(x):
@@ -82,6 +98,14 @@ def _transform_output_ftype(x, i):
         return x
     else:
         raise TypeError("Unsupported type {t} value {x}".format(x=x, t=type(x)))
+
+
+def _convert_to_raw_option(namespace, key, value_or_quick_opt):
+    if isinstance(value_or_quick_opt, QuickOpt):
+        return _convert_quick_option(namespace, key, value_or_quick_opt)
+    else:
+        # 'raw' opt was provide with a primitive type
+        return _convert_to_option(namespace, key, value_or_quick_opt)
 
 
 class Registry(object):
@@ -118,7 +142,7 @@ class Registry(object):
             if options is None:
                 tool_options = []
             else:
-                tool_options = [_convert_to_option(self.namespace, key, value) for key, value in options.iteritems()]
+                tool_options = [_convert_to_raw_option(self.namespace, key, value) for key, value in options.iteritems()]
 
             resource_types = []
             task = ToolContractTask(global_id, name, desc, version, is_distributed,
