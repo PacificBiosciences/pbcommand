@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os
@@ -7,6 +8,7 @@ from collections import namedtuple
 
 import pbcommand
 from .core import get_default_argparser
+from pbcommand.common_options import add_base_options
 
 from pbcommand.models import (ToolContractTask, ToolContract,
                               InputFileType, OutputFileType, FileType)
@@ -170,7 +172,8 @@ def registry_builder(tool_namespace, driver_base):
 
 
 def _subparser_builder(subparser, name, description, options_func, exe_func):
-    p = subparser.add_parser(name, help=description)
+    p = subparser.add_parser(name, help=description,
+                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     options_func(p)
     # I strongly dislike this.
     p.set_defaults(func=exe_func)
@@ -178,6 +181,7 @@ def _subparser_builder(subparser, name, description, options_func, exe_func):
 
 
 def _add_run_rtc_options(p):
+    add_base_options(p)
     p.add_argument('rtc_path', type=str, help="Path to resolved tool contract")
     return p
 
@@ -204,8 +208,11 @@ def __args_summary_runner(registry):
 
 def __args_rtc_runner(registry):
     def _w(args):
-        # FIXME.
-        setup_log(log, level=logging.DEBUG)
+        default_level = logging.INFO
+
+        level = args.log_level if hasattr(args, 'log_level') else default_level
+
+        setup_log(log, level=level)
 
         log.info("Loading pbcommand {v}".format(v=pbcommand.get_version()))
         log.info("Registry {r}".format(r=registry))
@@ -290,7 +297,7 @@ def registry_runner(registry, argv):
     :type registry: Registry
     """
     log.info("Running registry {r} with args {a}".format(r=registry, a=argv))
-    f = _to_registry_parser('0.1.0', "Multi-quick-tool-runner for {r}".format(r=registry.namespace))
+    f = _to_registry_parser('0.1.1', "Multi-quick-tool-runner for {r}".format(r=registry.namespace))
     p = f(registry)
     args = p.parse_args(argv)
     # need to disable this because some subparsers are emitting to stdout

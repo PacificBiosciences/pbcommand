@@ -1,20 +1,28 @@
 """Utils for common funcs, such as setting up a log, composing functions."""
 import functools
 import os
-import sys
 import logging
+import logging.config
 import argparse
 import traceback
 import time
 import types
 import subprocess
 from contextlib import contextmanager
+import warnings
 
 import xml.etree.ElementTree as ET
 
 from pbcommand.models import FileTypes, DataSetMetaData
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
+
+
+class Constants(object):
+    LOG_FMT_SIMPLE = '[%(levelname)s] %(asctime)-15sZ %(message)s'
+    LOG_FMT_STD = '[%(levelname)s] %(asctime)-15sZ [%(name)s] %(message)s'
+    LOG_FMT_FULL = '[%(levelname)s] %(asctime)-15sZ [%(name)s %(funcName)s %(lineno)d] %(message)s'
 
 
 class ExternalCommandNotFoundError(Exception):
@@ -22,9 +30,84 @@ class ExternalCommandNotFoundError(Exception):
     pass
 
 
-def setup_log(alog, level=logging.INFO, file_name=None, log_filter=None,
-              str_formatter='[%(levelname)s] %(asctime)-15sZ [%(name)s %(funcName)s %(lineno)d] %(message)s'):
+def _handler_stream(level_str, formatter_id):
+    d = {'level': level_str,
+         'class': "logging.StreamHandler",
+         'formatter': formatter_id,
+         'stream': 'ext://sys.stdout'}
+    return d
+
+
+def _handler_file(level_str, path, formatter_id):
+    d = {'class': 'logging.FileHandler',
+         'level': level_str,
+         'formatter': formatter_id,
+         'filename': path}
+    return d
+
+
+def get_default_logging_config_dict(level, file_name_or_none, formatter):
+    """
+    Returns a dict configuration of the logger.
+
+    """
+
+    level_str = logging.getLevelName(level)
+    formatter_id = 'custom_logger_fmt'
+
+    if file_name_or_none is None:
+        handler_d = _handler_stream(level_str, formatter_id)
+    else:
+        handler_d = _handler_file(level_str, file_name_or_none, formatter_id)
+
+    d = {
+        'version': 1,
+        'disable_existing_loggers': False,  # this fixes the problem
+        'formatters': {
+            'custom_logger_fmt': {
+                'format': formatter
+            }
+        },
+        'handlers': {
+            'console': handler_d
+        },
+        'loggers': {
+            '': {
+                'handlers': ['console'],
+                'level': level_str,
+                'propagate': True
+            }
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['console']
+        }
+    }
+    return d
+
+
+def setup_logger(file_name_or_none, level, formatter=Constants.LOG_FMT_FULL):
+    """
+
+    :param file_name_or_none: Path to log file, None will default to stdout
+    :param level: logging.LEVEL of
+    :param formatter: Log Formatting string
+    """
+    d = get_default_logging_config_dict(level, file_name_or_none, formatter)
+
+    logging.config.dictConfig(d)
+    logging.Formatter.converter = time.gmtime
+    return d
+
+
+def setup_log(alog,
+              level=logging.INFO,
+              file_name=None,
+              log_filter=None,
+              str_formatter=Constants.LOG_FMT_FULL):
     """Core Util to setup log handler
+
+    THIS NEEDS TO BE DEPRECATED
 
     :param alog: a log instance
     :param level: (int) Level of logging debug
@@ -32,20 +115,12 @@ def setup_log(alog, level=logging.INFO, file_name=None, log_filter=None,
     :param log_filter: (LogFilter, None)
     :param str_formatter: (str) log formatting str
     """
-    logging.Formatter.converter = time.gmtime
+    # FIXME. Keeping the interface, but the specific log instance isn't used,
+    # the python logging setup mutates global state
+    if log_filter is not None:
+        warnings.warn("log_filter kw is no longer supported")
 
-    alog.setLevel(logging.DEBUG)
-    if file_name is None:
-        handler = logging.StreamHandler(sys.stdout)
-    else:
-        handler = logging.FileHandler(file_name)
-    formatter = logging.Formatter(str_formatter)
-    handler.setFormatter(formatter)
-    handler.setLevel(level)
-    if log_filter:
-        handler.addFilter(log_filter)
-    alog.addHandler(handler)
-
+    setup_logger(file_name, level, formatter=str_formatter)
     return alog
 
 
