@@ -33,16 +33,31 @@ class TestReportModel(unittest.TestCase):
         ])
 
     def test_merge(self):
-        r = Report.merge([
+        EXPECTED_VALUES = {
+            "pbcommand_n_reads": 300,
+            "pbcommand_n_zmws": 60,
+        }
+        chunks = [
             Report.from_simple_dict("pbcommand_test",
                                     {"n_reads": 50, "n_zmws": 10},
                                     "pbcommand"),
             Report.from_simple_dict("pbcommand_test",
                                     {"n_reads": 250, "n_zmws": 50},
-                                    "pbcommand")])
-        attr = {a.id: a.value for a in r.attributes}
-        self.assertEqual(attr['pbcommand_n_reads'], 300)
-        self.assertEqual(attr['pbcommand_n_zmws'], 60)
+                                    "pbcommand"),
+        ]
+        # now set attribute names
+        names_dict = {"pbcommand_n_reads":"Number of reads",
+                      "pbcommand_n_zmws":"Number of ZMWs"}
+        for report in chunks:
+            for attr in report.attributes:
+                attr._name = names_dict[attr.id]
+        r = Report.merge(chunks)
+        for attr in r.attributes:
+            self.assertEqual(attr.value, EXPECTED_VALUES[attr.id])
+            self.assertEqual(attr.name, names_dict[attr.id])
+        for table in r.tables:
+            for column in table.columns:
+                self.assertEqual(column.header, names_dict[column.id])
 
     def test_merge_tables(self):
         names = ['laa_report1.json', 'laa_report2.json']

@@ -712,15 +712,26 @@ class Report(BaseReportElement):
                 for a in ax:
                     attrs[a.id].append(a.value)
             return attrs
+        def _merge_attributes_names(attributes_list):
+            names = {}
+            for ax in attributes_list:
+                for a in ax:
+                    if a.id in names:
+                        assert names[a.id] == a.name
+                    else:
+                        names[a.id] = a.name
+            return names
         def _attributes_to_table(attributes_list, table_id, title):
             attrs = _merge_attributes_d(attributes_list)
-            columns = [ Column(k.lower(), header=k, values=values)
+            labels = _merge_attributes_names(attributes_list)
+            columns = [ Column(k.lower(), header=labels[k], values=values)
                         for k, values in attrs.iteritems() ]
             table = Table(table_id, title=title, columns=columns)
             return table
         def _sum_attributes(attributes_list):
             d = _merge_attributes_d(attributes_list)
-            return [ Attribute(k, sum(values), name=k)
+            labels = _merge_attributes_names(attributes_list)
+            return [ Attribute(k, sum(values), name=labels[k])
                      for k, values in d.iteritems() ]
         def _merge_tables(tables):
             """Pass through singletons, Table.merge dupes"""
