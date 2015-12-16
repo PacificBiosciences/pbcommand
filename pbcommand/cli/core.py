@@ -25,7 +25,7 @@ import pbcommand
 
 from pbcommand.models import PbParser
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
-                                      EMIT_TOOL_CONTRACT_OPTION)
+                                      EMIT_TOOL_CONTRACT_OPTION, add_base_options)
 
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
@@ -45,6 +45,11 @@ def get_default_argparser(version, description):
     return p
 
 
+def get_default_argparser_with_base_opts(version, description):
+    """Return a parser with the default log related options"""
+    return add_base_options(get_default_argparser(version, description))
+
+
 def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
     """
     Runs a general func and logs results. The return type is expected to be an (int) return code.
@@ -55,6 +60,8 @@ def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
 
     :param args: parsed args from parser
 
+    :param setup_log_func: F(alog, level=value, file_name=value, formatter=value)
+
     :return: Exit code of callable func
     :rtype: int
     """
@@ -62,14 +69,28 @@ def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
     started_at = time.time()
 
     pargs = args[0]
+    # default logging level
     level = logging.INFO
-    # Assuming that the log_level might not be an added option.
+
+    if 'level' in kwargs:
+        level = kwargs['level']
+
+    # If level is provided at the parser level, this will override all other
+    # settings. This is defined in pbcommand.common_options.add_log_level_option
     if hasattr(pargs, 'log_level'):
         level = logging.getLevelName(pargs.log_level)
 
-    log_options = dict(level=level)
+    # None will default to stdout
+    log_file = getattr(pargs, 'log_file', None)
+
+    # Currently, only support to stdout. More customization would require
+    # more required commandline options in base parser (e.g., --log-file, --log-formatter)
+    log_options = dict(level=level, file_name=log_file)
+
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
     # signature
+    # FIXME. This should use the more concrete F(file_name_or_name, level, formatter)
+    # signature of setup_logger
     setup_log_func(alog, **log_options)
     alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
 

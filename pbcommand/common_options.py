@@ -8,13 +8,22 @@ EMIT_TOOL_CONTRACT_OPTION = "--emit-tool-contract"
 
 
 def add_debug_option(p):
+    # FIXME. This should be re-purposed to launch a debugger with --ipdb or --pdb
+    # logging should be handled via --log-* options
     p.add_argument('--debug', action="store_true", default=False, help="Debug to stdout")
     return p
 
 
-def add_log_level_option(p):
+def add_log_level_option(p, default_level='INFO'):
+    """Add logging level with a default value"""
     p.add_argument('--log-level', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'),
-                   default='INFO', help="Set log level")
+                   default=default_level, help="Set log level")
+    return p
+
+
+def add_log_file_option(p):
+    p.add_argument('--log-file', default=None, type=str,
+                   help="Write the log to file. Default(None) will write to stdout.")
     return p
 
 
@@ -32,7 +41,8 @@ def add_emit_tool_contract_option(p):
 
 
 def add_base_options(p):
-    return add_debug_option(add_log_level_option(p))
+    # This should automatically/required be added to be added from get_default_argparser
+    return add_debug_option(add_log_level_option(add_log_file_option(p)))
 
 
 def add_base_options_with_emit_tool_contract(p):
