@@ -4,7 +4,7 @@
 Author: Johann Miller and Michael Kocher
 """
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import warnings
 import abc
 import logging
@@ -707,10 +707,13 @@ class Report(BaseReportElement):
     def merge(reports):
         report_id = reports[0].id
         def _merge_attributes_d(attributes_list):
-            attrs = defaultdict(lambda : [])
+            attrs = OrderedDict()
             for ax in attributes_list:
                 for a in ax:
-                    attrs[a.id].append(a.value)
+                    if a.id in attrs:
+                        attrs[a.id].append(a.value)
+                    else:
+                        attrs[a.id] = [a.value]
             return attrs
         def _merge_attributes_names(attributes_list):
             names = {}
