@@ -3,7 +3,7 @@ import unittest
 import json
 import logging
 
-from pbcommand.models.report import Report
+from pbcommand.models.report import Report, Attribute
 from pbcommand.pb_io import load_report_from_json
 
 _SERIALIZED_JSON_DIR = 'example-reports'
@@ -34,30 +34,31 @@ class TestReportModel(unittest.TestCase):
 
     def test_merge(self):
         EXPECTED_VALUES = {
-            "pbcommand_n_reads": 300,
-            "pbcommand_n_zmws": 60,
+            "n_reads": 300,
+            "n_zmws": 60,
+        }
+        NAMES = {
+            "n_reads": "Number of reads",
+            "n_zmws": "Number of ZMWs"
         }
         chunks = [
-            Report.from_simple_dict("pbcommand_test",
-                                    {"n_reads": 50, "n_zmws": 10},
-                                    "pbcommand"),
-            Report.from_simple_dict("pbcommand_test",
-                                    {"n_reads": 250, "n_zmws": 50},
-                                    "pbcommand"),
+            Report("pbcommand_test",
+                attributes=[
+                    Attribute(id_="n_reads", value=50, name="Number of reads"),
+                    Attribute(id_="n_zmws", value=10, name="Number of ZMWs")]),
+            Report("pbcommand_test",
+                attributes=[
+                    Attribute(id_="n_reads", value=250, name="Number of reads"),
+                    Attribute(id_="n_zmws", value=50, name="Number of ZMWs")]),
         ]
-        # now set attribute names
-        names_dict = {"pbcommand_n_reads":"Number of reads",
-                      "pbcommand_n_zmws":"Number of ZMWs"}
-        for report in chunks:
-            for attr in report.attributes:
-                attr._name = names_dict[attr.id]
         r = Report.merge(chunks)
+        self.assertEqual([a.id for a in r.attributes], ["n_reads", "n_zmws"])
         for attr in r.attributes:
             self.assertEqual(attr.value, EXPECTED_VALUES[attr.id])
-            self.assertEqual(attr.name, names_dict[attr.id])
+            self.assertEqual(attr.name, NAMES[attr.id])
         for table in r.tables:
             for column in table.columns:
-                self.assertEqual(column.header, names_dict[column.id])
+                self.assertEqual(column.header, NAMES[column.id])
 
     def test_merge_tables(self):
         names = ['laa_report1.json', 'laa_report2.json']
