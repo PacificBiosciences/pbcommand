@@ -85,7 +85,7 @@ class BaseReportElement(object):
             raise PbReportError("Type error. id '{i}' cannot be {t}.".format(i=id_, t=type(id_)))
 
         if not re.match('^[a-z0-9_]+$', id_):
-            msg = "id '{i}' for {x} must contain only alphanumeric or underscore characters".format(x=self.__class__.__name__, i=id_)
+            msg = "id '{i}' for {x} must contain only lower-case alphanumeric or underscore characters".format(x=self.__class__.__name__, i=id_)
             log.error(msg)
             raise PbReportError(msg)
 
