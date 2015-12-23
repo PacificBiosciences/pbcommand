@@ -30,6 +30,9 @@ class TestSerializationOverviewReport(unittest.TestCase):
     def test_id(self):
         self.assertEqual(self.report.id, "overview")
 
+    def test_title(self):
+        self.assertEqual(self.report.title, "Overview Report")
+
     def test_attributes(self):
         self.assertTrue(len(self.report.attributes), 2)
 
