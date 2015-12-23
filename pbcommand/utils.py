@@ -4,13 +4,13 @@ import os
 import logging
 import logging.config
 import argparse
+import pprint
 import traceback
 import time
 import types
 import subprocess
 from contextlib import contextmanager
 import warnings
-
 import xml.etree.ElementTree as ET
 
 from pbcommand.models import FileTypes, DataSetMetaData
@@ -20,6 +20,9 @@ log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
 
 
 class Constants(object):
+    LOG_FMT_ERR = '%(message)s'
+    LOG_FMT_LVL = '[%(levelname)s] %(message)s '
+    LOG_FMT_MIN = '[%(asctime)-15sZ] %(message)s'
     LOG_FMT_SIMPLE = '[%(levelname)s] %(asctime)-15sZ %(message)s'
     LOG_FMT_STD = '[%(levelname)s] %(asctime)-15sZ [%(name)s] %(message)s'
     LOG_FMT_FULL = '[%(levelname)s] %(asctime)-15sZ [%(name)s %(funcName)s %(lineno)d] %(message)s'
@@ -30,12 +33,15 @@ class ExternalCommandNotFoundError(Exception):
     pass
 
 
-def _handler_stream(level_str, formatter_id):
+def _handler_stream_d(stream, level_str, formatter_id):
     d = {'level': level_str,
          'class': "logging.StreamHandler",
          'formatter': formatter_id,
-         'stream': 'ext://sys.stdout'}
+         'stream': stream}
     return d
+
+_handler_stdout_stream_d = functools.partial(_handler_stream_d, "ext://sys.stdout")
+_handler_stderr_stream_d = functools.partial(_handler_stream_d, "ext://sys.stderr")
 
 
 def _handler_file(level_str, path, formatter_id):
@@ -46,43 +52,103 @@ def _handler_file(level_str, path, formatter_id):
     return d
 
 
-def get_default_logging_config_dict(level, file_name_or_none, formatter):
+def _get_default_logging_config_dict(level, file_name_or_none, formatter):
     """
-    Returns a dict configuration of the logger.
+    Setup a logger to either a file or console. If file name is none, then
+    a logger will be setup to stdout.
 
+    :note: adds console
+
+    Returns a dict configuration of the logger.
     """
 
     level_str = logging.getLevelName(level)
+
     formatter_id = 'custom_logger_fmt'
+    console_handler_id = "console_handler"
+
+    error_fmt_id = "error_fmt_id"
+    error_handler_id = "error_handler"
+    error_handler_d = _handler_stderr_stream_d(logging.ERROR, error_fmt_id)
 
     if file_name_or_none is None:
-        handler_d = _handler_stream(level_str, formatter_id)
+        handler_d = _handler_stdout_stream_d(level_str, formatter_id)
     else:
         handler_d = _handler_file(level_str, file_name_or_none, formatter_id)
+
+    formatters_d = {fid: {'format': fx} for fid, fx in [(formatter_id, formatter), (error_fmt_id, Constants.LOG_FMT_ERR)]}
+
+    handlers_d = {console_handler_id: handler_d,
+                  error_handler_id: error_handler_d}
+
+    loggers_d = {"custom": {'handlers':[console_handler_id],
+                            'stderr': {'handlers': [error_handler_id]}}}
 
     d = {
         'version': 1,
         'disable_existing_loggers': False,  # this fixes the problem
-        'formatters': {
-            'custom_logger_fmt': {
-                'format': formatter
-            }
-        },
-        'handlers': {
-            'console': handler_d
-        },
-        'loggers': {
-            '': {
-                'handlers': ['console'],
-                'level': level_str,
-                'propagate': True
-            }
-        },
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['console']
-        }
+        'formatters':formatters_d,
+        'handlers': handlers_d,
+        'loggers': loggers_d,
+        'root': {'handlers': [error_handler_id, console_handler_id], 'level': logging.NOTSET}
     }
+
+    #print pprint.pformat(d)
+    return d
+
+
+def _get_console_and_file_logging_config_dict(console_level, console_formatter, path, path_level, path_formatter):
+    """
+    Get logging configuration that is both for console and a file.
+
+    :note: A stderr logger handler is also added.
+
+    """
+
+    def _to_handler_d(handlers_, level):
+        return {"handlers": handlers_, "level": level, "propagate": True}
+
+    console_handler_id = "console_handler"
+    console_fmt_id = "console_fmt"
+    console_handler_d = _handler_stdout_stream_d(console_level, console_fmt_id)
+
+    stderr_handler_id = "stderr_handler"
+    error_fmt_id = "error_fmt"
+    stderr_handler_d = _handler_stderr_stream_d(logging.ERROR, console_fmt_id)
+
+    file_handler_id = "file_handler"
+    file_fmt_id = "file_fmt"
+    file_handler_d = _handler_file(path_level, path, file_fmt_id)
+
+    formatters = {console_fmt_id: {"format": console_formatter},
+                  file_fmt_id: {"format": path_formatter},
+                  error_fmt_id:{"format": Constants.LOG_FMT_ERR}
+                  }
+
+    handlers = {console_handler_id: console_handler_d,
+                file_handler_id: file_handler_d,
+                stderr_handler_id: stderr_handler_d}
+
+    loggers = {"console": _to_handler_d([console_handler_id], console_level),
+               "custom_file": _to_handler_d([file_handler_id], path_level),
+               "stderr_err": _to_handler_d([stderr_handler_id], logging.ERROR)
+               }
+
+    d = {'version': 1,
+         'disable_existing_loggers': False,  # this fixes the problem
+         'formatters': formatters,
+         'handlers': handlers,
+         'loggers': loggers,
+         'root': {'handlers': handlers.keys(), 'level': logging.DEBUG}
+    }
+
+    #print pprint.pformat(d)
+    return d
+
+
+def _setup_logging_config_d(d):
+    logging.config.dictConfig(d)
+    logging.Formatter.converter = time.gmtime
     return d
 
 
@@ -93,11 +159,13 @@ def setup_logger(file_name_or_none, level, formatter=Constants.LOG_FMT_FULL):
     :param level: logging.LEVEL of
     :param formatter: Log Formatting string
     """
-    d = get_default_logging_config_dict(level, file_name_or_none, formatter)
+    d = _get_default_logging_config_dict(level, file_name_or_none, formatter)
+    return _setup_logging_config_d(d)
 
-    logging.config.dictConfig(d)
-    logging.Formatter.converter = time.gmtime
-    return d
+
+def setup_console_and_file_logger(stdout_level, stdout_formatter, path, path_level, path_formatter):
+    d = _get_console_and_file_logging_config_dict(stdout_level, stdout_formatter, path, path_level, path_formatter)
+    return _setup_logging_config_d(d)
 
 
 def setup_log(alog,
@@ -202,22 +270,23 @@ def which(exe_str):
     If path is found, the full path is returned. Else it returns None.
     """
     paths = os.environ.get('PATH', None)
-    state = None
+    resolved_exe = None
 
     if paths is None:
         # log warning
         msg = "PATH env var is not defined."
         log.error(msg)
-        return state
+        return resolved_exe
 
     for path in paths.split(":"):
         exe_path = os.path.join(path, exe_str)
         # print exe_path
         if os.path.exists(exe_path):
-            state = exe_path
+            resolved_exe = exe_path
             break
 
-    return state
+    # log.debug("Resolved cmd {e} to {x}".format(e=exe_str, x=resolved_exe))
+    return resolved_exe
 
 
 def which_or_raise(cmd):

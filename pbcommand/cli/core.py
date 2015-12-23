@@ -50,7 +50,7 @@ def get_default_argparser_with_base_opts(version, description):
     return add_base_options(get_default_argparser(version, description))
 
 
-def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
+def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     """
     Runs a general func and logs results. The return type is expected to be an (int) return code.
 
@@ -60,7 +60,7 @@ def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
 
     :param args: parsed args from parser
 
-    :param setup_log_func: F(alog, level=value, file_name=value, formatter=value)
+    :param setup_log_func: F(alog, level=value, file_name=value, formatter=value) or None
 
     :return: Exit code of callable func
     :rtype: int
@@ -91,18 +91,22 @@ def _pacbio_main_runner(alog, setup_log_func, func, *args, **kwargs):
     # signature
     # FIXME. This should use the more concrete F(file_name_or_name, level, formatter)
     # signature of setup_logger
-    setup_log_func(alog, **log_options)
-    alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
+    if setup_log_func is not None and alog is not None:
+        setup_log_func(alog, **log_options)
+        alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
+        alog.info("completed setting up logger with {f}".format(f=setup_log_func))
+        alog.info("log opts {d}".format(d=log_options))
 
     try:
         # the code in func should catch any exceptions. The try/catch
         # here is a fail safe to make sure the program doesn't fail
         # and the makes sure the exit code is logged.
-        return_code = func(*args, **kwargs)
+        return_code = exe_main_func(*args, **kwargs)
         run_time = time.time() - started_at
     except Exception as e:
         run_time = time.time() - started_at
-        alog.error(e, exc_info=True)
+        if alog is not None:
+            alog.error(e, exc_info=True)
         traceback.print_exc(sys.stderr)
 
         # We should have a standard map of exit codes to Int
@@ -200,7 +204,8 @@ def pacbio_args_or_contract_runner(argv,
         resolved_tool_contract_path = _get_resolved_tool_contract_from_argv(argv)
         resolved_tool_contract = load_resolved_tool_contract_from(resolved_tool_contract_path)
         r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract)
-        # alog.info("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
+        if alog is not None:
+            alog.info("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
         return r
     else:
         # tool was called with the standard commandline invocation
