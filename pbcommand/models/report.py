@@ -560,9 +560,10 @@ class Report(BaseReportElement):
     It can be serialized to json.
     """
 
-    def __init__(self, id_, tables=(), attributes=(), plotgroups=(), dataset_uuids=()):
+    def __init__(self, id_, title=None, tables=(), attributes=(), plotgroups=(), dataset_uuids=()):
         """
         :param id_: (str) Should be a string that identifies the report, like 'adapter'.
+        :param title: Display name of report Defaults to the Report+id if None (added in 0.3.9)
         :param tables: (list of table instances)
         :param attributes: (list of attribute instances)
         :param plotgroups: (list of plot group instances)
@@ -572,6 +573,8 @@ class Report(BaseReportElement):
         self._attributes = []
         self._plotgroups = []
         self._tables = []
+        self.title = "Report {i}".format(i=self.id) if title is None else title
+
         if tables:
             for table in tables:
                 self.add_table(table)
@@ -615,10 +618,11 @@ class Report(BaseReportElement):
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
                   i=self.id,
+                  n=self.title,
                   a=len(self.attributes),
                   p=len(self.plotGroups),
                   t=len(self.tables))
-        return "<{k} id:{i} nattributes:{a} nplot_groups:{p} ntables:{t} >".format(**_d)
+        return "<{k} id:{i} title:{n} nattributes:{a} nplot_groups:{p} ntables:{t} >".format(**_d)
 
     @property
     def attributes(self):
@@ -659,6 +663,7 @@ class Report(BaseReportElement):
         version = pbcommand.get_version()
 
         d = BaseReportElement.to_dict(self, id_parts=id_parts)
+        d['title'] = self.title
         d['_version'] = version
         d['_changelist'] = "UNKNOWN"
         d['dataset_uuids'] = list(set(self._dataset_uuids))

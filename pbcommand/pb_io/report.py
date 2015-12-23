@@ -89,6 +89,12 @@ def dict_to_report(dct):
 
     report_id = dct['id']
 
+    # Legacy Reports > 0.3.9 will not have the title key
+    if 'title' in dct:
+        title = dct['title']
+    else:
+        title = "Report {i}".format(i=report_id)
+
     plot_groups = []
     if 'plotGroups' in dct:
         pg = dct['plotGroups']
@@ -105,7 +111,10 @@ def dict_to_report(dct):
         t = _to_table(table_d)
         tables.append(t)
 
-    report = Report(report_id, plotgroups=plot_groups, tables=tables,
+    report = Report(report_id,
+                    title=title,
+                    plotgroups=plot_groups,
+                    tables=tables,
                     attributes=attributes)
 
     return report
