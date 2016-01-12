@@ -32,10 +32,13 @@ from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
 def get_default_argparser(version, description):
     """
-    Everyone MUST use this to create an instance on a argparser python parser.
+    Everyone should use this to create an instance on a argparser python parser.
 
-    :param version:
-    :param description:
+
+    *This should be replaced updated to have the required base options*
+
+    :param version: Version of your tool
+    :param description: Description of your tool
     :return:
     :rtype: ArgumentParser
     """
@@ -45,9 +48,29 @@ def get_default_argparser(version, description):
     return p
 
 
-def get_default_argparser_with_base_opts(version, description):
-    """Return a parser with the default log related options"""
-    return add_base_options(get_default_argparser(version, description))
+def get_default_argparser_with_base_opts(version, description, default_level="INFO"):
+    """Return a parser with the default log related options
+
+    If you don't want the default log behavior to go to stdout, then set
+    the default log level to be "ERROR". This will essentially suppress all
+    output to stdout.
+
+    Default behavior will only emit to stderr. This is essentially a '--quiet'
+    default mode.
+
+    my-tool --my-opt=1234 file_in.txt
+
+    To override the default behavior and add a chatty-er stdout
+
+    my-tool --my-opt=1234 --log-level=INFO file_in.txt
+
+    Or write the console output to write the log file to an explict file and
+    leave the stdout untouched.
+
+    my-tool --my-opt=1234 --log-level=DEBUG --log-file=file.log file_in.txt
+
+    """
+    return add_base_options(get_default_argparser(version, description), default_level=default_level)
 
 
 def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):

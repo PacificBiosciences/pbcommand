@@ -14,6 +14,18 @@ def add_debug_option(p):
     return p
 
 
+def add_log_debug_option(p):
+    """This requires the log-level option"""
+    p.add_argument('--debug', action="store_true", default=False, help="Alias for setting log level to DEBUG")
+    return p
+
+
+def add_log_quiet_option(p):
+    """This requires the log-level option"""
+    p.add_argument('--quiet', action="store_true", default=False, help="Alias for setting log level to CRITICAL to suppress output.")
+    return p
+
+
 def add_log_level_option(p, default_level='INFO'):
     """Add logging level with a default value"""
     p.add_argument('--log-level', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'),
@@ -40,9 +52,29 @@ def add_emit_tool_contract_option(p):
     return p
 
 
-def add_base_options(p):
+def add_base_options(p, default_level='INFO'):
+    """Add the core logging options to the parser and set the default log level
+
+    If you don't want the default log behavior to go to stdout, then set
+    the default log level to be "ERROR". This will essentially suppress all
+    output to stdout.
+
+    Default behavior will only emit to stderr. This is essentially a '--quiet'
+    default mode.
+
+    my-tool --my-opt=1234 file_in.txt
+
+    To override the default behavior:
+
+    my-tool --my-opt=1234 --log-level=INFO file_in.txt
+
+    Or write the file to an explict log file
+
+    my-tool --my-opt=1234 --log-level=DEBUG --log-file=file.log file_in.txt
+
+    """
     # This should automatically/required be added to be added from get_default_argparser
-    return add_debug_option(add_log_level_option(add_log_file_option(p)))
+    return add_log_quiet_option(add_log_debug_option(add_log_level_option(add_log_file_option(p), default_level=default_level)))
 
 
 def add_base_options_with_emit_tool_contract(p):
