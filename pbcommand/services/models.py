@@ -1,7 +1,11 @@
 """Services Specific Data Models"""
 from collections import namedtuple
 import uuid
+
 import iso8601
+
+from requests.exceptions import RequestException
+
 
 
 def to_ascii(s):
@@ -56,6 +60,11 @@ class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type crea
 
 class JobExeError(ValueError):
     """Service Job failed to complete successfully"""
+    pass
+
+
+class SmrtServerConnectionError(RequestException):
+    """This is blunt to catch all status related errors"""
     pass
 
 

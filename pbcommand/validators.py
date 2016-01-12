@@ -26,6 +26,26 @@ validate_dir = functools.partial(_validate_resource, os.path.isdir)
 validate_output_dir = functools.partial(_validate_resource, os.path.isdir)
 
 
+def validate_or(f1, f2, error_msg):
+    """
+    Apply Valid functions f1, then f2 (if failure occurs)
+
+    :param error_msg: Default message to print
+    """
+    @functools.wraps
+    def wrapper(path):
+        try:
+            return f1(path)
+        except Exception:
+            try:
+                return f2(path)
+            except Exception as e:
+                log.error("{m} {p} \n. {e}".format(m=error_msg, p=path, e=repr(e)))
+                raise
+
+    return wrapper
+
+
 def validate_report(report_file_name):
     """
     Raise ValueError if report contains path seps

@@ -25,20 +25,18 @@ import functools
 import time
 import tempfile
 import traceback
-import xml.etree.ElementTree as ET
-
+import uuid
+from requests import RequestException
 
 from pbcommand.cli import get_default_argparser
 from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
-from pbcommand.validators import validate_file
+from pbcommand.validators import validate_file, validate_or
 from pbcommand.common_options import add_base_options
-from pbcommand.engine import run_cmd
-from pbcommand.utils import (which_or_raise,
-                             is_dataset,
-                             walker, setup_log, compose)
+from pbcommand.utils import (is_dataset,
+                             walker, setup_log, compose, setup_logger)
 
 from .utils import to_ascii
 
@@ -126,9 +124,13 @@ def add_sal_and_xml_dir_options(p):
 
 def get_sal_and_status(host, port):
     """Get Sal or Raise if status isn't successful"""
-    sal = ServiceAccessLayer(host, port)
-    sal.get_status()
-    return sal
+    try:
+        sal = ServiceAccessLayer(host, port)
+        sal.get_status()
+        return sal
+    except RequestException as e:
+        log.error("Failed to connect to {h}:{p}".format(h=host, p=port))
+        raise
 
 
 def run_file_or_dir(file_func, dir_func, xml_or_dir):
@@ -185,87 +187,6 @@ def run_import_local_datasets(host, port, xml_or_dir):
 
 def args_runner_import_datasets(args):
     return run_import_local_datasets(args.host, args.port, args.xml_or_dir)
-
-
-def is_movie_metadata(path):
-    """Peek into XML to see if it's a movie metadata XML file"""
-    # try:
-    try:
-        text = ET.parse(path).getroot().tag.split('}')[0]
-    except Exception as e:
-        log.warn(e)
-
-    if text == 'TransferReport':
-        return True
-    else:
-        return False
-
-
-def is_xml_movie_metadata(path):
-    if _is_xml(path):
-        if is_movie_metadata(path):
-            return True
-    return False
-
-
-def movie_metadata_walker(root_dir):
-    f = is_movie_metadata
-    return walker(root_dir, f)
-
-
-def _metadata_to_dataset(metadata_xml):
-    output = tempfile.NamedTemporaryFile(suffix=".hdfsubreadset.xml").name
-    log.debug("Generating temporary dataset: {x}".format(x=output))
-
-    cmd = '{m} {p} {o}'.format(m=Constants.RS_MOVIE_TO_DS, p=metadata_xml, o=output)
-
-    # the output from movie-metadata-to-dataset is not properly wrapped in pbds namespace,
-    # but the tempfile indicated in the stdout is. Not sure why there are two
-    # outputs
-    stderr_path = tempfile.NamedTemporaryFile(suffix=".stderr").name
-    stderr_fh = open(stderr_path, 'w')
-
-    run_cmd(cmd, stdout_fh=sys.stdout, stderr_fh=stderr_fh)
-
-    with open(stderr_path, 'r') as f:
-        stderr = f.readlines()
-
-    def _get_tmpfile(stderr):
-        for line in stderr:
-            path = line.split(' ')[-1].rstrip()
-            if os.path.exists(path):
-                if is_dataset(path):
-                    return path
-
-    tmp_dataset_xml = _get_tmpfile(stderr)
-    return tmp_dataset_xml
-
-
-def import_rs_movie(sal, path):
-    log.info("RS movie-metadata XML {p}".format(p=path))
-    hdfsubreadset = _metadata_to_dataset(path)
-    log.info("Writing to temporary dataset: {t}".format(t=hdfsubreadset))
-    import_local_dataset(sal, hdfsubreadset)
-    return 0
-
-
-def import_rs_movies(sal, root_dir):
-    rcodes = [import_rs_movie(sal, path) for path in dataset_walker(root_dir)]
-    if all(v == 0 for v in rcodes):
-        return 0
-    return 1
-
-
-def run_import_rs_movies(host, port, xml_or_dir):
-    which_or_raise(Constants.RS_MOVIE_TO_DS)
-    sal = ServiceAccessLayer(host, port)
-    file_func = functools.partial(import_rs_movie, sal)
-    dir_func = functools.partial(import_rs_movies, sal)
-    return run_file_or_dir(file_func, dir_func, xml_or_dir)
-
-
-def args_runner_import_rs_movies(args):
-    return run_import_rs_movies(args.host, args.port, args.xml_or_dir)
 
 
 def add_import_fasta_opts(p):
@@ -413,7 +334,7 @@ def run_get_job_summary(host, port, job_id):
     job = sal.get_job_by_id(job_id)
 
     if job is None:
-        log.info("Unable to find job {i} from {u}".format(i=job_id, u=sal.uri))
+        log.error("Unable to find job {i} from {u}".format(i=job_id, u=sal.uri))
     else:
         print job
 
@@ -423,10 +344,12 @@ def run_get_job_summary(host, port, job_id):
 def args_get_job_summary(args):
     return run_get_job_summary(args.host, args.port, args.job_id)
 
+validate_int_or_uuid = validate_or(int, uuid.UUID, "Expected Int or UUID")
+
 
 def add_get_dataset_options(p):
     add_base_and_sal_options(p)
-    p.add_argument('id_or_uuid', help="DataSet Id or UUID")
+    p.add_argument('id_or_uuid', type=validate_int_or_uuid, help="DataSet Id or UUID")
     return p
 
 
@@ -482,10 +405,6 @@ def get_parser():
     ds_desc = "Import Local DataSet XML." + local_desc
     builder('import-dataset', ds_desc, add_sal_and_xml_dir_options, args_runner_import_datasets)
 
-    # Removing this functionality. This should be in pbconvert (or re-purposed from pbimport)
-    # rs_desc = "Import RS Metadata XML"
-    # builder("import-rs-movie", rs_desc, add_sal_and_xml_dir_options, args_runner_import_rs_movies)
-
     fasta_desc = "Import Fasta (and convert to ReferenceSet)." + local_desc
     builder("import-fasta", fasta_desc, add_import_fasta_opts, args_run_import_fasta)
 
@@ -516,41 +435,57 @@ def args_executer(args):
 
         return_code = args.func(args)
     except Exception as e:
-        log.error(e, exc_info=True)
-        traceback.print_exc(sys.stderr)
-        if isinstance(e, IOError):
+        if isinstance(e, RequestException):
+            # make this terse so there's not a useless stacktrace
+            emsg = "Failed to connect to SmrtServer {e}".format(e=repr(e.__class__.__name__))
+            log.error(emsg)
+            return_code = 3
+        elif isinstance(e, IOError):
+            log.error(e, exc_info=True)
+            traceback.print_exc(sys.stderr)
             return_code = 1
         else:
+            log.error(e, exc_info=True)
+            traceback.print_exc(sys.stderr)
             return_code = 2
 
     return return_code
 
 
-def main_runner(argv, parser, exe_runner_func, setup_log_func, alog,
+def main_runner(argv, parser, exe_runner_func,
                 level=logging.DEBUG, str_formatter=_LOG_FORMAT):
     """
     Fundamental interface to commandline applications
     """
     started_at = time.time()
     args = parser.parse_args(argv)
-    # log.debug(args)
 
-    # setup log
+    console_or_file = getattr(args, 'log_file', None)
+
+    if hasattr(args, 'log_level'):
+        level = getattr(args, 'log_level')
+
+    # Debug will override
     if hasattr(args, 'debug'):
         if args.debug:
-            setup_log_func(alog, level=level, str_formatter=str_formatter)
-        else:
-            alog.addHandler(logging.NullHandler())
-    else:
-        alog.addHandler(logging.NullHandler())
+            if args.debug is True:
+                level = logging.DEBUG
+
+    # Quiet will override everything
+    if hasattr(args, 'quiet'):
+        if args.quiet:
+            level = logging.ERROR
+
+    setup_logger(console_or_file, level, formatter=str_formatter)
 
     log.debug(args)
-    alog.info("Starting tool version {v}".format(v=parser.version))
+    log.info("Starting tool version {v}".format(v=parser.version))
+
     rcode = exe_runner_func(args)
 
     run_time = time.time() - started_at
     _d = dict(r=rcode, s=run_time)
-    alog.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
+    log.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
     return rcode
 
 
@@ -559,4 +494,4 @@ def main(argv=None):
     argv_ = sys.argv if argv is None else argv
     parser = get_parser()
 
-    return main_runner(argv_[1:], parser, args_executer, setup_log, log)
+    return main_runner(argv_[1:], parser, args_executer)
