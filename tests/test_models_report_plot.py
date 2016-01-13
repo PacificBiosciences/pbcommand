@@ -18,7 +18,7 @@ class TestPlot(unittest.TestCase):
         """Can't create an plot without an image."""
         def _test():
             p = Plot('123', None)
-        self.assertRaisesRegexp(PbReportError, _test)
+        self.assertRaises(PbReportError, _test)
 
     def test_to_dict(self):
         """Test plot to dictionary method"""
