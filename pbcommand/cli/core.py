@@ -139,7 +139,8 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
             return_code = 2
 
     _d = dict(r=return_code, s=run_time)
-    alog.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
+    if alog is not None:
+        alog.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
     return return_code
 
 
