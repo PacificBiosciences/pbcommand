@@ -34,7 +34,7 @@ from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
 from pbcommand.validators import validate_file, validate_or
-from pbcommand.common_options import add_base_options
+from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
                              walker, setup_log, compose, setup_logger)
 
@@ -104,7 +104,7 @@ def add_sal_options(p):
 
 
 def add_base_and_sal_options(p):
-    fx = [add_base_options, add_sal_options]
+    fx = [add_common_options, add_sal_options]
     f = compose(*fx)
     return f(p)
 
@@ -115,7 +115,7 @@ def add_xml_or_dir_option(p):
 
 
 def add_sal_and_xml_dir_options(p):
-    fx = [add_base_options,
+    fx = [add_common_options,
           add_sal_options,
           add_xml_or_dir_option]
     f = compose(*fx)
@@ -197,7 +197,7 @@ def add_import_fasta_opts(p):
     px('--ploidy', required=True, type=str, help="Ploidy")
     add_block_option(p)
     add_sal_options(p)
-    add_base_options(p)
+    add_common_options(p)
     return p
 
 
@@ -243,7 +243,7 @@ def _validate_analysis_job_json(path):
 def add_run_analysis_job_opts(p):
     p.add_argument('json_path', type=_validate_analysis_job_json, help="Path to analysis.json file")
     add_sal_options(p)
-    add_base_options(p)
+    add_common_options(p)
     add_block_option(p)
     return
 
@@ -412,7 +412,7 @@ def get_parser():
     builder("run-analysis", run_analysis_desc, add_run_analysis_job_opts, args_run_analysis_job)
 
     emit_analysis_json_desc = "Emit an analysis.json Template to stdout that can be run using 'run-analysis'"
-    builder("emit-analysis-template", emit_analysis_json_desc, add_base_options, args_emit_analysis_template)
+    builder("emit-analysis-template", emit_analysis_json_desc, add_common_options, args_emit_analysis_template)
 
     # Get Summary Job by Id
     job_summary_desc = "Get Job Summary by Job Id"

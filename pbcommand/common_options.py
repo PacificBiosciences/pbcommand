@@ -74,6 +74,13 @@ def add_base_options(p, default_level='INFO'):
 
     """
     # This should automatically/required be added to be added from get_default_argparser
+    return add_debug_option(add_log_level_option(add_log_file_option(p)))
+
+
+def add_common_options(p, default_level='INFO'):
+    """
+    New model for 3.1 release. This should replace add_base_options
+    """
     return add_log_quiet_option(add_log_debug_option(add_log_level_option(add_log_file_option(p), default_level=default_level)))
 
 
