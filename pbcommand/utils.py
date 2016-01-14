@@ -34,7 +34,7 @@ def setup_log(alog, level=logging.INFO, file_name=None, log_filter=None,
     """
     logging.Formatter.converter = time.gmtime
 
-    alog.setLevel(logging.DEBUG)
+    #alog.setLevel(logging.DEBUG)
     if file_name is None:
         handler = logging.StreamHandler(sys.stdout)
     else:
