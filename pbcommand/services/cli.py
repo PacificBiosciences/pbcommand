@@ -40,7 +40,7 @@ from pbcommand.utils import (is_dataset,
 
 from .utils import to_ascii
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler()) # suppress warning message
@@ -220,7 +220,7 @@ def args_run_import_fasta(args):
                             args.name, args.organism, args.ploidy, block=args.block)
 
 
-def _load_analysis_job_json(d):
+def load_analysis_job_json(d):
     """Translate a dict to args for scenario runner inputs"""
     job_name = to_ascii(d['name'])
     pipeline_template_id = to_ascii(d["pipelineId"])
@@ -234,7 +234,7 @@ def _validate_analysis_job_json(path):
         d = json.loads(f.read())
 
     try:
-        _load_analysis_job_json(d)
+        load_analysis_job_json(d)
         return px
     except (KeyError, TypeError, ValueError) as e:
         raise argparse.ArgumentTypeError("Invalid analysis.json format for '{p}' {e}".format(p=px, e=repr(e)))
@@ -248,18 +248,11 @@ def add_run_analysis_job_opts(p):
     return
 
 
-def run_analysis_job(host, port, json_path, block=False):
+def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False):
     """Run analysis (pbsmrtpipe) job
 
     :rtype ServiceJob:
     """
-    with open(json_path, 'r') as f:
-        d = json.loads(f.read())
-
-    log.debug("Loaded \n" + pprint.pformat(d))
-    job_name, pipeline_id, service_entry_points = _load_analysis_job_json(d)
-
-    sal = ServiceAccessLayer(host, port)
     status = sal.get_status()
     log.info("Status {x}".format(x=status['message']))
 
@@ -287,12 +280,21 @@ def run_analysis_job(host, port, json_path, block=False):
         result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
 
     log.info("Result {r}".format(r=result))
-    return 0
+    return result
 
 
 def args_run_analysis_job(args):
     log.debug(args)
-    return run_analysis_job(args.host, args.port, args.json_path, block=args.block)
+    with open(args.json_path, 'r') as f:
+        d = json.loads(f.read())
+
+    log.debug("Loaded \n" + pprint.pformat(d))
+    job_name, pipeline_id, service_entry_points = load_analysis_job_json(d)
+
+    sal = ServiceAccessLayer(args.host, args.port)
+    # this should raise if there's a failure
+    result = run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=args.block)
+    return 0
 
 
 def args_emit_analysis_template(args):
