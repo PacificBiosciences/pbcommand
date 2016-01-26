@@ -248,11 +248,13 @@ def add_run_analysis_job_opts(p):
     return
 
 
-def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False):
+def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None):
     """Run analysis (pbsmrtpipe) job
 
     :rtype ServiceJob:
     """
+    if time_out is None:
+        time_out = sal.JOB_DEFAULT_TIMEOUT
     status = sal.get_status()
     log.info("Status {x}".format(x=status['message']))
 
@@ -269,7 +271,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
         resolved_service_entry_points.append(ep)
 
     if block:
-        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
+        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, time_out=time_out)
         job_id = job_result.job.id
         # service job
         result = sal.get_analysis_job_by_id(job_id)

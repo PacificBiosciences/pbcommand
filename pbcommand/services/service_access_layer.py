@@ -176,6 +176,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=600):
     if job is None:
         raise KeyError("Failed to find job {i}".format(i=job_id))
 
+    log.debug("time_out = {t}".format(t=time_out))
     job_result = JobResult(job, 0, "")
     started_at = time.time()
     # in seconds
