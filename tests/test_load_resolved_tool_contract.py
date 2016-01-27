@@ -46,7 +46,7 @@ class TestResolveContract(unittest.TestCase):
         tmp_file = tempfile.NamedTemporaryFile().name
         max_nproc = 2
         tool_options = {}
-        rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options)
+        rtc = resolve_tool_contract(tc, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, False)
         log.info(pprint.pformat(rtc))
         self.assertIsNotNone(rtc)
         self.assertEqual(os.path.basename(rtc.task.output_files[0]),

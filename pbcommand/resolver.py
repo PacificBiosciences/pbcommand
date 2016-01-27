@@ -153,7 +153,7 @@ def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_o
     return output_files, resolved_options, nproc, resolved_resources
 
 
-def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options):
+def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, is_distributable):
     """
     Convert a ToolContract into a Resolved Tool Contract.
 
@@ -174,8 +174,11 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
     :return: A Resolved tool contract
     """
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, root_tmp_dir)
+    is_distributed = False
+    if is_distributable and tool_contract.task.is_distributed:
+        is_distributed = True
     task = ResolvedToolContractTask(tool_contract.task.task_id,
-                                    tool_contract.task.is_distributed,
+                                    is_distributed,
                                     input_files,
                                     output_files,
                                     resolved_options,
