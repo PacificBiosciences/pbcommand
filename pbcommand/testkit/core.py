@@ -74,7 +74,7 @@ class PbTestApp(unittest.TestCase):
 
     def _to_rtc(self, tc, output_dir, tmp_dir):
         # handled the polymorphism in subclasses by overriding
-        return resolve_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, is_distributable=self.IS_DISTRIBUTED)
+        return resolve_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.IS_DISTRIBUTED)
 
     def test_run_e2e(self):
         # hack to skip running the base Test class (which is the nose default behavior)
