@@ -159,41 +159,62 @@ def _import_dataset_by_type(dataset_type_or_id):
     return wrapper
 
 
-def _block_for_job_to_complete(sal, job_id, time_out=600):
+def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
+    job = sal.get_job_by_id(job_id)
+
+    if job is None:
+        details = "" if error_messge_extras is None else error_messge_extras
+        base_msg = "Failed to find job {i}".format(i=job_id)
+        emsg = " ".join([base_msg, details])
+        raise error_klass("Failed to find job {i} {e}".format(i=job_id, e=emsg))
+
+    return job
+
+
+def _block_for_job_to_complete(sal, job_id, time_out=600, sleep_time=2):
     """
     Waits for job to complete
 
     :param sal: ServiceAccessLayer
     :param job_id: Job Id
-    :param time_out:
+    :param time_out: Total runtime before aborting
+    :param sleep_time: polling interval (in sec)
 
     :rtype: JobResult
-    :raises: KeyError if job is not found, or JobExeError if the job fails or times out
+    :raises: KeyError if job is not initially found, or JobExeError
+    if the job fails during the polling process or times out
     """
 
-    job = sal.get_job_by_id(job_id)
-
-    if job is None:
-        raise KeyError("Failed to find job {i}".format(i=job_id))
+    job = _get_job_by_id_or_raise(sal, job_id, KeyError)
 
     log.debug("time_out = {t}".format(t=time_out))
-    job_result = JobResult(job, 0, "")
+
+    error_msg = ""
+    job_result = JobResult(job, 0, error_msg)
     started_at = time.time()
-    # in seconds
-    sleep_time = 2
+
+    # number of polling steps
+    i = 0
     while True:
         run_time = time.time() - started_at
+
         if job.state in JobStates.ALL_COMPLETED:
             break
 
-        log.debug("Running pipeline {n} state: {s} runtime:{r:.2f} sec".format(n=job.name, s=job.state, r=run_time))
+        i += 1
         time.sleep(sleep_time)
-        job = sal.get_job_by_id(job_id)
+
+        msg = "Running pipeline {n} state: {s} runtime:{r:.2f} sec {i} iteration".format(n=job.name, s=job.state, r=run_time, i=i)
+        log.debug(msg)
+        # making the exceptions different to distinguish between an initial
+        # error and a "polling" error. Adding some msg details
+        job = _get_job_by_id_or_raise(sal, job_id, JobExeError, error_messge_extras=msg)
+
         # FIXME, there's currently not a good way to get errors for jobs
         job_result = JobResult(job, run_time, "")
         if time_out is not None:
             if run_time > time_out:
-                raise JobExeError("Exceeded runtime {r} of {t}".format(r=run_time, t=time_out))
+                raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
 
     return job_result
 
