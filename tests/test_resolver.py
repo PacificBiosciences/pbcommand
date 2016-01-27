@@ -22,10 +22,11 @@ class TestScatterResolver(unittest.TestCase):
     def test_sanity(self):
         d = get_temp_dir("resolved-tool-contract")
         tc = load_tool_contract_from(get_data_file(self.FILE_NAME))
-        rtc = resolve_scatter_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, self.TOOL_OPTIONS, self.MAX_NCHUNKS, self.CHUNK_KEYS)
+        rtc = resolve_scatter_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, self.TOOL_OPTIONS, self.MAX_NCHUNKS, self.CHUNK_KEYS, False)
         self.assertIsInstance(rtc, ResolvedToolContract)
         self.assertIsInstance(rtc.task, ResolvedScatteredToolContractTask)
         self.assertEqual(rtc.task.max_nchunks, 7)
+        self.assertEqual(rtc.task.is_distributed, False)
 
 
 class TestGatherResolver(unittest.TestCase):
@@ -40,7 +41,8 @@ class TestGatherResolver(unittest.TestCase):
     def test_sanity(self):
         d = get_temp_dir("resolved-tool-contract")
         tc = load_tool_contract_from(get_data_file(self.FILE_NAME))
-        rtc = resolve_gather_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, self.TOOL_OPTIONS, self.CHUNK_KEY)
+        rtc = resolve_gather_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, self.TOOL_OPTIONS, self.CHUNK_KEY, False)
         self.assertIsInstance(rtc, ResolvedToolContract)
         self.assertIsInstance(rtc.task, ResolvedGatherToolContractTask)
         self.assertEqual(rtc.task.chunk_key, self.CHUNK_KEY)
+        self.assertEqual(rtc.task.is_distributed, False)

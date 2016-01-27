@@ -188,11 +188,11 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
     return ResolvedToolContract(task, tool_contract.driver)
 
 
-def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys):
+def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys, is_distributable):
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=root_tmp_dir)
     resolved_max_chunks = _resolve_max_nchunks(tool_contract.task.max_nchunks, max_nchunks)
     task = ResolvedScatteredToolContractTask(tool_contract.task.task_id,
-                                             tool_contract.task.is_distributed,
+                                             tool_contract.task.is_distributed and is_distributable,
                                              input_files,
                                              output_files,
                                              resolved_options,
@@ -201,10 +201,10 @@ def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, r
     return ResolvedToolContract(task, tool_contract.driver)
 
 
-def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key):
+def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key, is_distributable):
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=root_tmp_dir)
     task = ResolvedGatherToolContractTask(tool_contract.task.task_id,
-                                          tool_contract.task.is_distributed,
+                                          tool_contract.task.is_distributed and is_distributable,
                                           input_files,
                                           output_files,
                                           resolved_options,

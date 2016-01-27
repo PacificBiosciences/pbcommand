@@ -156,7 +156,7 @@ class PbTestScatterApp(PbTestApp):
     CHUNK_KEYS = ()
 
     def _to_rtc(self, tc, output_dir, tmp_dir):
-        return resolve_scatter_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.MAX_NCHUNKS, self.CHUNK_KEYS)
+        return resolve_scatter_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.MAX_NCHUNKS, self.CHUNK_KEYS, is_distributable=self.IS_DISTRIBUTED)
 
 
 class PbTestGatherApp(PbTestApp):
@@ -167,4 +167,4 @@ class PbTestGatherApp(PbTestApp):
     CHUNK_KEY = PipelineChunk.CHUNK_KEY_PREFIX + 'fasta_id'
 
     def _to_rtc(self, tc, output_dir, tmp_dir):
-        return resolve_gather_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.CHUNK_KEY)
+        return resolve_gather_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, self.CHUNK_KEY, is_distributable=self.IS_DISTRIBUTED)
