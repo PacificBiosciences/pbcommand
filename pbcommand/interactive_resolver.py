@@ -40,7 +40,7 @@ def run_main(tc):
         input_files.append(in_path)
 
     tool_options = {}
-    rtc = resolve_tool_contract(tc, input_files, output_dir, '/tmp', int(nproc), tool_options)
+    rtc = resolve_tool_contract(tc, input_files, output_dir, '/tmp', int(nproc), tool_options, is_distributable=False)
     print rtc
 
     file_name = tc.task.task_id + "_resolved_tool_contract.json"

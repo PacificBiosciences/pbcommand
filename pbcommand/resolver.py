@@ -153,7 +153,7 @@ def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_o
     return output_files, resolved_options, nproc, resolved_resources
 
 
-def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, is_distributable=False):
+def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, is_distributable):
     """
     Convert a ToolContract into a Resolved Tool Contract.
 
