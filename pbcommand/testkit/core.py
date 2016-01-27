@@ -46,7 +46,8 @@ class PbTestApp(unittest.TestCase):
     # These will be checked against the resolved tool contract values
     RESOLVED_TASK_OPTIONS = {}
     RESOLVED_NPROC = 1
-    IS_DISTRIBUTABLE = False
+    IS_DISTRIBUTED = False
+    RESOLVED_IS_DISTRIBUTED = False
 
     @classmethod
     def setUpClass(cls):
@@ -73,7 +74,7 @@ class PbTestApp(unittest.TestCase):
 
     def _to_rtc(self, tc, output_dir, tmp_dir):
         # handled the polymorphism in subclasses by overriding
-        return resolve_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, is_distributable=self.IS_DISTRIBUTABLE)
+        return resolve_tool_contract(tc, self.INPUT_FILES, output_dir, tmp_dir, self.MAX_NPROC, self.TASK_OPTIONS, is_distributable=self.IS_DISTRIBUTED)
 
     def test_run_e2e(self):
         # hack to skip running the base Test class (which is the nose default behavior)
@@ -123,6 +124,7 @@ class PbTestApp(unittest.TestCase):
 
         # Resolved NPROC
         self.assertEquals(rtc.task.nproc, self.RESOLVED_NPROC)
+        self.assertEquals(rtc.task.is_distributed, self.RESOLVED_IS_DISTRIBUTED)
 
         log.info("running resolved contract {r}".format(r=output_json_rtc))
 
@@ -133,7 +135,6 @@ class PbTestApp(unittest.TestCase):
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
 
         self._test_outputs_exists(rtc)
-
         self.run_after(rtc, output_dir)
 
     def run_after(self, rtc, output_dir):

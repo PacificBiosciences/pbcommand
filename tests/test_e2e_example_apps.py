@@ -29,6 +29,8 @@ class TestQuickDevHelloWorld(pbcommand.testkit.PbTestApp):
 
     REQUIRES_PBCORE = False
     INPUT_FILES = [get_data_file("example.txt")]
+    IS_DISTRIBUTED = True
+    RESOLVED_IS_DISTRIBUTED = True
 
 
 class TestQuickTxt(pbcommand.testkit.PbTestApp):
@@ -38,6 +40,8 @@ class TestQuickTxt(pbcommand.testkit.PbTestApp):
 
     REQUIRES_PBCORE = False
     INPUT_FILES = [get_data_file("example.txt")]
+    IS_DISTRIBUTED = True
+    RESOLVED_IS_DISTRIBUTED = False # XXX is_distributed=False in task TC!
 
 
 class TestQuickCustomTxtCustomOuts(pbcommand.testkit.PbTestApp):
