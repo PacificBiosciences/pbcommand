@@ -166,7 +166,7 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
         details = "" if error_messge_extras is None else error_messge_extras
         base_msg = "Failed to find job {i}".format(i=job_id)
         emsg = " ".join([base_msg, details])
-        raise error_klass("Failed to find job {i} {e}".format(i=job_id, e=emsg))
+        raise error_klass(emsg)
 
     return job
 
