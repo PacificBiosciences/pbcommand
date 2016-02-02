@@ -185,6 +185,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=600, sleep_time=2):
     if the job fails during the polling process or times out
     """
 
+    time.sleep(sleep_time)
     job = _get_job_by_id_or_raise(sal, job_id, KeyError)
 
     log.debug("time_out = {t}".format(t=time_out))
