@@ -127,3 +127,13 @@ def load_report_from_json(json_file):
         d = json.loads(f.read())
     r = dict_to_report(d)
     return r
+
+
+def _to_report(nfiles, attribute_id, report_id):
+    # this should have version of the bax/bas files, chemistry
+    attributes = [Attribute(attribute_id, nfiles)]
+    return Report(report_id, attributes=attributes)
+
+
+def fofn_to_report(nfofns):
+    return _to_report(nfofns, "nfofns", "fofn_report")
