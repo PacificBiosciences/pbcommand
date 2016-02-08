@@ -10,7 +10,6 @@ import time
 import types
 import subprocess
 from contextlib import contextmanager
-import warnings
 import xml.etree.ElementTree as ET
 
 from pbcommand.models import FileTypes, DataSetMetaData
@@ -184,12 +183,13 @@ def setup_log(alog,
     :param log_filter: (LogFilter, None)
     :param str_formatter: (str) log formatting str
     """
+    setup_logger(file_name, level, formatter=str_formatter)
+
     # FIXME. Keeping the interface, but the specific log instance isn't used,
     # the python logging setup mutates global state
     if log_filter is not None:
-        warnings.warn("log_filter kw is no longer supported")
+        alog.warn("log_filter kw is no longer supported")
 
-    setup_logger(file_name, level, formatter=str_formatter)
     return alog
 
 
