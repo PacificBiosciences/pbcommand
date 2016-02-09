@@ -469,7 +469,7 @@ class ServiceAccessLayer(object):
     def get_pipeline_template_by_id(self, pipeline_template_id):
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)))
 
-    def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints):
+    def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=()):
         """Creates and runs a pbsmrtpipe pipeline by pipeline template id"""
         # sanity checking to see if pipeline is valid
         _ = self.get_pipeline_template_by_id(pipeline_template_id)
@@ -479,19 +479,18 @@ class ServiceAccessLayer(object):
         def _to_o(opt_id, opt_value, option_type_id):
             return dict(optionId=opt_id, value=opt_value, optionTypeId=option_type_id)
 
+        task_options = list(task_options)
         # FIXME. Need to define this in the scenario IO layer.
-        # task_options = [_to_o("option_01", "value_01")]
         # workflow_options = [_to_o("woption_01", "value_01")]
-        task_options = []
         workflow_options = []
         d = dict(name=name, pipelineId=pipeline_template_id, entryPoints=seps, taskOptions=task_options, workflowOptions=workflow_options)
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d)
         return ServiceJob.from_d(raw_d)
 
-    def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, time_out=JOB_DEFAULT_TIMEOUT):
+    def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), time_out=JOB_DEFAULT_TIMEOUT):
         """Blocks and runs a job with a timeout"""
 
-        job_or_error = self.create_by_pipeline_template_id(name, pipeline_template_id, epoints)
+        job_or_error = self.create_by_pipeline_template_id(name, pipeline_template_id, epoints, task_options=task_options)
 
         _d = dict(name=name, p=pipeline_template_id, eps=epoints)
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
