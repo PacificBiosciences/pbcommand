@@ -499,7 +499,8 @@ class ServiceAccessLayer(object):
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id, time_out=time_out)
+        return _block_for_job_to_complete(self, job_id, time_out=time_out,
+                sleep_time=self._sleep_time)
 
 
 def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True):
