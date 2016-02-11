@@ -270,11 +270,12 @@ class ServiceAccessLayer(object):
     # in sec when blocking to run a job
     JOB_DEFAULT_TIMEOUT = 60 * 30
 
-    def __init__(self, base_url, port, debug=False):
+    def __init__(self, base_url, port, debug=False, sleep_time=2):
         self.base_url = _to_host(base_url)
         self.port = port
         # This will display verbose details with respect to the failed request
         self.debug = debug
+        self._sleep_time = sleep_time
 
     @property
     def uri(self):
@@ -352,14 +353,15 @@ class ServiceAccessLayer(object):
         job_or_error = self._import_dataset(dataset_type, path_to_xml)
         custom_err_msg = "Import {d} {p}".format(p=path_to_xml, d=dataset_type)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id)
+        return _block_for_job_to_complete(self, job_id, sleep_time=self._sleep_time)
 
     def _run_import_and_block(self, func, path, time_out=None):
         # func while be self.import_dataset_X
         job_or_error = func(path)
         custom_err_msg = "Import {p}".format(p=path)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id, time_out=time_out)
+        return _block_for_job_to_complete(self, job_id, time_out=time_out,
+            sleep_time=self._sleep_time)
 
     def import_dataset_subread(self, path):
         return self._import_dataset(FileTypes.DS_SUBREADS, path)
@@ -455,7 +457,8 @@ class ServiceAccessLayer(object):
         _d = dict(f=fasta_path, n=name, o=organism, p=ploidy)
         custom_err_msg = "Fasta-convert path:{f} name:{n} organism:{o} ploidy:{p}".format(**_d)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id, time_out=time_out)
+        return _block_for_job_to_complete(self, job_id, time_out=time_out,
+            sleep_time=self._sleep_time)
 
     def create_logger_resource(self, idx, name, description):
         _d = dict(id=idx, name=name, description=description)
