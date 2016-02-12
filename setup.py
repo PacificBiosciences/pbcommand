@@ -36,7 +36,7 @@ setup(
     name='pbcommand',
     version=version,
     license='BSD',
-    author='mpkocher',
+    author='mpkocher natechols',
     author_email='mkocher@pacificbiosciences.com',
     url="https://github.com/PacificBiosciences/pbcommand",
     download_url='https://github.com/PacificBiosciences/pbcommand/tarball/{v}'.format(v=version),

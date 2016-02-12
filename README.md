@@ -1,9 +1,15 @@
 pbcommand High Level Overview
 =============================
 
-[Full Docs](http://pbcommand.readthedocs.org/en/latest/)
+co-owners:
 
-Note the APIs are still in flux. WIP.
+[mpkocher](https://github.com/mpkocher)
+
+[natechols](https://github.com/natechols)
+
+PacBio Officially Supported Library. Note the APIs are still in flux and not yet 1.0.0.
+
+[Full Docs](http://pbcommand.readthedocs.org/en/latest/)
 
 [![Circle CI](https://circleci.com/gh/PacificBiosciences/pbcommand.svg?style=svg)](https://circleci.com/gh/PacificBiosciences/pbcommand)
 
