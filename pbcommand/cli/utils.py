@@ -4,6 +4,7 @@ Additional utilities for running command-line apps - most of these do not apply
 to tool-contract-driven programs.  (Ported from pbsmrtpipe)
 """
 
+import traceback
 import argparse
 import platform
 import logging
