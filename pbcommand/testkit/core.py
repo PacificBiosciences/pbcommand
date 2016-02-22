@@ -1,6 +1,8 @@
+
 import os
 import unittest
 import logging
+import tempfile
 import subprocess
 
 from .base_utils import (HAS_PBCORE,
@@ -96,7 +98,6 @@ class PbTestApp(unittest.TestCase):
         output_tc = get_temp_file("-{n}-tool_contract.json".format(n=self.__class__.__name__), output_dir)
         emit_tc_exe = "{e} > {o}".format(e=self.DRIVER_EMIT, o=output_tc)
         rcode = subprocess.call([emit_tc_exe], shell=True)
-
         self.assertEquals(rcode, 0, "Emitting tool contract failed for '{e}'".format(e=emit_tc_exe))
 
         # sanity marshall-unmashalling
@@ -130,8 +131,12 @@ class PbTestApp(unittest.TestCase):
 
         exe = "{d} {p}".format(p=output_json_rtc, d=self.DRIVER_RESOLVE)
         log.info("Running exe '{e}'".format(e=exe))
-        rcode = subprocess.call([exe], shell=True)
-        self.assertEqual(rcode, 0, "Running from resolved tool contract failed from {e}".format(e=exe))
+        with tempfile.TemporaryFile() as stdout:
+             rcode = subprocess.call([exe], shell=True,
+                 stdout=stdout)
+             self.assertEquals(rcode, 0, "Running from resolved tool contract failed from {x}".format(x=exe))
+        #rcode = subprocess.call([exe], shell=True)
+        #self.assertEqual(rcode, 0, "Running from resolved tool contract failed from {e}".format(e=exe))
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
 
         self._test_outputs_exists(rtc)
