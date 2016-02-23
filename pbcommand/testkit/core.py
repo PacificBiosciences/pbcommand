@@ -135,8 +135,6 @@ class PbTestApp(unittest.TestCase):
              rcode = subprocess.call([exe], shell=True,
                  stdout=stdout)
              self.assertEquals(rcode, 0, "Running from resolved tool contract failed from {x}".format(x=exe))
-        #rcode = subprocess.call([exe], shell=True)
-        #self.assertEqual(rcode, 0, "Running from resolved tool contract failed from {e}".format(e=exe))
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
 
         self._test_outputs_exists(rtc)
