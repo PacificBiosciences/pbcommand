@@ -10,13 +10,16 @@ import time
 import requests
 from requests import RequestException
 
-from pbcommand.models import FileTypes, DataSetFileType
+from pbcommand.models import (FileTypes,
+                              DataSetFileType,
+                              DataStore,
+                              DataStoreFile)
 from pbcommand.utils import get_dataset_metadata
 
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,
                      LogLevels, ServiceEntryPoint,
-                     ServiceResourceTypes, ServiceJob)
+                     ServiceResourceTypes, ServiceJob, JobEntryPoint)
 
 from .utils import to_ascii, to_sal_summary
 
@@ -259,6 +262,21 @@ def _to_host(h):
     return h if h.startswith(prefix) else prefix + h
 
 
+def _to_ds_file(d):
+    # is_chunk this isn't exposed at the service level
+    return DataStoreFile(d['uuid'], d['sourceId'], d['fileTypeId'], d['path'], is_chunked=False)
+
+
+def _to_datastore(dx):
+    # Friction to get around service endpoint not returning a list of files
+    ds_files = [_to_ds_file(d) for d in dx]
+    return DataStore(ds_files)
+
+
+def _to_entry_points(d):
+    return [JobEntryPoint.from_d(i) for i in d]
+
+
 class ServiceAccessLayer(object):
     """General Access Layer for interfacing with the job types on Secondary SMRT Server"""
 
@@ -307,6 +325,10 @@ class ServiceAccessLayer(object):
         _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
         return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
 
+    def _get_job_resource_type_with_transform(self, job_type, job_id, resource_type_id, transform_func):
+        _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
+        return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+
     def _get_jobs_by_job_type(self, job_type):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
 
@@ -331,11 +353,19 @@ class ServiceAccessLayer(object):
 
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
-        return self._get_job_resource_type(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE)
+        # this doesn't work the list is sli
+        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def get_analysis_job_reports(self, job_id):
         """Get Reports output from (pbsmrtpipe) analysis job"""
-        return self._get_job_resource_type(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS)
+        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, lambda x: x)
+
+    def get_analysis_job_report_details(self, job_id, report_uuid):
+        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
+        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)))
+
+    def get_analysis_job_entry_points(self, job_id):
+        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
 
     def get_import_dataset_job_datastore(self, job_id):
         """Get a List of Service DataStore files from an import DataSet job"""
