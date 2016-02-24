@@ -30,6 +30,14 @@ from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
 
+def _add_version(p, version):
+    p.version = version
+    p.add_argument('--version',
+                   action="version",
+                   help="show program's version number and exit")
+    return p
+
+
 def get_default_argparser(version, description):
     """
     Everyone should use this to create an instance on a argparser python parser.
@@ -42,10 +50,10 @@ def get_default_argparser(version, description):
     :return:
     :rtype: ArgumentParser
     """
-    p = argparse.ArgumentParser(version=version,
-                                description=description,
+    p = argparse.ArgumentParser(description=description,
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    return p
+    # Explicitly adding here to have only --version (not -v)
+    return _add_version(p, version)
 
 
 def get_default_argparser_with_base_opts(version, description, default_level="INFO"):
