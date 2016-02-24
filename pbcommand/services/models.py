@@ -122,6 +122,14 @@ class ServiceEntryPoint(object):
                     datasetId=self.resource)
 
 
+class JobEntryPoint(namedtuple("JobEntryPoint", "job_id dataset_uuid dataset_metatype")):
+    """ Returned from the Services /job/1234/entry-points """
+    @staticmethod
+    def from_d(d):
+        return JobEntryPoint(d['jobId'], d['datasetUUID'], d['datasetType'])
+
+
+
 class JobStates(object):
     RUNNING = "RUNNING"
     CREATED = "CREATED"
@@ -152,3 +160,4 @@ class JobTypes(object):
 class ServiceResourceTypes(object):
     REPORTS = "reports"
     DATASTORE = "datastore"
+    ENTRY_POINTS = "entry-points"

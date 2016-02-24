@@ -308,6 +308,13 @@ class FileTypes(object):
         return REGISTERED_FILE_TYPES
 
 
+def _get_timestamp_or_now(path, func):
+    if os.path.exists(path):
+        return func(path)
+    else:
+        return datetime.datetime.now()
+
+
 class DataStoreFile(object):
 
     def __init__(self, uuid, source_id, type_id, path, is_chunked=False):
@@ -320,9 +327,10 @@ class DataStoreFile(object):
         # Consistent with a value in FileTypes
         self.file_type_id = type_id
         self.path = path
-        self.file_size = os.path.getsize(path)
-        self.created_at = datetime.datetime.fromtimestamp(os.path.getctime(path))
-        self.modified_at = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+        # FIXME(mkocher)(2016-2-23): This is probably not the best model
+        self.file_size = os.path.getsize(path) if os.path.exists(path) else 0
+        self.created_at = _get_timestamp_or_now(path, lambda px: datetime.datetime.fromtimestamp(os.path.getctime(px)))
+        self.modified_at = _get_timestamp_or_now(path, lambda px: datetime.datetime.fromtimestamp(os.path.getmtime(px)))
         # Was the file produced by Chunked task
         self.is_chunked = is_chunked
 
