@@ -156,7 +156,9 @@ def dataset_walker(root_dir):
 
 def import_local_dataset(sal, path):
     """:type sal: ServiceAccessLayer"""
-
+    # XXX basic validation of external resources
+    from pbcore.io import openDataSet
+    ds = openDataSet(path, strict=True)
     # this will raise if the import wasn't successful
     _ = sal.run_import_local_dataset(path)
     log.info("Successfully import dataset from {f}".format(f=path))
