@@ -292,6 +292,9 @@ class FileTypes(object):
     # RS era
     BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", MimeTypes.BINARY)
 
+    # sts.xml
+    STS_XML = FileType("PacBio.SubreadFile.ChipStatsFile", "file", "sts.xml", MimeTypes.XML)
+
     # THIS IS EXPERIMENT for internal analysis. DO NOT use
     COND = FileType(to_file_ns("COND"), "file", "conditions.json", MimeTypes.JSON)
 
