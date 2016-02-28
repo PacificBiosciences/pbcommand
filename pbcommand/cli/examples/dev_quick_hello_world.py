@@ -22,6 +22,7 @@ def _example_main(input_files, output_files, **kwargs):
 
 @registry("dev_qhello_world", "0.2.1", FileTypes.FASTA, FileTypes.FASTA, nproc=1, options=dict(alpha=1234))
 def run_rtc(rtc):
+    log.debug("Dev Quick Hello World Example. Fasta -> Fasta with option alpha=1234")
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], nproc=rtc.task.nproc)
 
 
@@ -57,4 +58,7 @@ def run_rtc(rtc):
 
 
 if __name__ == '__main__':
-    sys.exit(registry_runner(registry, sys.argv[1:]))
+    default_log_level = logging.DEBUG
+    sys.exit(registry_runner(registry,
+                             sys.argv[1:],
+                             default_log_level=default_log_level))
