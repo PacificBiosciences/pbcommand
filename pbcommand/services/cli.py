@@ -43,7 +43,7 @@ from .utils import to_ascii
 __version__ = "0.2.0"
 
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler()) # suppress warning message
+log.addHandler(logging.NullHandler())  # suppress warning message
 
 
 _LOG_FORMAT = '[%(levelname)s] %(asctime)-15s %(message)s'

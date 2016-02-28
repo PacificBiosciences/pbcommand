@@ -81,13 +81,13 @@ def _get_default_logging_config_dict(level, file_name_or_none, formatter):
     handlers_d = {console_handler_id: handler_d,
                   error_handler_id: error_handler_d}
 
-    loggers_d = {"custom": {'handlers':[console_handler_id],
+    loggers_d = {"custom": {'handlers': [console_handler_id],
                             'stderr': {'handlers': [error_handler_id]}}}
 
     d = {
         'version': 1,
         'disable_existing_loggers': False,  # this fixes the problem
-        'formatters':formatters_d,
+        'formatters': formatters_d,
         'handlers': handlers_d,
         'loggers': loggers_d,
         'root': {'handlers': [error_handler_id, console_handler_id], 'level': logging.NOTSET}
@@ -122,7 +122,7 @@ def _get_console_and_file_logging_config_dict(console_level, console_formatter, 
 
     formatters = {console_fmt_id: {"format": console_formatter},
                   file_fmt_id: {"format": path_formatter},
-                  error_fmt_id:{"format": Constants.LOG_FMT_ERR}
+                  error_fmt_id: {"format": Constants.LOG_FMT_ERR}
                   }
 
     handlers = {console_handler_id: console_handler_d,
@@ -140,7 +140,7 @@ def _get_console_and_file_logging_config_dict(console_level, console_formatter, 
          'handlers': handlers,
          'loggers': loggers,
          'root': {'handlers': handlers.keys(), 'level': logging.DEBUG}
-    }
+         }
 
     #print pprint.pformat(d)
     return d

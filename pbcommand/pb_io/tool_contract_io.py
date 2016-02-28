@@ -137,8 +137,8 @@ def _gather_resolved_tool_contract_from_d(d):
 
     chunk_key = d[Constants.RTOOL][Constants.GATHER_CHUNK_KEY]
     task = ResolvedGatherToolContractTask(tool_contract_id, is_distributed,
-                                      input_files, output_files,
-                                      tool_options, nproc, resource_types, chunk_key)
+                                          input_files, output_files,
+                                          tool_options, nproc, resource_types, chunk_key)
     return __to_rtc_from_d(d)(task)
 
 
@@ -241,7 +241,7 @@ def __to_tc_from_d(d):
 
 @_json_path_or_d
 def _standard_tool_contract_from(path_or_d):
-    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types  = __core_tool_contract_task_from(path_or_d)
+    task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types = __core_tool_contract_task_from(path_or_d)
     task = ToolContractTask(task_id, display_name, description, version,
                             is_distributed,
                             input_types,

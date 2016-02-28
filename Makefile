@@ -33,10 +33,10 @@ build-tool-contracts:
 	python -m pbcommand.cli.examples.dev_quick_hello_world emit-tool-contracts -o ./tests/data
 
 run-pep8:
-	find pbcommand -name "*.py" -exec pep8 --ignore=E501,E265,E731,E402 {} \;
+	find pbcommand -name "*.py" -exec pep8 --ignore=E501,E265,E731,E402,W292 {} \;
 
 run-auto-pep8:
-	find pbcommand -name "*.py" -exec autopep8 -i --ignore=E501,E265,E731,E402 {} \;
+	find pbcommand -name "*.py" -exec autopep8 -i --ignore=E501,E265,E731,E402,W292 {} \;
 
 build-java-classes:
 	avro-tools compile schema pbcommand/schemas java-classes/

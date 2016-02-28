@@ -112,6 +112,7 @@ def _convert_to_raw_option(namespace, key, value_or_quick_opt):
 
 
 class Registry(object):
+
     def __init__(self, tool_namespace, driver_base):
         self.namespace = tool_namespace
         self.driver_base = driver_base
@@ -264,7 +265,7 @@ def __args_emit_tc_runner(registry):
         log.info("Registry {r}".format(r=registry))
         tc_id = args.tc_id
         log.info("Emitting TC from {i}".format(i=tc_id))
-        id_tc = {t.task.task_id:t for t in registry.rtc_runners.keys()}
+        id_tc = {t.task.task_id: t for t in registry.rtc_runners.keys()}
         log.info(id_tc)
         tc = id_tc.get(tc_id, None)
         if tc is None:

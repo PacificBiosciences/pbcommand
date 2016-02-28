@@ -400,6 +400,7 @@ class ToolContractParser(PbParserBase):
 
 
 class ScatterToolContractParser(ToolContractParser):
+
     def __init__(self, tool_id, version, name, description, task_type, driver, nproc_symbol,
                  resource_types, chunk_keys, nchunks):
         super(ScatterToolContractParser, self).__init__(tool_id, version, name, description, task_type, driver,
