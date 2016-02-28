@@ -132,7 +132,7 @@ def _resolve_resource_types(resources, output_dir, root_tmp_dir):
 
 def _resolve_output_files(output_file_types, root_output_dir):
     # store the files as {(base, ext): count}
-    _outs_registry = defaultdict(lambda : 0)
+    _outs_registry = defaultdict(lambda: 0)
     return [_resolve_output_file(_outs_registry, REGISTERED_FILE_TYPES[f.file_type_id], f, root_output_dir) for f in output_file_types]
 
 

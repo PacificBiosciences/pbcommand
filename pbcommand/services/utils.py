@@ -27,7 +27,7 @@ def get_failed_jobs(sal):
 
 def jobs_summary(jobs):
     """dict(state) -> count (int) """
-    states_counts = defaultdict(lambda : 0)
+    states_counts = defaultdict(lambda: 0)
     if jobs:
         for job in jobs:
             states_counts[job.state] += 1
@@ -112,4 +112,3 @@ def to_sal_summary(sal):
     x(to_all_job_types_summary(sal, sep=sep))
 
     return "\n".join(outs)
-

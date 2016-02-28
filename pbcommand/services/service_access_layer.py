@@ -24,7 +24,7 @@ from .models import (SMRTServiceBaseError,
 from .utils import to_ascii, to_sal_summary
 
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler()) # to prevent the annoying 'No handlers .. ' msg
+log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
 
 
 class Constants(object):
@@ -225,14 +225,14 @@ def _block_for_job_to_complete(sal, job_id, time_out=600, sleep_time=2):
 # Make this consistent somehow. Maybe defined 'shortname' in the core model?
 # Martin is doing this for the XML file names
 DATASET_METATYPES_TO_ENDPOINTS = {
-     FileTypes.DS_SUBREADS_H5: "hdfsubreads",
-     FileTypes.DS_SUBREADS: "subreads",
-     FileTypes.DS_ALIGN: "alignments",
-     FileTypes.DS_REF: "references",
-     FileTypes.DS_BARCODE: "barcodes",
-     FileTypes.DS_CCS: "ccsreads",
-     FileTypes.DS_CONTIG: "contigs",
-     FileTypes.DS_ALIGN_CCS: "css-alignments"}
+    FileTypes.DS_SUBREADS_H5: "hdfsubreads",
+    FileTypes.DS_SUBREADS: "subreads",
+    FileTypes.DS_ALIGN: "alignments",
+    FileTypes.DS_REF: "references",
+    FileTypes.DS_BARCODE: "barcodes",
+    FileTypes.DS_CCS: "ccsreads",
+    FileTypes.DS_CONTIG: "contigs",
+    FileTypes.DS_ALIGN_CCS: "css-alignments"}
 
 
 def _get_endpoint_or_raise(ds_type):
@@ -391,7 +391,7 @@ class ServiceAccessLayer(object):
         custom_err_msg = "Import {p}".format(p=path)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
-            sleep_time=self._sleep_time)
+                                          sleep_time=self._sleep_time)
 
     def import_dataset_subread(self, path):
         return self._import_dataset(FileTypes.DS_SUBREADS, path)
@@ -488,7 +488,7 @@ class ServiceAccessLayer(object):
         custom_err_msg = "Fasta-convert path:{f} name:{n} organism:{o} ploidy:{p}".format(**_d)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
-            sleep_time=self._sleep_time)
+                                          sleep_time=self._sleep_time)
 
     def create_logger_resource(self, idx, name, description):
         _d = dict(id=idx, name=name, description=description)
@@ -530,7 +530,7 @@ class ServiceAccessLayer(object):
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
-                sleep_time=self._sleep_time)
+                                          sleep_time=self._sleep_time)
 
 
 def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True):
@@ -561,4 +561,3 @@ def add_datastore_file(total_url, datastore_file, ignore_errors=True):
             log.warn("Failed Request to {u} data: {d}. {e}".format(u=total_url, d=_d, e=e))
     else:
         return _process_rpost(total_url, _d)
-

@@ -75,7 +75,7 @@ def add_base_options(p, default_level='INFO'):
     """
     # This should automatically/required be added to be added from get_default_argparser
     return add_debug_option(add_log_level_option(add_log_file_option(p),
-        default_level=default_level))
+                                                 default_level=default_level))
 
 
 def add_common_options(p, default_level='INFO'):

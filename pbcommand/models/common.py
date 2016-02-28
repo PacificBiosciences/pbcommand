@@ -255,10 +255,10 @@ class FileTypes(object):
     DS_CONTIG = DataSetFileType(to_ds_ns("ContigSet"), "file", "contigset.xml", MimeTypes.XML)
     DS_BARCODE = DataSetFileType(to_ds_ns("BarcodeSet"), "file", "barcodeset.xml", MimeTypes.XML)
     DS_ALIGN_CCS = DataSetFileType(to_ds_ns("ConsensusAlignmentSet"), "file",
-                            "consensusalignmentset.xml", MimeTypes.XML)
+                                   "consensusalignmentset.xml", MimeTypes.XML)
 
     # PacBio Defined Formats
-    ### Index Files
+    # **** Index Files
 
     # ReferenceSet specific
     I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", MimeTypes.BINARY)

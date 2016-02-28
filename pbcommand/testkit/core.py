@@ -132,9 +132,9 @@ class PbTestApp(unittest.TestCase):
         exe = "{d} {p}".format(p=output_json_rtc, d=self.DRIVER_RESOLVE)
         log.info("Running exe '{e}'".format(e=exe))
         with tempfile.TemporaryFile() as stdout:
-             rcode = subprocess.call([exe], shell=True,
-                 stdout=stdout)
-             self.assertEquals(rcode, 0, "Running from resolved tool contract failed from {x}".format(x=exe))
+            rcode = subprocess.call([exe], shell=True,
+                                    stdout=stdout)
+            self.assertEquals(rcode, 0, "Running from resolved tool contract failed from {x}".format(x=exe))
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
 
         self._test_outputs_exists(rtc)

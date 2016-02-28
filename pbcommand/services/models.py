@@ -7,7 +7,6 @@ import iso8601
 from requests.exceptions import RequestException
 
 
-
 def to_ascii(s):
     return s.encode('ascii', 'ignore')
 
@@ -40,6 +39,7 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
 
 
 class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type created_at')):
+
     @staticmethod
     def from_d(d):
         def sx(x):
@@ -49,7 +49,7 @@ class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type crea
             return sx(x).encode('ascii', 'ignore')
 
         def to_t(x):
-           return iso8601.parse_date(se(x))
+            return iso8601.parse_date(se(x))
 
         return ServiceJob(sx('id'), sx('uuid'), se('name'), se('state'),
                           se('path'), se('jobTypeId'), to_t('createdAt'))
@@ -70,6 +70,7 @@ class SmrtServerConnectionError(RequestException):
 
 class SMRTServiceBaseError(Exception):
     """Fundamental Error datastructure in SMRT Server"""
+
     def __init__(self, http_code, error_type, message, **kwargs):
         self.http_code = http_code
         self.error_type = error_type
@@ -98,6 +99,7 @@ def _to_resource_id(x):
 
 class ServiceEntryPoint(object):
     """Entry Points to initialize Pipelines"""
+
     def __init__(self, entry_id, dataset_type, path_or_uri):
         self.entry_id = entry_id
         self.dataset_type = dataset_type
@@ -129,7 +131,6 @@ class JobEntryPoint(namedtuple("JobEntryPoint", "job_id dataset_uuid dataset_met
         return JobEntryPoint(d['jobId'], d['datasetUUID'], d['datasetType'])
 
 
-
 class JobStates(object):
     RUNNING = "RUNNING"
     CREATED = "CREATED"
@@ -149,7 +150,6 @@ class JobTypes(object):
     PB_PIPE = "pbsmrtpipe"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
     CONVERT_FASTA = 'convert-fasta-reference'
-
 
     @classmethod
     def ALL(cls):

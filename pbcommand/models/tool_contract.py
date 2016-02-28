@@ -99,6 +99,7 @@ class OutputFileType(_IOFileType):
 
 
 class ToolContractResolvedResource(object):
+
     def __init__(self, resource_type_id, path):
         assert resource_type_id in ResourceTypes.ALL()
         self.type_id = resource_type_id

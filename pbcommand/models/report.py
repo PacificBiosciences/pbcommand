@@ -711,6 +711,7 @@ class Report(BaseReportElement):
     @staticmethod
     def merge(reports):
         report_id = reports[0].id
+
         def _merge_attributes_d(attributes_list):
             attrs = OrderedDict()
             for ax in attributes_list:
@@ -720,6 +721,7 @@ class Report(BaseReportElement):
                     else:
                         attrs[a.id] = [a.value]
             return attrs
+
         def _merge_attributes_names(attributes_list):
             names = {}
             for ax in attributes_list:
@@ -729,18 +731,21 @@ class Report(BaseReportElement):
                     else:
                         names[a.id] = a.name
             return names
+
         def _attributes_to_table(attributes_list, table_id, title):
             attrs = _merge_attributes_d(attributes_list)
             labels = _merge_attributes_names(attributes_list)
-            columns = [ Column(k.lower(), header=labels[k], values=values)
-                        for k, values in attrs.iteritems() ]
+            columns = [Column(k.lower(), header=labels[k], values=values)
+                       for k, values in attrs.iteritems()]
             table = Table(table_id, title=title, columns=columns)
             return table
+
         def _sum_attributes(attributes_list):
             d = _merge_attributes_d(attributes_list)
             labels = _merge_attributes_names(attributes_list)
-            return [ Attribute(k, sum(values), name=labels[k])
-                     for k, values in d.iteritems() ]
+            return [Attribute(k, sum(values), name=labels[k])
+                    for k, values in d.iteritems()]
+
         def _merge_tables(tables):
             """Pass through singletons, Table.merge dupes"""
             id_collisions = defaultdict(list)
