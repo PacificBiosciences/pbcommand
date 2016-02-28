@@ -5,10 +5,11 @@ import os
 import sys
 
 from collections import namedtuple
+import time
 
 import pbcommand
 from .core import get_default_argparser
-from pbcommand.common_options import add_base_options
+from pbcommand.common_options import add_base_options, add_common_options
 
 from pbcommand.models import (ToolContractTask, ToolContract,
                               InputFileType, OutputFileType, FileType)
@@ -16,7 +17,7 @@ from pbcommand.models.parser import (to_option_schema, JsonSchemaTypes)
 from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
                              write_tool_contract)
-from pbcommand.utils import setup_log
+from pbcommand.utils import setup_log, setup_logger
 
 log = logging.getLogger(__name__)
 
@@ -180,10 +181,12 @@ def _subparser_builder(subparser, name, description, options_func, exe_func):
     return p
 
 
-def _add_run_rtc_options(p):
-    add_base_options(p)
-    p.add_argument('rtc_path', type=str, help="Path to resolved tool contract")
-    return p
+def _add_run_rtc_options(default_log_level=logging.INFO):
+    def _wrapper(p):
+        add_common_options(p, default_level=default_log_level)
+        p.add_argument('rtc_path', type=str, help="Path to resolved tool contract")
+        return p
+    return _wrapper
 
 
 def _add_emit_all_tcs_options(p):
@@ -206,28 +209,52 @@ def __args_summary_runner(registry):
     return _w
 
 
-def __args_rtc_runner(registry):
+def __args_rtc_runner(registry, default_log_level):
     def _w(args):
-        default_level = logging.INFO
 
-        level = args.log_level if hasattr(args, 'log_level') else default_level
+        started_at = time.time()
 
-        setup_log(log, level=level)
+        def run_time():
+            return time.time() - started_at
+
+        def exit_msg(rcode_):
+            return "Completed running {r} exitcode {e} in {t:.2f} sec.".format(r=rtc, e=rcode_, t=run_time())
+
+        level = getattr(args, 'log_level', default_log_level)
+        is_debug = getattr(args, 'debug', False)
+        is_quiet = getattr(args, 'quiet', False)
+
+        if is_debug:
+            level = logging.DEBUG
+
+        # quiet trumps debug or the provided log level
+        if is_quiet:
+            level = logging.ERROR
+
+        setup_logger(None, level=level)
 
         log.info("Loading pbcommand {v}".format(v=pbcommand.get_version()))
         log.info("Registry {r}".format(r=registry))
+        log.info("Setting log-level to {d}".format(d=level))
+        log.debug("args {a}".format(a=args))
         log.info("loading RTC from {i}".format(i=args.rtc_path))
         rtc = load_resolved_tool_contract_from(args.rtc_path)
-        id_funcs = {t.task.task_id:func for t, func in registry.rtc_runners.iteritems()}
+        id_funcs = {t.task.task_id: func for t, func in registry.rtc_runners.iteritems()}
         func = id_funcs.get(rtc.task.task_id, None)
         if func is None:
-            sys.stderr.write("ERROR. Unknown tool contract id {x}".format(x=rtc.task.task_id))
-            return -1
+            rcode = 1
+            log.error("Unknown tool contract id '{x}' Registered TC ids {i}".format(x=rtc.task.task_id, i=id_funcs.keys()))
+            log.error(exit_msg(rcode))
+            return rcode
         else:
             log.info("Running id:{i} Resolved Tool Contract {r}".format(r=rtc, i=rtc.task.task_id))
             log.info("Runner func {f}".format(f=func))
             exit_code = func(rtc)
-            log.info("Completed running {r} exitcode {e}".format(r=rtc, e=exit_code))
+            if exit_code == 0:
+                log.info(exit_msg(exit_code))
+            else:
+                log.error(exit_msg(exit_code))
+
             return exit_code
     return _w
 
@@ -262,17 +289,17 @@ def __args_emit_all_tcs_runner(registry):
     return _w
 
 
-def _to_registry_parser(version, description):
+def _to_registry_parser(version, description, default_log_level):
     def _f(registry):
         p = get_default_argparser(version, description)
         sp = p.add_subparsers(help='Commands')
 
         args_summary_runner = __args_summary_runner(registry)
-        args_rtc_runner = __args_rtc_runner(registry)
+        args_rtc_runner = __args_rtc_runner(registry, default_log_level)
         args_tc_emit = __args_emit_tc_runner(registry)
         args_tcs_emit = __args_emit_all_tcs_runner(registry)
 
-        _subparser_builder(sp, Constants.RTC_DRIVER, "Run Resolved Tool contract", _add_run_rtc_options, args_rtc_runner)
+        _subparser_builder(sp, Constants.RTC_DRIVER, "Run Resolved Tool contract", _add_run_rtc_options(default_log_level), args_rtc_runner)
         _subparser_builder(sp, 'emit-tool-contracts', "Emit all Tool contracts to output-dir", _add_emit_all_tcs_options, args_tcs_emit)
         _subparser_builder(sp, 'emit-tool-contract', "Emit a single tool contract by id", _add_emit_tc_options, args_tc_emit)
         _subparser_builder(sp, 'summary', "Summary of Tool Contracts", lambda x: x, args_summary_runner)
@@ -280,7 +307,7 @@ def _to_registry_parser(version, description):
     return _f
 
 
-def registry_runner(registry, argv):
+def registry_runner(registry, argv, default_log_level=logging.INFO):
     """Runs a registry
 
     1. Manually build an argparser that has
@@ -296,11 +323,10 @@ def registry_runner(registry, argv):
 
     :type registry: Registry
     """
-    log.info("Running registry {r} with args {a}".format(r=registry, a=argv))
-    f = _to_registry_parser('0.1.1', "Multi-quick-tool-runner for {r}".format(r=registry.namespace))
+    f = _to_registry_parser('0.1.1', "Multi-quick-tool-runner for {r}".format(r=registry.namespace), default_log_level)
     p = f(registry)
     args = p.parse_args(argv)
-    # need to disable this because some subparsers are emitting to stdout
-    # setup_log(log, level=logging.DEBUG)
+    # The logger needs to be setup only in specific subparsers. Some commands
+    # are using the stdout as a non logging model
     return_code = args.func(args)
     return return_code
