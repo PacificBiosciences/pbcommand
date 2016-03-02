@@ -83,9 +83,11 @@ def add_base_options(p, default_level='INFO'):
 
     """
     # This should automatically/required be added to be added from get_default_argparser
-    return add_log_verbose_option(add_log_quiet_option(add_log_debug_option(
-        add_log_level_option(add_log_file_option(p),
-                             default_level=default_level))))
+    add_log_file_option(p)
+    p_log = p.add_mutually_exclusive_group()
+    add_log_verbose_option(add_log_quiet_option(add_log_debug_option(
+        add_log_level_option(p_log, default_level=default_level))))
+    return p
 
 
 def add_common_options(p, default_level='INFO'):
