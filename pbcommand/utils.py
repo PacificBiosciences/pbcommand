@@ -21,7 +21,7 @@ log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
 class Constants(object):
     LOG_FMT_ONLY_MSG = '%(message)s'
     LOG_FMT_ERR = '%(message)s'
-    LOG_FMT_LVL = '[%(levelname)s] %(message)s '
+    LOG_FMT_LVL = '[%(levelname)s] %(message)s'
     LOG_FMT_MIN = '[%(asctime)-15sZ] %(message)s'
     LOG_FMT_SIMPLE = '[%(levelname)s] %(asctime)-15sZ %(message)s'
     LOG_FMT_STD = '[%(levelname)s] %(asctime)-15sZ [%(name)s] %(message)s'
