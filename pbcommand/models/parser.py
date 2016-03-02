@@ -279,10 +279,15 @@ class PyParser(PbParserBase):
 
     def __init__(self, tool_id, version, name, description, subcomponents=()):
         super(PyParser, self).__init__(tool_id, version, name, description)
-        self.parser = argparse.ArgumentParser(version=version,
+        self.parser = argparse.ArgumentParser(#version=version,
                                               description=description,
                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                               add_help=True)
+        self.parser.version = version
+        self.parser.add_argument('--version',
+                                 action="version",
+                                 help="show program's version number and exit")
+
         if subcomponents:
             add_subcomponent_versions_option(self.parser, subcomponents)
 

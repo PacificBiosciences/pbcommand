@@ -107,11 +107,16 @@ def main_runner(argv, parser, exe_runner_func, setup_log_func, alog):
     # log.debug(args)
 
     # setup log
-    if hasattr(args, 'debug'):
-        if args.debug:
+    _have_log_setup = False
+    if hasattr(args, 'quiet') and args.quiet:
+        setup_log_func(alog, level=logging.ERROR)
+    elif hasattr(args, 'verbosity') and args.verbosity > 0:
+        if args.verbosity >= 2:
             setup_log_func(alog, level=logging.DEBUG)
         else:
-            alog.addHandler(logging.NullHandler())
+            setup_log_func(alog, level=logging.INFO)
+    elif hasattr(args, 'debug') and args.debug:
+        setup_log_func(alog, level=logging.DEBUG)
     else:
         alog.addHandler(logging.NullHandler())
 

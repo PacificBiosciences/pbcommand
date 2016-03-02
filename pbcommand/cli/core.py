@@ -108,7 +108,16 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
 
     # If level is provided at the parser level, this will override all other
     # settings. This is defined in pbcommand.common_options.add_log_level_option
-    if hasattr(pargs, 'log_level'):
+    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
+        if pargs.verbosity >= 2:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+    elif hasattr(pargs, 'debug') and pargs.debug:
+        level = logging.DEBUG
+    elif hasattr(pargs, 'quiet') and pargs.quiet:
+        level = logging.ERROR
+    elif hasattr(pargs, 'log_level'):
         level = logging.getLevelName(pargs.log_level)
 
     # None will default to stdout

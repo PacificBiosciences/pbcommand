@@ -17,7 +17,7 @@ def args_runner(*args, **kwargs):
 
 def _example_parser():
     p = get_default_argparser("1.0.0", "Example Mock Parser")
-    p = CU.add_debug_option(p)
+    p = CU.add_log_debug_option(p)
     p.add_argument('example_file', type=str, help="No testing of existence")
     return p
 
