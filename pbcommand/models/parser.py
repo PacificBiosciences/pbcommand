@@ -546,19 +546,19 @@ def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed
 
 def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_keys,
                          is_distributed=True, nproc=1, nchunks=SymbolTypes.MAX_NCHUNKS, resource_types=(),
-                         subcomponents=(), serialization='json'):
+                         subcomponents=(), serialization='json', default_level="INFO"):
     """Create a Scatter Tool"""
     driver = ToolDriver(driver_exe, serialization=serialization)
     tc_parser = ScatterToolContractParser(tool_id, version, name, description, is_distributed,
                                           driver, nproc, resource_types, chunk_keys,
                                           nchunks)
-    return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
+    return _factory(tool_id, version, name, description, subcomponents, default_level)(tc_parser)
 
 
 def get_gather_pbparser(tool_id, version, name, description, driver_exe,
-                        is_distributed=True, nproc=1, resource_types=(), subcomponents=(), serialization='json'):
+                        is_distributed=True, nproc=1, resource_types=(), subcomponents=(), serialization='json', default_level="INFO"):
     """Create a Gather tool"""
     driver = ToolDriver(driver_exe, serialization=serialization)
     tc_parser = GatherToolContractParser(tool_id, version, name, description,
                                          is_distributed, driver, nproc, resource_types)
-    return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
+    return _factory(tool_id, version, name, description, subcomponents, default_level)(tc_parser)
