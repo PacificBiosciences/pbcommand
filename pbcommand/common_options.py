@@ -83,9 +83,11 @@ def add_base_options(p, default_level='INFO'):
 
     """
     # This should automatically/required be added to be added from get_default_argparser
-    return add_log_verbose_option(add_log_quiet_option(add_log_debug_option(
-        add_log_level_option(add_log_file_option(p),
-                             default_level=default_level))))
+    add_log_file_option(p)
+    p_log = p.add_mutually_exclusive_group()
+    add_log_verbose_option(add_log_quiet_option(add_log_debug_option(
+        add_log_level_option(p_log, default_level=default_level))))
+    return p
 
 
 def add_common_options(p, default_level='INFO'):
@@ -95,9 +97,9 @@ def add_common_options(p, default_level='INFO'):
     return add_log_quiet_option(add_log_debug_option(add_log_level_option(add_log_file_option(p), default_level=default_level)))
 
 
-def add_base_options_with_emit_tool_contract(p):
+def add_base_options_with_emit_tool_contract(p, default_level='INFO'):
     # can't use compose here because of circular imports via parser
-    return add_base_options(add_resolved_tool_contract_option(add_emit_tool_contract_option(p)))
+    return add_base_options(add_resolved_tool_contract_option(add_emit_tool_contract_option(p)), default_level=default_level)
 
 
 def _to_print_message_action(msg):

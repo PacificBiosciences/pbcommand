@@ -453,7 +453,7 @@ class PbParser(PbParserBase):
     (stored as tool_contract_parser and arg_parser attributes respectively).
     """
 
-    def __init__(self, tool_contract_parser, arg_parser, *parsers):
+    def __init__(self, tool_contract_parser, arg_parser, *parsers, **kwds):
         """
 
         :param tool_contract_parser:
@@ -470,7 +470,8 @@ class PbParser(PbParserBase):
         # python wrapper parser.
         self.arg_parser = arg_parser
         # add options, so it will show up via --help
-        add_base_options_with_emit_tool_contract(self.arg_parser.parser)
+        add_base_options_with_emit_tool_contract(self.arg_parser.parser,
+            default_level=kwds.get("default_level", "INFO"))
 
         # a list of other parsers that adhere to the PbParserBase interface
         # can be used.
@@ -521,15 +522,16 @@ class PbParser(PbParserBase):
         return self.tool_contract_parser.to_tool_contract()
 
 
-def _factory(tool_id, version, name, description, subcomponents):
+def _factory(tool_id, version, name, description, subcomponents, default_level):
     def _f(tc_parser):
         arg_parser = PyParser(tool_id, version, name, description, subcomponents=subcomponents)
-        return PbParser(tc_parser, arg_parser)
+        return PbParser(tc_parser, arg_parser, default_level=default_level)
     return _f
 
 
 def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed=True, nproc=1,
-                 resource_types=(), subcomponents=(), serialization='json'):
+                 resource_types=(), subcomponents=(), serialization='json',
+                 default_level="INFO"):
     """
     Central point of creating a Tool contract that can emit and run tool
     contracts.
@@ -539,7 +541,7 @@ def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed
     driver = ToolDriver(driver_exe, serialization=serialization)
     tc_parser = ToolContractParser(tool_id, version, name, description, is_distributed, driver,
                                    nproc, resource_types)
-    return _factory(tool_id, version, name, description, subcomponents)(tc_parser)
+    return _factory(tool_id, version, name, description, subcomponents, default_level)(tc_parser)
 
 
 def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_keys,
