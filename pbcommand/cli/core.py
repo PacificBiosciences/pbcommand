@@ -81,6 +81,22 @@ def get_default_argparser_with_base_opts(version, description, default_level="IN
     return add_base_options(get_default_argparser(version, description), default_level=default_level)
 
 
+def __get_parsed_args_log_level(pargs, default_level=logging.INFO):
+    level = default_level
+    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
+        if pargs.verbosity >= 2:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+    elif hasattr(pargs, 'debug') and pargs.debug:
+        level = logging.DEBUG
+    elif hasattr(pargs, 'quiet') and pargs.quiet:
+        level = logging.ERROR
+    elif hasattr(pargs, 'log_level'):
+        level = logging.getLevelName(pargs.log_level)
+    return level
+
+
 def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     """
     Runs a general func and logs results. The return type is expected to be an (int) return code.
@@ -104,21 +120,9 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     level = logging.INFO
 
     if 'level' in kwargs:
-        level = kwargs['level']
-
-    # If level is provided at the parser level, this will override all other
-    # settings. This is defined in pbcommand.common_options.add_log_level_option
-    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
-        if pargs.verbosity >= 2:
-            level = logging.DEBUG
-        else:
-            level = logging.INFO
-    elif hasattr(pargs, 'debug') and pargs.debug:
-        level = logging.DEBUG
-    elif hasattr(pargs, 'quiet') and pargs.quiet:
-        level = logging.ERROR
-    elif hasattr(pargs, 'log_level'):
-        level = logging.getLevelName(pargs.log_level)
+        level = kwargs.pop('level')
+    else:
+        level = __get_parsed_args_log_level(pargs)
 
     # None will default to stdout
     log_file = getattr(pargs, 'log_file', None)
@@ -247,7 +251,7 @@ def pacbio_args_or_contract_runner(argv,
         resolved_tool_contract = load_resolved_tool_contract_from(resolved_tool_contract_path)
         _log_not_none("Successfully loaded resolved tool contract from {a}".format(a=argv))
 
-        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract)
+        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract, level=resolved_tool_contract.task.log_level)
         _log_not_none("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
         return r
     else:

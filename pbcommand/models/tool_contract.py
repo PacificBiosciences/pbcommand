@@ -272,7 +272,7 @@ class ResolvedToolContractTask(object):
     TASK_TYPE_ID = TaskTypes.STANDARD
 
     def __init__(self, task_id, is_distributed, input_files, output_files,
-                 options, nproc, resources):
+                 options, nproc, resources, log_level="INFO"):
         self.task_id = task_id
         self.is_distributed = is_distributed
         self.input_files = input_files
@@ -280,6 +280,7 @@ class ResolvedToolContractTask(object):
         self.options = options
         self.nproc = nproc
         self.resources = resources
+        self.log_level = log_level
 
     @property
     def tmpdir_resources(self):
@@ -305,15 +306,16 @@ class ResolvedToolContractTask(object):
                   nproc=self.nproc,
                   resources=[r.to_dict() for r in self.resources],
                   options=self.options,
-                  _comment=comment)
+                  _comment=comment,
+                  log_level=self.log_level)
         return tc
 
 
 class ResolvedScatteredToolContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.SCATTERED
 
-    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks, chunk_keys):
-        super(ResolvedScatteredToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, max_nchunks, chunk_keys, log_level="INFO"):
+        super(ResolvedScatteredToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources, log_level)
         self.max_nchunks = max_nchunks
         # these can be used to verified the output chunk.json
         # after the task has been run
@@ -329,12 +331,12 @@ class ResolvedScatteredToolContractTask(ResolvedToolContractTask):
 class ResolvedGatherToolContractTask(ResolvedToolContractTask):
     TASK_TYPE_ID = TaskTypes.GATHERED
 
-    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, chunk_key):
+    def __init__(self, task_id, is_distributed, input_files, output_files, options, nproc, resources, chunk_key, log_level="INFO"):
         """
         The chunk key is used in the pluck specific chunk values from
         PipelineChunks. This makes gather tasks (i.e., GffGather) generalized.
         """
-        super(ResolvedGatherToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources)
+        super(ResolvedGatherToolContractTask, self).__init__(task_id, is_distributed, input_files, output_files, options, nproc, resources, log_level)
         self.chunk_key = chunk_key
 
     def to_dict(self):

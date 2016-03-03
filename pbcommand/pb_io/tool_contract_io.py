@@ -97,10 +97,11 @@ def __core_resolved_tool_contract_task_from_d(d):
     tool_options = _get("options")
     # int
     nproc = _get("nproc")
+    log_level = _get("log_level")
 
     resource_types = [ToolContractResolvedResource.from_d(dx) for dx in _get("resources")]
 
-    return tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types
+    return tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, log_level
 
 
 def __to_rtc_from_d(d):
@@ -114,31 +115,33 @@ def __to_rtc_from_d(d):
 def _standard_resolved_tool_contract_from_d(d):
     """Load a 'Standard' CLI task type"""
 
-    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types = __core_resolved_tool_contract_task_from_d(d)
+    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, log_level = __core_resolved_tool_contract_task_from_d(d)
 
     task = ResolvedToolContractTask(tool_contract_id, is_distributed,
                                     input_files, output_files,
-                                    tool_options, nproc, resource_types)
+                                    tool_options, nproc, resource_types,
+                                    log_level)
     return __to_rtc_from_d(d)(task)
 
 
 def _scatter_resolved_tool_contract_from_d(d):
     """Load a Gathered Tool Contract """
-    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types = __core_resolved_tool_contract_task_from_d(d)
+    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, log_level = __core_resolved_tool_contract_task_from_d(d)
     max_nchunks = d[Constants.RTOOL][Constants.MAX_NCHUNKS]
     chunk_keys = d[Constants.RTOOL][Constants.CHUNK_KEYS]
-    task = ResolvedScatteredToolContractTask(tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, max_nchunks, chunk_keys)
+    task = ResolvedScatteredToolContractTask(tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, max_nchunks, chunk_keys, log_level=log_level)
 
     return __to_rtc_from_d(d)(task)
 
 
 def _gather_resolved_tool_contract_from_d(d):
-    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types = __core_resolved_tool_contract_task_from_d(d)
+    tool_contract_id, is_distributed, input_files, output_files, tool_options, nproc, resource_types, log_level = __core_resolved_tool_contract_task_from_d(d)
 
     chunk_key = d[Constants.RTOOL][Constants.GATHER_CHUNK_KEY]
     task = ResolvedGatherToolContractTask(tool_contract_id, is_distributed,
                                           input_files, output_files,
-                                          tool_options, nproc, resource_types, chunk_key)
+                                          tool_options, nproc, resource_types,
+                                          chunk_key, log_level=log_level)
     return __to_rtc_from_d(d)(task)
 
 
