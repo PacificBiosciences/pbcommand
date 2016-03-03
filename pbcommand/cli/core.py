@@ -25,7 +25,9 @@ import pbcommand
 
 from pbcommand.models import PbParser
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
-                                      EMIT_TOOL_CONTRACT_OPTION, add_base_options)
+                                      EMIT_TOOL_CONTRACT_OPTION,
+                                      add_resolved_tool_contract_option,
+                                      add_base_options)
 
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
@@ -165,52 +167,6 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     return return_code
 
 
-def _get_resolved_tool_contract_from_argv(argv):
-    """
-    Extract the resolved tool contract path from the raw argv
-
-    There are two cases
-
-    --resolved-tool-contract-path=/path/to/tool_contract.json
-    --resolved-tool-contract-path /path/to/tool_contract.json
-
-    :param argv:
-    :rtype: str
-    :raises: ValueError
-    :return: Path to Manifest
-    """
-    # this is a lackluster implementation. FIXME.
-
-    m_str = RESOLVED_TOOL_CONTRACT_OPTION
-
-    error = ValueError("Unable to extract resolved tool contract from commandline args {a}. Expecting {m}=/path/to/file.json".format(a=argv, m=m_str))
-    tool_contract_path = None
-    nargv = len(argv)
-
-    # Provided the --resolved-tool-contract /path/to/tool_contract_path.json
-    if m_str in argv:
-        for i, a in enumerate(argv):
-            # print i, nargv, a
-            if a.startswith(m_str):
-                if (i + 1) <= nargv:
-                    tool_contract_path = argv[i + 1]
-                    break
-                else:
-                    raise error
-
-    # Provided the --resolved-tool-contract=/path/to/tool_contract_path.json
-    m_str_eq = m_str + "="
-    for i in argv:
-        if i.startswith(m_str_eq):
-            tool_contract_path = i.split(m_str_eq)[-1]
-            break
-
-    if tool_contract_path is None:
-        raise error
-
-    return tool_contract_path
-
-
 def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func):
     # For tools that haven't yet implemented the ToolContract API
     args = parser.parse_args(argv)
@@ -243,15 +199,27 @@ def pacbio_args_or_contract_runner(argv,
         if alog is not None:
             alog.info(msg)
 
-    # circumvent the argparse parsing by inspecting the raw argv, then manually
-    # parse out the resolved_tool_contract path. Not awesome, but the only way to skip the
-    # parser.parse_args(args) machinery
+    # circumvent the argparse parsing by inspecting the raw argv, then create
+    # a temporary parser with limited arguments to process the special case of
+    # --resolved-cool-contract (while still respecting verbosity flags).
     if any(a.startswith(RESOLVED_TOOL_CONTRACT_OPTION) for a in argv):
-        resolved_tool_contract_path = _get_resolved_tool_contract_from_argv(argv)
-        resolved_tool_contract = load_resolved_tool_contract_from(resolved_tool_contract_path)
+        p_tmp = get_default_argparser(version=parser.version,
+            description=parser.description)
+        add_resolved_tool_contract_option(add_base_options(p_tmp,
+            default_level="NOTSET"))
+        args_tmp = p_tmp.parse_args(argv)
+        resolved_tool_contract = load_resolved_tool_contract_from(
+            args_tmp.resolved_tool_contract)
         _log_not_none("Successfully loaded resolved tool contract from {a}".format(a=argv))
-
-        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract, level=resolved_tool_contract.task.log_level)
+        # XXX if one of the logging flags was specified, that takes precedence,
+        # otherwise use the log level in the resolved tool contract.  note that
+        # this takes advantage of the fact that argparse allows us to use
+        # NOTSET as the default level even though it's not one of the choices.
+        log_level = __get_parsed_args_log_level(args_tmp,
+            default_level=logging.NOTSET)
+        if log_level == logging.NOTSET:
+            log_level = resolved_tool_contract.task.log_level
+        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract, level=log_level)
         _log_not_none("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
         return r
     else:
