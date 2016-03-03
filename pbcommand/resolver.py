@@ -153,7 +153,7 @@ def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_o
     return output_files, resolved_options, nproc, resolved_resources
 
 
-def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, is_distributable):
+def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, is_distributable, log_level="INFO"):
     """
     Convert a ToolContract into a Resolved Tool Contract.
 
@@ -183,12 +183,13 @@ def resolve_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_
                                     output_files,
                                     resolved_options,
                                     nproc,
-                                    resources)
+                                    resources,
+                                    log_level=log_level)
 
     return ResolvedToolContract(task, tool_contract.driver)
 
 
-def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys, is_distributable):
+def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, max_nchunks, chunk_keys, is_distributable, log_level="INFO"):
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=root_tmp_dir)
     resolved_max_chunks = _resolve_max_nchunks(tool_contract.task.max_nchunks, max_nchunks)
     task = ResolvedScatteredToolContractTask(tool_contract.task.task_id,
@@ -197,11 +198,11 @@ def resolve_scatter_tool_contract(tool_contract, input_files, root_output_dir, r
                                              output_files,
                                              resolved_options,
                                              nproc,
-                                             resources, resolved_max_chunks, chunk_keys)
+                                             resources, resolved_max_chunks, chunk_keys, log_level=log_level)
     return ResolvedToolContract(task, tool_contract.driver)
 
 
-def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key, is_distributable):
+def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, root_tmp_dir, max_nproc, tool_options, chunk_key, is_distributable, log_level="INFO"):
     output_files, resolved_options, nproc, resources = _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=root_tmp_dir)
     task = ResolvedGatherToolContractTask(tool_contract.task.task_id,
                                           tool_contract.task.is_distributed and is_distributable,
@@ -209,5 +210,6 @@ def resolve_gather_tool_contract(tool_contract, input_files, root_output_dir, ro
                                           output_files,
                                           resolved_options,
                                           nproc,
-                                          resources, chunk_key)
+                                          resources, chunk_key,
+                                          log_level=log_level)
     return ResolvedToolContract(task, tool_contract.driver)
