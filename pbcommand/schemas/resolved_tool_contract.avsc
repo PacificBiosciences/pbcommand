@@ -52,6 +52,10 @@
             "type": "string"
           },
           {
+            "name": "log_level",
+            "type": "string"
+          },
+          {
             "name": "resources",
             "type": {
               "type": "array",
