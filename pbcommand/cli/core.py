@@ -19,11 +19,13 @@ import json
 import logging
 import time
 import traceback
+import shutil
+import os
 import sys
 
 import pbcommand
 
-from pbcommand.models import PbParser
+from pbcommand.models import PbParser, ResourceTypes
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
                                       EMIT_TOOL_CONTRACT_OPTION,
                                       add_resolved_tool_contract_option,
@@ -173,6 +175,23 @@ def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func):
     return _pacbio_main_runner(alog, setup_log_func, args_runner_func, args)
 
 
+class TemporaryResourcesManager(object):
+    """Context manager for creating and destroying temporary resources"""
+
+    def __init__(self, rtc):
+        self.resolved_tool_contract = rtc
+
+    def __enter__(self):
+        for resource in self.resolved_tool_contract.task.resources:
+            if resource.type_id == ResourceTypes.TMP_DIR:
+                os.makedirs(resource.path)
+
+    def __exit__(self, type, value, traceback):
+        for resource in self.resolved_tool_contract.task.resources:
+            if resource.type_id == ResourceTypes.TMP_DIR:
+                shutil.rmtree(resource.path)
+
+
 def pacbio_args_or_contract_runner(argv,
                                    parser,
                                    args_runner_func,
@@ -219,9 +238,10 @@ def pacbio_args_or_contract_runner(argv,
             default_level=logging.NOTSET)
         if log_level == logging.NOTSET:
             log_level = resolved_tool_contract.task.log_level
-        r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract, level=log_level)
-        _log_not_none("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
-        return r
+        with TemporaryResourcesManager(resolved_tool_contract) as tmp_mgr:
+            r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract, level=log_level)
+            _log_not_none("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
+            return r
     else:
         # tool was called with the standard commandline invocation
         return pacbio_args_runner(argv, parser, args_runner_func, alog,
