@@ -189,7 +189,8 @@ class TemporaryResourcesManager(object):
     def __exit__(self, type, value, traceback):
         for resource in self.resolved_tool_contract.task.resources:
             if resource.type_id == ResourceTypes.TMP_DIR:
-                shutil.rmtree(resource.path)
+                if os.path.exists(resource.path):
+                    shutil.rmtree(resource.path)
 
 
 def pacbio_args_or_contract_runner(argv,
