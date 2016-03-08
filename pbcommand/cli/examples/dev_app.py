@@ -31,7 +31,7 @@ def add_args_and_options(p):
     # FileType, label, name, description
     p.add_input_file_type(FileTypes.FASTA, "fasta_in", "Fasta File", "PacBio Spec'ed fasta file")
     # File Type, label, name, description, default file name
-    p.add_output_file_type(FileTypes.FASTA, "fasta_out", "Filtered Fasta file", "Filtered Fasta file", "filter.fasta")
+    p.add_output_file_type(FileTypes.FASTA, "fasta_out", "Filtered Fasta file", "Filtered Fasta file", "filter")
     # Option id, label, default value, name, description
     # for the argparse, the read-length will be translated to --read-length and (accessible via args.read_length)
     p.add_int("pbcommand.task_options.dev_read_length", "read-length", 25, "Length filter", "Min Sequence Length filter")

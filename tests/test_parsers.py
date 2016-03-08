@@ -31,7 +31,7 @@ class TestParsers(unittest.TestCase):
             file_id="gff",
             name="GFF file",
             description="GFF file description",
-            default_name="annotations.gff")
+            default_name="annotations")
         tc_contract = p.to_contract()
         d = tc_contract.to_dict()
         inputs = d['tool_contract']['input_types']
@@ -54,7 +54,7 @@ class TestParsers(unittest.TestCase):
             {
                 'title': 'GFF file',
                 'description': 'GFF file description',
-                'default_name': 'annotations.gff',
+                'default_name': 'annotations',
                 'id': 'gff',
                 'file_type_id': 'PacBio.FileTypes.gff'
             }
@@ -88,6 +88,22 @@ class TestParsers(unittest.TestCase):
 
         opts2 = pa([])
         self.assertFalse(opts2.loud)
+
+    def test_catch_output_file_extension(self):
+        p = get_pbparser(
+            "pbcommand.tasks.test_parsers",
+            "0.1.0",
+            "Tool Name",
+            "Tool Descripion",
+            "pbcommand-driver-exe ")
+        p.add_output_file_type(
+            file_type=FileTypes.GFF,
+            file_id="gff",
+            name="GFF file",
+            description="GFF file description",
+            default_name="annotations.gff")
+        tc = p.to_contract()
+        self.assertRaises(ValueError, tc.to_dict)
 
     # TODO we should add a lot more tests for parser behavior
 

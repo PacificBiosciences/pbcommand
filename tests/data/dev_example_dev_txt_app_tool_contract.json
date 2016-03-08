@@ -43,7 +43,7 @@
             {
                 "title": "Txt outfile", 
                 "description": "Generic Output Txt file", 
-                "default_name": "output.txt", 
+                "default_name": "output", 
                 "id": "txt_out", 
                 "file_type_id": "PacBio.FileTypes.txt"
             }

@@ -43,7 +43,7 @@
             {
                 "title": "Filtered Fasta file", 
                 "description": "Filtered Fasta file", 
-                "default_name": "filter.fasta", 
+                "default_name": "filter", 
                 "id": "fasta_out", 
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
