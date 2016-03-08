@@ -51,7 +51,7 @@ def add_rtc_options(p):
     :return:
     """
     p.add_input_file_type(FileTypes.CSV, "csv", "Input CSV", "Input csv description")
-    p.add_output_file_type(FileTypes.REPORT, "rpt", "Output Report", "Output PacBio Report JSON", "example.report.json")
+    p.add_output_file_type(FileTypes.REPORT, "rpt", "Output Report", "Output PacBio Report JSON", "example.report")
     p.add_int("pbcommand.task_options.alpha", "alpha", 25, "Alpha", "Alpha description")
     return p
 

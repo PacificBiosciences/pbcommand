@@ -37,7 +37,7 @@ def get_parser():
     # Add Input Files types
     p.add_input_file_type(FileTypes.TXT, "txt_in", "Txt file", "Generic Text File")
     # Add output files types
-    p.add_output_file_type(FileTypes.TXT, "txt_out", "Txt outfile", "Generic Output Txt file", "output.txt")
+    p.add_output_file_type(FileTypes.TXT, "txt_out", "Txt outfile", "Generic Output Txt file", "output")
     p.add_int("pbcommand.task_options.dev_max_nlines", "max_nlines", 10, "Max Lines", "Max Number of lines to Copy")
     return p
 

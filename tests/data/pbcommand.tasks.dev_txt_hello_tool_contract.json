@@ -20,14 +20,14 @@
         "nproc": 3, 
         "output_types": [
             {
-                "default_name": "file.txt", 
+                "default_name": "file", 
                 "description": "description for <FileType id=PacBio.FileTypes.txt name=file.txt >", 
                 "file_type_id": "PacBio.FileTypes.txt", 
                 "id": "Label PacBio.FileTypes.txt_0", 
                 "title": "<FileType id=PacBio.FileTypes.txt name=file.txt >"
             }, 
             {
-                "default_name": "file.txt", 
+                "default_name": "file", 
                 "description": "description for <FileType id=PacBio.FileTypes.txt name=file.txt >", 
                 "file_type_id": "PacBio.FileTypes.txt", 
                 "id": "Label PacBio.FileTypes.txt_1", 

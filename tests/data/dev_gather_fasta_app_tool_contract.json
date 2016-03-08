@@ -15,7 +15,7 @@
             {
                 "title": "Chunk JSON", 
                 "description": "Output Fasta", 
-                "default_name": "gathered.fasta", 
+                "default_name": "gathered", 
                 "id": "output", 
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }

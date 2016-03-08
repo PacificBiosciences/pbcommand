@@ -20,7 +20,7 @@
         "nproc": 1, 
         "output_types": [
             {
-                "default_name": "file.fasta", 
+                "default_name": "file", 
                 "description": "description for <FileType id=PacBio.FileTypes.Fasta name=file.fasta >", 
                 "file_type_id": "PacBio.FileTypes.Fasta", 
                 "id": "Label PacBio.FileTypes.Fasta_0", 

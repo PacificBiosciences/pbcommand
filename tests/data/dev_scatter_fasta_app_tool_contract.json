@@ -39,7 +39,7 @@
             {
                 "title": "Chunk JSON", 
                 "description": "Scattered/Chunked Fasta Chunk.json", 
-                "default_name": "fasta.chunks.json", 
+                "default_name": "fasta.chunks", 
                 "id": "cjson", 
                 "file_type_id": "PacBio.FileTypes.CHUNK"
             }
