@@ -8,7 +8,7 @@ from collections import namedtuple
 import time
 
 import pbcommand
-from .core import get_default_argparser
+from .core import get_default_argparser_with_base_opts
 from pbcommand.common_options import add_base_options, add_common_options
 
 from pbcommand.models import (ToolContractTask, ToolContract,
@@ -17,7 +17,7 @@ from pbcommand.models.parser import (to_option_schema, JsonSchemaTypes)
 from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
                              write_tool_contract)
-from pbcommand.utils import setup_log, setup_logger
+from pbcommand.utils import setup_log, setup_logger, get_parsed_args_log_level
 
 log = logging.getLogger(__name__)
 
@@ -221,17 +221,7 @@ def __args_rtc_runner(registry, default_log_level):
         def exit_msg(rcode_):
             return "Completed running {r} exitcode {e} in {t:.2f} sec.".format(r=rtc, e=rcode_, t=run_time())
 
-        level = getattr(args, 'log_level', default_log_level)
-        is_debug = getattr(args, 'debug', False)
-        is_quiet = getattr(args, 'quiet', False)
-
-        if is_debug:
-            level = logging.DEBUG
-
-        # quiet trumps debug or the provided log level
-        if is_quiet:
-            level = logging.ERROR
-
+        level = get_parsed_args_log_level(args)
         setup_logger(None, level=level)
 
         log.info("Loading pbcommand {v}".format(v=pbcommand.get_version()))
@@ -292,7 +282,7 @@ def __args_emit_all_tcs_runner(registry):
 
 def _to_registry_parser(version, description, default_log_level):
     def _f(registry):
-        p = get_default_argparser(version, description)
+        p = get_default_argparser_with_base_opts(version, description)
         sp = p.add_subparsers(help='Commands')
 
         args_summary_runner = __args_summary_runner(registry)

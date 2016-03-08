@@ -1,6 +1,9 @@
 import functools
 import unittest
-from pbcommand.utils import Singleton, compose
+import argparse
+import logging
+
+from pbcommand.utils import Singleton, compose, get_parsed_args_log_level
 
 
 class TestSingleton(unittest.TestCase):
@@ -51,3 +54,40 @@ class TestCompose(unittest.TestCase):
         f = compose(add_five, add_two)
         value = f(5)
         self.assertEquals(value, 12)
+
+
+class TestLogging(unittest.TestCase):
+
+    def test_get_parsed_args_log_level(self):
+        # XXX more of an integration test, sorry - we need to ensure that
+        # these functions work in combination with get_parsed_args_log_level
+        from pbcommand.common_options import (
+            add_log_debug_option, add_log_quiet_option, add_log_verbose_option,
+            add_log_level_option)
+        def _get_argparser(level="INFO"):
+            p = argparse.ArgumentParser()
+            p.add_argument("--version", action="store_true")
+            add_log_level_option(add_log_debug_option(add_log_quiet_option(
+                add_log_verbose_option(p))), default_level=level)
+            return p
+        p = _get_argparser().parse_args([])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.INFO)
+        p = _get_argparser().parse_args(["--quiet"])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.ERROR)
+        p = _get_argparser().parse_args(["--debug"])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.DEBUG)
+        p = _get_argparser("ERROR").parse_args(["--verbose"])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.INFO)
+        p = _get_argparser("DEBUG").parse_args(["--log-level=WARNING"])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.WARNING)
+        p = _get_argparser("NOTSET").parse_args([])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.NOTSET)
+        p = _get_argparser(logging.NOTSET).parse_args([])
+        l = get_parsed_args_log_level(p)
+        self.assertEqual(l, logging.NOTSET)

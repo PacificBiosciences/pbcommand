@@ -193,6 +193,32 @@ def setup_log(alog,
     return alog
 
 
+def get_parsed_args_log_level(pargs, default_level=logging.INFO):
+    """
+    Utility for handling logging setup flexibly in a variety of use cases,
+    assuming standard command-line arguments.
+
+    :param pargs: argparse namespace or equivalent
+    :param default_level: logging level to use if the parsed arguments do not
+                          specify one
+    """
+    level = default_level
+    if isinstance(level, basestring):
+        level = logging.getLevelName(level)
+    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
+        if pargs.verbosity >= 2:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+    elif hasattr(pargs, 'debug') and pargs.debug:
+        level = logging.DEBUG
+    elif hasattr(pargs, 'quiet') and pargs.quiet:
+        level = logging.ERROR
+    elif hasattr(pargs, 'log_level'):
+        level = logging.getLevelName(pargs.log_level)
+    return level
+
+
 def log_traceback(alog, ex, ex_traceback):
     """
     Log a python traceback in the log file

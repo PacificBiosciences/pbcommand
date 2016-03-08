@@ -1,4 +1,6 @@
 """Common options and utils that can me used in commandline utils"""
+
+import logging
 import argparse
 import sys
 
@@ -37,6 +39,8 @@ def add_log_verbose_option(p):
 
 def add_log_level_option(p, default_level='INFO'):
     """Add logging level with a default value"""
+    if isinstance(default_level, int):
+        default_level = logging.getLevelName(default_level)
     p.add_argument('--log-level', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'),
                    default=default_level, help="Set log level")
     return p
