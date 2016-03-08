@@ -7,7 +7,7 @@ import abc
 
 import pbcommand
 
-from .common import TaskTypes, ResourceTypes
+from .common import TaskTypes, ResourceTypes, REGISTERED_FILE_TYPES
 
 __version__ = pbcommand.get_version()
 
@@ -48,6 +48,12 @@ def validate_tool_contract(tc):
     """
     __validate_ioputs("Inputs must have at least 1 input.", tc.task.input_file_types)
     __validate_ioputs("Outputs must have at least 1 output", tc.task.output_file_types)
+    for oft in tc.task.output_file_types:
+        file_type = REGISTERED_FILE_TYPES[oft.file_type_id]
+        if oft.default_name.endswith(file_type.ext):
+            raise ValueError(
+                "File {i} default name already has extension: {n}".format(
+                i=oft.label, n=oft.default_name))
     return tc
 
 

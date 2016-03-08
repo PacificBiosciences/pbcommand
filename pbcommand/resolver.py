@@ -84,14 +84,7 @@ def _resolve_output_file(registry_d, file_type, output_file_type, root_output_di
 
     # FIXME. THIS NEED TO BE FUNDAMENTALLY FIXED and updated to use the spec
     # in the avro schema.
-    if isinstance(output_file_type.default_name, basestring):
-        a, b = os.path.splitext(output_file_type.default_name)
-        return _get_fname(a, b.replace('.', ''))
-    elif isinstance(output_file_type.default_name, (list, tuple)):
-        base, ext = output_file_type.default_name
-        return _get_fname(base, ext)
-    else:
-        return _get_fname(file_type.base_name, file_type.ext)
+    return _get_fname(output_file_type.default_name, file_type.ext)
 
 
 def _resolve_resource_types(resources, output_dir, root_tmp_dir):

@@ -154,7 +154,7 @@ class FileType(object):
 
     @property
     def default_name(self):
-        return ".".join([self.base_name, self.ext])
+        return self.base_name # ".".join([self.base_name, self.ext])
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -200,6 +200,8 @@ class FileTypes(object):
     TXT = FileType(to_file_ns('txt'), 'file', 'txt', MimeTypes.TXT)
     # Generic Log file
     LOG = FileType(to_file_ns('log'), 'file', 'log', MimeTypes.TXT)
+    # Config file
+    CFG = FileType(to_file_ns('cfg'), 'config', 'cfg', MimeTypes.TXT)
 
     # THIS NEEDS TO BE CONSISTENT with scala code. When the datastore
     # is written to disk the file type id's might be translated to
