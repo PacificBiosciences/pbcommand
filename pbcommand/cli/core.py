@@ -30,7 +30,7 @@ from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
                                       EMIT_TOOL_CONTRACT_OPTION,
                                       add_resolved_tool_contract_option,
                                       add_base_options)
-
+from pbcommand.utils import get_parsed_args_log_level
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
 
@@ -85,22 +85,6 @@ def get_default_argparser_with_base_opts(version, description, default_level="IN
     return add_base_options(get_default_argparser(version, description), default_level=default_level)
 
 
-def __get_parsed_args_log_level(pargs, default_level=logging.INFO):
-    level = default_level
-    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
-        if pargs.verbosity >= 2:
-            level = logging.DEBUG
-        else:
-            level = logging.INFO
-    elif hasattr(pargs, 'debug') and pargs.debug:
-        level = logging.DEBUG
-    elif hasattr(pargs, 'quiet') and pargs.quiet:
-        level = logging.ERROR
-    elif hasattr(pargs, 'log_level'):
-        level = logging.getLevelName(pargs.log_level)
-    return level
-
-
 def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     """
     Runs a general func and logs results. The return type is expected to be an (int) return code.
@@ -126,7 +110,7 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     if 'level' in kwargs:
         level = kwargs.pop('level')
     else:
-        level = __get_parsed_args_log_level(pargs)
+        level = get_parsed_args_log_level(pargs)
 
     # None will default to stdout
     log_file = getattr(pargs, 'log_file', None)
@@ -235,7 +219,7 @@ def pacbio_args_or_contract_runner(argv,
         # otherwise use the log level in the resolved tool contract.  note that
         # this takes advantage of the fact that argparse allows us to use
         # NOTSET as the default level even though it's not one of the choices.
-        log_level = __get_parsed_args_log_level(args_tmp,
+        log_level = get_parsed_args_log_level(args_tmp,
             default_level=logging.NOTSET)
         if log_level == logging.NOTSET:
             log_level = resolved_tool_contract.task.log_level
