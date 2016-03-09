@@ -89,6 +89,7 @@ def args_executer(args):
         return_code = args.func(args)
     except Exception as e:
         log.error(e, exc_info=True)
+        import sys
         traceback.print_exc(sys.stderr)
         if isinstance(e, IOError):
             return_code = 1
