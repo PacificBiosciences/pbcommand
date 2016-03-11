@@ -116,7 +116,7 @@ def dict_to_report(dct):
                     plotgroups=plot_groups,
                     tables=tables,
                     attributes=attributes,
-                    dataset_uuids=dct['dataset_uuids'])
+                    dataset_uuids=dct.get('dataset_uuids', ()))
 
     return report
 
