@@ -139,7 +139,8 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
         run_time = time.time() - started_at
         if alog is not None:
             alog.error(e, exc_info=True)
-        traceback.print_exc(sys.stderr)
+        else:
+            traceback.print_exc(sys.stderr)
 
         # We should have a standard map of exit codes to Int
         if isinstance(e, IOError):
