@@ -760,13 +760,16 @@ class Report(BaseReportElement):
             return merged
         attr_list = []
         table_list = []
+        dataset_uuids = set()
         for report in reports:
             assert report.id == report_id
             attr_list.append(report.attributes)
             table_list.extend(report.tables)
+            dataset_uuids.update(set(report._dataset_uuids))
         table = _attributes_to_table(attr_list, 'chunk_metrics',
                                      "Chunk Metrics")
         tables = _merge_tables(table_list)
         tables.append(table)
         merged_attributes = _sum_attributes(attr_list)
-        return Report(report_id, attributes=merged_attributes, tables=tables)
+        return Report(report_id, attributes=merged_attributes, tables=tables,
+                      dataset_uuids=sorted(list(dataset_uuids)))
