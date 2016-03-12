@@ -203,7 +203,8 @@ class TestReportModel(unittest.TestCase):
             Report("pbcommand_test",
                 attributes=[
                     Attribute(id_="n_reads", value=50, name="Number of reads"),
-                    Attribute(id_="n_zmws", value=10, name="Number of ZMWs")]),
+                    Attribute(id_="n_zmws", value=10, name="Number of ZMWs")],
+                dataset_uuids=["12345"]),
             Report("pbcommand_test",
                 attributes=[
                     Attribute(id_="n_reads", value=250, name="Number of reads"),
@@ -211,6 +212,7 @@ class TestReportModel(unittest.TestCase):
         ]
         r = Report.merge(chunks)
         self.assertEqual([a.id for a in r.attributes], ["n_reads", "n_zmws"])
+        self.assertEqual(r._dataset_uuids, ["12345"])
         for attr in r.attributes:
             self.assertEqual(attr.value, EXPECTED_VALUES[attr.id])
             self.assertEqual(attr.name, NAMES[attr.id])
