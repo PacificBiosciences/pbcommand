@@ -28,7 +28,7 @@ import traceback
 import uuid
 from requests import RequestException
 
-from pbcommand.cli import get_default_argparser
+from pbcommand.cli import get_default_argparser_with_base_opts
 from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
@@ -36,7 +36,8 @@ from pbcommand.services import (ServiceAccessLayer,
 from pbcommand.validators import validate_file, validate_or
 from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
-                             walker, setup_log, compose, setup_logger)
+                             walker, setup_log, compose, setup_logger,
+                             get_parsed_args_log_level)
 
 from .utils import to_ascii
 
@@ -158,11 +159,20 @@ def import_local_dataset(sal, path):
     """:type sal: ServiceAccessLayer"""
     # XXX basic validation of external resources
     try:
-        from pbcore.io import openDataSet
+        from pbcore.io import openDataSet, ReadSet
     except ImportError:
         log.warn("Can't import pbcore, skipping dataset sanity check")
     else:
         ds = openDataSet(path, strict=True)
+        if isinstance(ds, ReadSet):
+            log.info("checking BAM file integrity")
+            for rr in ds.resourceReaders():
+                try:
+                    last_record = rr[-1]
+                except Exception as e:
+                    log.exception("Import failed because the underlying "+
+                                  "data appear to be corrupted.")
+                    return 1
     # this will raise if the import wasn't successful
     _ = sal.run_import_local_dataset(path)
     log.info("Successfully import dataset from {f}".format(f=path))
@@ -401,7 +411,7 @@ def subparser_builder(subparser, subparser_id, description, options_func, exe_fu
 
 def get_parser():
     desc = "Tool to import datasets, convert/import fasta file and run analysis jobs"
-    p = get_default_argparser(__version__, desc)
+    p = get_default_argparser_with_base_opts(__version__, desc)
 
     sp = p.add_subparsers(help='commands')
 
@@ -470,22 +480,8 @@ def main_runner(argv, parser, exe_runner_func,
     started_at = time.time()
     args = parser.parse_args(argv)
 
-    console_or_file = getattr(args, 'log_file', None)
-
-    if hasattr(args, 'log_level'):
-        level = getattr(args, 'log_level')
-
-    # Debug will override
-    if hasattr(args, 'debug'):
-        if args.debug:
-            if args.debug is True:
-                level = logging.DEBUG
-
-    # Quiet will override everything
-    if hasattr(args, 'quiet'):
-        if args.quiet:
-            level = logging.ERROR
-
+    level = get_parsed_args_log_level(args, default_level=logging.DEBUG)
+    console_or_file = args.log_file
     setup_logger(console_or_file, level, formatter=str_formatter)
 
     log.debug(args)
