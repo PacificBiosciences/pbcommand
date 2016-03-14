@@ -171,7 +171,9 @@ def import_local_dataset(sal, path):
                     last_record = rr[-1]
                 except Exception as e:
                     log.exception("Import failed because the underlying "+
-                                  "data appear to be corrupted.")
+                                  "data appear to be corrupted.  Run "+
+                                  "'pbvalidate' on the dataset for more "+
+                                  "thorough checking.")
                     return 1
     # this will raise if the import wasn't successful
     _ = sal.run_import_local_dataset(path)
