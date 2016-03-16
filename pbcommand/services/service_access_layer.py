@@ -432,14 +432,15 @@ class ServiceAccessLayer(object):
                                    "XML schema errors.").format(
                                    u=dataset_meta_type.uuid))
             # validation 2: make sure it shows up in the listing
-            if dataset_meta_type.metatype == "PacBio.DataSet.SubreadSet":
-                datasets = self.get_subreadsets()
-                uuids = set([ds['uuid'] for ds in datasets])
-                if not dataset_meta_type.uuid in uuids:
-                    raise JobExeError(("Dataset {u} was imported but does not "+
-                                       "appear in the subread list; this may "+
-                                       "indicate XML schema errors.").format(
-                                       u=dataset_meta_type.uuid))
+            file_type = FileTypes.ALL()[dataset_meta_type.metatype]
+            ds_endpoint = _get_endpoint_or_raise(file_type)
+            datasets = self._get_datasets_by_type(ds_endpoint)
+            uuids = set([ds['uuid'] for ds in datasets])
+            if not dataset_meta_type.uuid in uuids:
+                 raise JobExeError(("Dataset {u} was imported but does not "+
+                                    "appear in the subread list; this may "+
+                                    "indicate XML schema errors.").format(
+                                    u=dataset_meta_type.uuid))
             return job_result
         else:
             log.info("{f} already imported. Skipping importing. {r}".format(r=result, f=dataset_meta_type.metatype))
