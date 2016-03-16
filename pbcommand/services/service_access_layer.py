@@ -24,7 +24,7 @@ from .models import (SMRTServiceBaseError,
 from .utils import to_ascii, to_sal_summary
 
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
+#log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
 
 
 class Constants(object):
@@ -422,9 +422,28 @@ class ServiceAccessLayer(object):
         result = self.get_dataset_by_uuid(dataset_meta_type.uuid)
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
-            return self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
+            job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
+            log.info("Confirming database update")
+            # validation 1: attempt to retrieve dataset info
+            result_new = self.get_dataset_by_uuid(dataset_meta_type.uuid)
+            if result_new is None:
+                raise JobExeError(("Dataset {u} was imported but could "+
+                                   "not be retrieved; this may indicate "+
+                                   "XML schema errors.").format(
+                                   u=dataset_meta_type.uuid))
+            # validation 2: make sure it shows up in the listing
+            file_type = FileTypes.ALL()[dataset_meta_type.metatype]
+            ds_endpoint = _get_endpoint_or_raise(file_type)
+            datasets = self._get_datasets_by_type(ds_endpoint)
+            uuids = set([ds['uuid'] for ds in datasets])
+            if not dataset_meta_type.uuid in uuids:
+                 raise JobExeError(("Dataset {u} was imported but does not "+
+                                    "appear in the subread list; this may "+
+                                    "indicate XML schema errors.").format(
+                                    u=dataset_meta_type.uuid))
+            return job_result
         else:
-            log.debug("{f} already imported. Skipping importing. {r}".format(r=result, f=dataset_meta_type.metatype))
+            log.info("{f} already imported. Skipping importing. {r}".format(r=result, f=dataset_meta_type.metatype))
             # need to clean this up
             return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
