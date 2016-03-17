@@ -159,12 +159,12 @@ def import_local_dataset(sal, path):
     """:type sal: ServiceAccessLayer"""
     # XXX basic validation of external resources
     try:
-        from pbcore.io import openDataSet, ReadSet
+        from pbcore.io import openDataSet, ReadSet, HdfSubreadSet
     except ImportError:
         log.warn("Can't import pbcore, skipping dataset sanity check")
     else:
         ds = openDataSet(path, strict=True)
-        if isinstance(ds, ReadSet):
+        if isinstance(ds, ReadSet) and not isinstance(ds, HdfSubreadSet):
             log.info("checking BAM file integrity")
             for rr in ds.resourceReaders():
                 try:
