@@ -423,7 +423,7 @@ class ServiceAccessLayer(object):
             file_type = FileTypes.ALL()[dataset_meta_type.metatype]
             ds_endpoint = _get_endpoint_or_raise(file_type)
             datasets = self._get_datasets_by_type(ds_endpoint)
-            uuids = set([ds['uuid'] for ds in datasets])
+            uuids = {ds['uuid'] for ds in datasets}
             if not dataset_meta_type.uuid in uuids:
                  raise JobExeError(("Dataset {u} was imported but does not "+
                                     "appear in the dataset list; this may "+
