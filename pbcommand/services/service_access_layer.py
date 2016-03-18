@@ -264,7 +264,7 @@ def _to_host(h):
 
 def _to_ds_file(d):
     # is_chunk this isn't exposed at the service level
-    return DataStoreFile(d['uuid'], d['sourceId'], d['fileTypeId'], d['path'], is_chunked=False)
+    return DataStoreFile(d['uuid'], d['sourceId'], d['fileTypeId'], d['path'], is_chunked=False, name=d.get("name", ""), description=d.get("description", ""))
 
 
 def _to_datastore(dx):
