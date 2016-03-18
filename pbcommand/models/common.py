@@ -322,7 +322,8 @@ def _get_timestamp_or_now(path, func):
 
 class DataStoreFile(object):
 
-    def __init__(self, uuid, source_id, type_id, path, is_chunked=False):
+    def __init__(self, uuid, source_id, type_id, path, is_chunked=False,
+                 name="", description=""):
         # adding this for consistency. In the scala code, the unique id must be
         # a uuid format
         self.uuid = uuid
@@ -338,6 +339,8 @@ class DataStoreFile(object):
         self.modified_at = _get_timestamp_or_now(path, lambda px: datetime.datetime.fromtimestamp(os.path.getmtime(px)))
         # Was the file produced by Chunked task
         self.is_chunked = is_chunked
+        self.name = name
+        self.description = description
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
@@ -354,7 +357,9 @@ class DataStoreFile(object):
                     fileSize=self.file_size,
                     createdAt=_datetime_to_string(self.created_at),
                     modifiedAt=_datetime_to_string(self.modified_at),
-                    isChunked=self.is_chunked)
+                    isChunked=self.is_chunked,
+                    name=self.name,
+                    description=self.description)
 
     @staticmethod
     def from_dict(d):
@@ -365,7 +370,10 @@ class DataStoreFile(object):
         return DataStoreFile(to_k('uniqueId'),
                              to_k('sourceId'),
                              to_k('fileTypeId'),
-                             to_k('path'), is_chunked=is_chunked)
+                             to_k('path'),
+                             is_chunked=is_chunked,
+                             name=to_a(d.get("name", "")),
+                             description=to_a(d.get("description", "")))
 
 
 def _datetime_to_string(dt):
