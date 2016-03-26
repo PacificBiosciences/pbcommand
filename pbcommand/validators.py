@@ -4,6 +4,7 @@ import functools
 from pbcommand.utils import nfs_exists_check
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler()) # squash annoying no Handler msg
 
 
 def trigger_nfs_refresh(ff):
@@ -32,7 +33,6 @@ def validate_or(f1, f2, error_msg):
 
     :param error_msg: Default message to print
     """
-    @functools.wraps
     def wrapper(path):
         try:
             return f1(path)
