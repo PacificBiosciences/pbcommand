@@ -68,6 +68,15 @@ except ImportError:
 
 
 class Constants(object):
+
+    # When running from the commandline, the host and port will default to these
+    # values if provided
+    ENV_PB_SERVICE_HOST = "PB_SERVICE_HOST"
+    ENV_PB_SERVICE_PORT = "PB_SERVICE_PORT"
+
+    DEFAULT_HOST = "http://localhost"
+    DEFAULT_PORT = 8070
+
     FASTA_TO_REFERENCE = "fasta-to-reference"
     RS_MOVIE_TO_DS = "movie-metadata-to-dataset"
 
@@ -122,9 +131,15 @@ def add_block_option(p):
 
 
 def add_sal_options(p):
+
+    default_port = os.environ.get(Constants.ENV_PB_SERVICE_PORT, Constants.DEFAULT_PORT)
+    default_host = os.environ.get(Constants.ENV_PB_SERVICE_HOST, Constants.DEFAULT_HOST)
+
     p.add_argument('--host', type=str,
-                   default="http://localhost", help="Server host")
-    p.add_argument('--port', type=int, default=8070, help="Server Port")
+                   default=default_host,
+                   help="Server host. Override the default with env {v}".format(v=Constants.ENV_PB_SERVICE_HOST))
+    p.add_argument('--port', type=int, default=default_port,
+                   help="Server Port. Override default with env {v}".format(v=Constants.ENV_PB_SERVICE_PORT))
     return p
 
 
