@@ -23,18 +23,18 @@ import sys
 import logging
 import functools
 import time
-import tempfile
 import traceback
 import uuid
+
 from requests import RequestException
+import iso8601
 
 from pbcommand.cli import get_default_argparser_with_base_opts
 from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
-from pbcommand.services.service_access_layer import \
-    DATASET_METATYPES_TO_ENDPOINTS
+from pbcommand.services.service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
 from pbcommand.validators import validate_file, validate_or
 from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
@@ -414,17 +414,20 @@ def args_get_job_summary(args):
     return run_get_job_summary(args.host, args.port, args.job_id)
 
 
-def run_job_list_summary(host, port, max_items):
+def run_job_list_summary(host, port, max_items, sort_by=None):
     sal = get_sal_and_status(host, port)
 
     jobs = sal.get_analysis_jobs()
-    printer(jobs[:max_items])
+
+    jobs_list = jobs if sort_by is None else sorted(jobs, cmp=sort_by)
+
+    printer(jobs_list[:max_items])
 
     return 0
 
 
 def args_get_job_list_summary(args):
-    return run_job_list_summary(args.host, args.port, args.max_items)
+    return run_job_list_summary(args.host, args.port, args.max_items, sort_by=_cmp_sort_by_id_desc)
 
 
 validate_int_or_uuid = validate_or(int, uuid.UUID, "Expected Int or UUID")
@@ -461,8 +464,26 @@ def run_get_dataset_summary(host, port, dataset_id_or_uuid):
     return 0
 
 
-def run_get_dataset_list_summary(host, port, dataset_type, max_items):
+def _cmp_sort_by_id_key_desc(a, b):
+    return b['id'] - a['id']
 
+
+def _cmp_sort_by_id_desc(a, b):
+    return b.id - a.id
+
+
+def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=None):
+    """
+
+    Display a list of Dataset summaries
+
+    :param host:
+    :param port:
+    :param dataset_type:
+    :param max_items:
+    :param sort_by: func to sort resources sort_by = lambda x.created_at
+    :return:
+    """
     sal = get_sal_and_status(host, port)
 
     def to_ep(file_type):
@@ -481,9 +502,11 @@ def run_get_dataset_list_summary(host, port, dataset_type, max_items):
         raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=fs.keys()))
     else:
         datasets = f()
+        # this needs to be improved
+        sorted_datasets = datasets if sort_by is None else sorted(datasets, cmp=sort_by)
 
         print "Number of {t} Datasets {n}".format(t=dataset_type, n=len(datasets))
-        list_dict_printer(datasets[:max_items])
+        list_dict_printer(sorted_datasets[:max_items])
 
     return 0
 
@@ -493,7 +516,11 @@ def args_run_dataset_summary(args):
 
 
 def args_run_dataset_list_summary(args):
-    return run_get_dataset_list_summary(args.host, args.port, args.dataset_type, args.max_items)
+    return run_get_dataset_list_summary(args.host,
+                                        args.port,
+                                        args.dataset_type,
+                                        args.max_items,
+                                        sort_by=_cmp_sort_by_id_key_desc)
 
 
 def subparser_builder(subparser, subparser_id, description, options_func, exe_func):
@@ -591,7 +618,7 @@ def main_runner(argv, parser, exe_runner_func,
     started_at = time.time()
     args = parser.parse_args(argv)
 
-    level = get_parsed_args_log_level(args, default_level=logging.DEBUG)
+    level = get_parsed_args_log_level(args, default_level=level)
     console_or_file = args.log_file
     setup_logger(console_or_file, level, formatter=str_formatter)
 
