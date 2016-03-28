@@ -23,16 +23,18 @@ import sys
 import logging
 import functools
 import time
-import tempfile
 import traceback
 import uuid
+
 from requests import RequestException
+import iso8601
 
 from pbcommand.cli import get_default_argparser_with_base_opts
 from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
+from pbcommand.services.service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
 from pbcommand.validators import validate_file, validate_or
 from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
@@ -50,7 +52,31 @@ log.addHandler(logging.NullHandler())  # suppress warning message
 _LOG_FORMAT = '[%(levelname)s] %(asctime)-15s %(message)s'
 
 
+def _list_dict_printer(list_d):
+    for i in list_d:
+        print i
+
+try:
+    # keep this to keep backward compatible
+    from tabulate import tabulate
+
+    def printer(list_d):
+        print tabulate(list_d)
+    list_dict_printer = printer
+except ImportError:
+    list_dict_printer = _list_dict_printer
+
+
 class Constants(object):
+
+    # When running from the commandline, the host and port will default to these
+    # values if provided
+    ENV_PB_SERVICE_HOST = "PB_SERVICE_HOST"
+    ENV_PB_SERVICE_PORT = "PB_SERVICE_PORT"
+
+    DEFAULT_HOST = "http://localhost"
+    DEFAULT_PORT = 8070
+
     FASTA_TO_REFERENCE = "fasta-to-reference"
     RS_MOVIE_TO_DS = "movie-metadata-to-dataset"
 
@@ -61,6 +87,13 @@ class Constants(object):
 
 def _is_xml(path):
     return path.endswith(".xml")
+
+
+def add_max_items_option(default, desc="Max items to return"):
+    def f(p):
+        p.add_argument('-m', '--max-items', type=int, default=default, help=desc)
+        return p
+    return f
 
 
 def validate_xml_file_or_dir(path):
@@ -98,9 +131,15 @@ def add_block_option(p):
 
 
 def add_sal_options(p):
+
+    default_port = os.environ.get(Constants.ENV_PB_SERVICE_PORT, Constants.DEFAULT_PORT)
+    default_host = os.environ.get(Constants.ENV_PB_SERVICE_HOST, Constants.DEFAULT_HOST)
+
     p.add_argument('--host', type=str,
-                   default="http://localhost", help="Server host")
-    p.add_argument('--port', type=int, default=8070, help="Server Port")
+                   default=default_host,
+                   help="Server host. Override the default with env {v}".format(v=Constants.ENV_PB_SERVICE_HOST))
+    p.add_argument('--port', type=int, default=default_port,
+                   help="Server Port. Override default with env {v}".format(v=Constants.ENV_PB_SERVICE_PORT))
     return p
 
 
@@ -168,13 +207,14 @@ def import_local_dataset(sal, path):
             log.info("checking BAM file integrity")
             for rr in ds.resourceReaders():
                 try:
-                    last_record = rr[-1]
+                    _ = rr[-1]
                 except Exception as e:
                     log.exception("Import failed because the underlying "+
                                   "data appear to be corrupted.  Run "+
                                   "'pbvalidate' on the dataset for more "+
                                   "thorough checking.")
                     return 1
+
     # this will raise if the import wasn't successful
     _ = sal.run_import_local_dataset(path)
     log.info("Successfully import dataset from {f}".format(f=path))
@@ -363,8 +403,32 @@ def run_get_job_summary(host, port, job_id):
     return 0
 
 
+def add_get_job_list_options(p):
+    fs = [add_base_and_sal_options,
+          add_max_items_option(25, "Max Number of jobs")]
+    f = compose(*fs)
+    return f(p)
+
+
 def args_get_job_summary(args):
     return run_get_job_summary(args.host, args.port, args.job_id)
+
+
+def run_job_list_summary(host, port, max_items, sort_by=None):
+    sal = get_sal_and_status(host, port)
+
+    jobs = sal.get_analysis_jobs()
+
+    jobs_list = jobs if sort_by is None else sorted(jobs, cmp=sort_by)
+
+    printer(jobs_list[:max_items])
+
+    return 0
+
+
+def args_get_job_list_summary(args):
+    return run_job_list_summary(args.host, args.port, args.max_items, sort_by=_cmp_sort_by_id_desc)
+
 
 validate_int_or_uuid = validate_or(int, uuid.UUID, "Expected Int or UUID")
 
@@ -375,22 +439,88 @@ def add_get_dataset_options(p):
     return p
 
 
+def add_get_dataset_list_options(p):
+    add_base_and_sal_options(p)
+    fx = add_max_items_option(25, "Max number of Datasets to show")
+    fx(p)
+    default_dataset_type = DATASET_METATYPES_TO_ENDPOINTS[FileTypes.DS_SUBREADS]
+    # this should be choice
+    p.add_argument('-t', '--dataset-type', type=str, default=default_dataset_type, help="DataSet Meta type")
+    return p
+
+
 def run_get_dataset_summary(host, port, dataset_id_or_uuid):
 
     sal = get_sal_and_status(host, port)
 
+    log.debug("Getting dataset {d}".format(d=dataset_id_or_uuid))
     ds = sal.get_dataset_by_uuid(dataset_id_or_uuid)
 
     if ds is None:
-        log.info("Unable to find DataSet '{i}' on {u}".format(i=dataset_id_or_uuid, u=sal.uri))
+        log.error("Unable to find DataSet '{i}' on {u}".format(i=dataset_id_or_uuid, u=sal.uri))
     else:
-        print ds
+        print pprint.pformat(ds, indent=2)
+
+    return 0
+
+
+def _cmp_sort_by_id_key_desc(a, b):
+    return b['id'] - a['id']
+
+
+def _cmp_sort_by_id_desc(a, b):
+    return b.id - a.id
+
+
+def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=None):
+    """
+
+    Display a list of Dataset summaries
+
+    :param host:
+    :param port:
+    :param dataset_type:
+    :param max_items:
+    :param sort_by: func to sort resources sort_by = lambda x.created_at
+    :return:
+    """
+    sal = get_sal_and_status(host, port)
+
+    def to_ep(file_type):
+        return DATASET_METATYPES_TO_ENDPOINTS[file_type]
+
+    # FIXME(mkocher)(2016-3-26) need to centralize this on the dataset "shortname"?
+    fs = {to_ep(FileTypes.DS_SUBREADS): sal.get_subreadsets,
+          to_ep(FileTypes.DS_REF): sal.get_referencesets,
+          to_ep(FileTypes.DS_ALIGN): sal.get_alignmentsets,
+          to_ep(FileTypes.DS_BARCODE): sal.get_barcodesets
+          }
+
+    f = fs.get(dataset_type)
+
+    if f is None:
+        raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=fs.keys()))
+    else:
+        datasets = f()
+        # this needs to be improved
+        sorted_datasets = datasets if sort_by is None else sorted(datasets, cmp=sort_by)
+
+        print "Number of {t} Datasets {n}".format(t=dataset_type, n=len(datasets))
+        list_dict_printer(sorted_datasets[:max_items])
 
     return 0
 
 
 def args_run_dataset_summary(args):
     return run_get_dataset_summary(args.host, args.port, args.id_or_uuid)
+
+
+def args_run_dataset_list_summary(args):
+    return run_get_dataset_list_summary(args.host,
+                                        args.port,
+                                        args.dataset_type,
+                                        args.max_items,
+                                        sort_by=_cmp_sort_by_id_key_desc)
 
 
 def subparser_builder(subparser, subparser_id, description, options_func, exe_func):
@@ -440,8 +570,14 @@ def get_parser():
     job_summary_desc = "Get Job Summary by Job Id"
     builder('get-job', job_summary_desc, add_get_job_options, args_get_job_summary)
 
+    job_list_summary_desc = "Get Job Summary by Job Id"
+    builder('get-jobs', job_list_summary_desc, add_get_job_list_options, args_get_job_list_summary)
+
     ds_summary_desc = "Get DataSet Summary by DataSet Id or UUID"
     builder('get-dataset', ds_summary_desc, add_get_dataset_options, args_run_dataset_summary)
+
+    ds_list_summary_desc = "Get DataSet List Summary by DataSet Type"
+    builder('get-datasets', ds_list_summary_desc, add_get_dataset_list_options, args_run_dataset_list_summary)
 
     return p
 
@@ -482,7 +618,7 @@ def main_runner(argv, parser, exe_runner_func,
     started_at = time.time()
     args = parser.parse_args(argv)
 
-    level = get_parsed_args_log_level(args, default_level=logging.DEBUG)
+    level = get_parsed_args_log_level(args, default_level=level)
     console_or_file = args.log_file
     setup_logger(console_or_file, level, formatter=str_formatter)
 

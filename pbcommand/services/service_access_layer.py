@@ -411,6 +411,12 @@ class ServiceAccessLayer(object):
     def run_import_dataset_reference(self, path, time_out=10):
         return self._run_import_and_block(self.import_dataset_reference, path, time_out=time_out)
 
+    def import_dataset_barcode(self, path):
+        return self._import_dataset(FileTypes.DS_BARCODE, path)
+
+    def run_import_dataset_barcode(self, path, time_out=10):
+        return self._run_import_and_block(self.import_dataset_barcode, path, time_out=time_out)
+
     def run_import_local_dataset(self, path):
         """Import a file from FS that is local to where the services are running
 
@@ -419,17 +425,23 @@ class ServiceAccessLayer(object):
         :rtype: JobResult
         """
         dataset_meta_type = get_dataset_metadata(path)
+
         def _verify_dataset_in_list():
             file_type = FileTypes.ALL()[dataset_meta_type.metatype]
             ds_endpoint = _get_endpoint_or_raise(file_type)
+
+            # all datasets for a specific type
             datasets = self._get_datasets_by_type(ds_endpoint)
+
             uuids = {ds['uuid'] for ds in datasets}
-            if not dataset_meta_type.uuid in uuids:
-                 raise JobExeError(("Dataset {u} was imported but does not "+
+            if dataset_meta_type.uuid not in uuids:
+                raise JobExeError(("Dataset {u} was imported but does not "+
                                     "appear in the dataset list; this may "+
                                     "indicate XML schema errors.").format(
                                     u=dataset_meta_type.uuid))
+
         result = self.get_dataset_by_uuid(dataset_meta_type.uuid)
+
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
             job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
@@ -482,6 +494,12 @@ class ServiceAccessLayer(object):
 
     def get_referencesets(self):
         return self._get_datasets_by_type("references")
+
+    def get_barcodeset_by_id(self, int_or_uuid):
+        return self.get_dataset_by_id(FileTypes.DS_BARCODE, int_or_uuid)
+
+    def get_barcodesets(self):
+        return self._get_datasets_by_type("barcodes")
 
     def get_alignmentset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_ALIGN, int_or_uuid)
@@ -538,7 +556,12 @@ class ServiceAccessLayer(object):
         # FIXME. Need to define this in the scenario IO layer.
         # workflow_options = [_to_o("woption_01", "value_01")]
         workflow_options = []
-        d = dict(name=name, pipelineId=pipeline_template_id, entryPoints=seps, taskOptions=task_options, workflowOptions=workflow_options)
+        d = dict(name=name,
+                 pipelineId=pipeline_template_id,
+                 entryPoints=seps,
+                 taskOptions=task_options,
+                 workflowOptions=workflow_options)
+
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d)
         return ServiceJob.from_d(raw_d)
 
