@@ -1,6 +1,7 @@
 {
   "tables": [],
-  "_comment": "Manually updated by MK for 0.3.9",
+  "_comment": "Manually updated by MK for 0.3.9 and Added UUID for 0.3.24",
+  "uuid": "196136c8-f6fd-11e5-b481-3c15c2cc8f88",
   "_version": "0.3.9",
   "_changelist": 127707,
   "attributes": [

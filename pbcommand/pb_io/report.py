@@ -4,6 +4,7 @@ This manual marshalling/de-marshalling is not awesome.
 """
 import json
 import logging
+import uuid as U
 
 from pbcommand.models.report import (Report, Plot, PlotGroup, Attribute,
                                      Table, Column)
@@ -89,6 +90,9 @@ def dict_to_report(dct):
 
     report_id = dct['id']
 
+    # Make this optional for now
+    report_uuid = dct.get('uuid', U.uuid4())
+
     # Legacy Reports > 0.3.9 will not have the title key
     if 'title' in dct:
         title = dct['title']
@@ -116,7 +120,8 @@ def dict_to_report(dct):
                     plotgroups=plot_groups,
                     tables=tables,
                     attributes=attributes,
-                    dataset_uuids=dct.get('dataset_uuids', ()))
+                    dataset_uuids=dct.get('dataset_uuids', ()),
+                    uuid=report_uuid)
 
     return report
 
