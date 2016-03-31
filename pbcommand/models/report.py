@@ -11,6 +11,7 @@ import logging
 import json
 import os
 import re
+import uuid as U # to allow use of uuid as local var
 from pprint import pformat
 
 # make this optional. This is only for serialization
@@ -560,7 +561,7 @@ class Report(BaseReportElement):
     It can be serialized to json.
     """
 
-    def __init__(self, id_, title=None, tables=(), attributes=(), plotgroups=(), dataset_uuids=()):
+    def __init__(self, id_, title=None, tables=(), attributes=(), plotgroups=(), dataset_uuids=(), uuid=None):
         """
         :param id_: (str) Should be a string that identifies the report, like 'adapter'.
         :param title: Display name of report Defaults to the Report+id if None (added in 0.3.9)
@@ -568,12 +569,16 @@ class Report(BaseReportElement):
         :param attributes: (list of attribute instances)
         :param plotgroups: (list of plot group instances)
         :param dataset_uuids: list[string] DataSet uuids of files used to generate the report
+        :param uuid: the unique identifier for the Report
         """
         BaseReportElement.__init__(self, id_)
         self._attributes = []
         self._plotgroups = []
         self._tables = []
         self.title = "Report {i}".format(i=self.id) if title is None else title
+        # FIXME(mkocher)(2016-3-30) Add validation to make sure it's a well formed value
+        # this needs to be required
+        self.uuid = uuid if uuid is not None else str(U.uuid4())
 
         if tables:
             for table in tables:
@@ -621,8 +626,8 @@ class Report(BaseReportElement):
                   n=self.title,
                   a=len(self.attributes),
                   p=len(self.plotGroups),
-                  t=len(self.tables))
-        return "<{k} id:{i} title:{n} nattributes:{a} nplot_groups:{p} ntables:{t} >".format(**_d)
+                  t=len(self.tables), u=self.uuid)
+        return "<{k} id:{i} title:{n} uuid:{u} nattributes:{a} nplot_groups:{p} ntables:{t} >".format(**_d)
 
     @property
     def attributes(self):
@@ -663,6 +668,7 @@ class Report(BaseReportElement):
         version = pbcommand.get_version()
 
         d = BaseReportElement.to_dict(self, id_parts=id_parts)
+        d['uuid'] = self.uuid
         d['title'] = self.title
         d['_version'] = version
         d['_changelist'] = "UNKNOWN"
