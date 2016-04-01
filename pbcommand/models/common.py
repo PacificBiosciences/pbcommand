@@ -186,6 +186,7 @@ class MimeTypes(object):
     XML = 'application/xml'
     BINARY = 'application/octet-stream'
     PICKLE = 'application/python-pickle'
+    GZIP = 'application/x-gzip'
 
 
 class FileTypes(object):
@@ -244,6 +245,8 @@ class FileTypes(object):
     H5 = FileType(to_file_ns("h5"), "file", "h5", MimeTypes.BINARY)
     # Generic Python pickle XXX EVIL
     PICKLE = FileType(to_file_ns("pickle"), "file", "pickle", MimeTypes.PICKLE)
+    # GZIPped archive
+    GZIP = FileType(to_file_ns("gzip"), "file", "gz", MimeTypes.GZIP)
 
     # ******************* NEW SA3 File Types ********************
     # DataSet Types. The default file names should have well-defined agreed
