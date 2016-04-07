@@ -71,32 +71,32 @@ def _parse_base_service_error(response):
         return response
 
 
-def _process_rget(total_url):
+def _process_rget(total_url, ignore_errors=False):
     """Process get request and return JSON response. Raise if not successful"""
     r = rqget(total_url)
     _parse_base_service_error(r)
-    if not r.ok:
+    if not r.ok and not ignore_errors:
         log.error("Failed ({s}) GET to {x}".format(x=total_url, s=r.status_code))
     r.raise_for_status()
     j = r.json()
     return j
 
 
-def _process_rget_with_transform(func):
+def _process_rget_with_transform(func, ignore_errors=False):
     """Post process the JSON result (if successful) with F(json_d) -> T"""
     def wrapper(total_url):
-        j = _process_rget(total_url)
+        j = _process_rget(total_url, ignore_errors=ignore_errors)
         return func(j)
     return wrapper
 
 
-def _process_rget_with_jobs_transform(total_url):
+def _process_rget_with_jobs_transform(total_url, ignore_errors=False):
     # defining an internal method, because this used in several places
-    jobs_d = _process_rget(total_url)
+    jobs_d = _process_rget(total_url, ignore_errors=ignore_errors)
     return [ServiceJob.from_d(job_d) for job_d in jobs_d]
 
 
-def _process_rget_or_none(func):
+def _process_rget_or_none(func, ignore_errors=False):
     """
     apply the transform func to the output of GET request if it was successful, else returns None
 
@@ -105,7 +105,7 @@ def _process_rget_or_none(func):
     """
     def wrapper(total_url):
         try:
-            return _process_rget_with_transform(func)(total_url)
+            return _process_rget_with_transform(func, ignore_errors)(total_url)
         except (RequestException, SMRTServiceBaseError):
             # FIXME
             # this should be a tighter exception case
@@ -440,8 +440,8 @@ class ServiceAccessLayer(object):
                                     "indicate XML schema errors.").format(
                                     u=dataset_meta_type.uuid))
 
-        result = self.get_dataset_by_uuid(dataset_meta_type.uuid)
-
+        result = self.get_dataset_by_uuid(dataset_meta_type.uuid,
+                                          ignore_errors=True)
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
             job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
@@ -462,12 +462,14 @@ class ServiceAccessLayer(object):
             # need to clean this up
             return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
-    def get_dataset_by_uuid(self, int_or_uuid):
+    def get_dataset_by_uuid(self, int_or_uuid, ignore_errors=False):
         """The recommend model is to look up DataSet type by explicit MetaType
 
         Returns None if the dataset was not found
         """
-        return _process_rget_or_none(_null_func)(_to_url(self.uri, "{p}/{i}".format(i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)))
+        return _process_rget_or_none(_null_func, ignore_errors=ignore_errors)(
+            _to_url(self.uri, "{p}/{i}".format(i=int_or_uuid,
+                                               p=ServiceAccessLayer.ROOT_DS)))
 
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
         """Get a Dataset using the DataSetMetaType and (int|uuid) of the dataset"""
