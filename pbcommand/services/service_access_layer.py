@@ -273,6 +273,11 @@ def _to_datastore(dx):
     return DataStore(ds_files)
 
 
+def _to_job_report_files(dx):
+    return [{u"reportTypeId":d["reportTypeId"],
+             u"dataStoreFile":_to_ds_file(d["dataStoreFile"])} for d in dx]
+
+
 def _to_entry_points(d):
     return [JobEntryPoint.from_d(i) for i in d]
 
@@ -358,7 +363,7 @@ class ServiceAccessLayer(object):
 
     def get_analysis_job_reports(self, job_id):
         """Get Reports output from (pbsmrtpipe) analysis job"""
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, lambda x: x)
+        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
     def get_analysis_job_report_details(self, job_id, report_uuid):
         _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
