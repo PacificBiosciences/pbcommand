@@ -430,9 +430,11 @@ def get_dataset_metadata(path):
     :param path:
     :return:
     """
-    f = ET.parse(path).getroot().attrib
-    mt = f['MetaType']
-    uuid = f['UniqueId']
+    uuid = mt = None
+    for event, element in ET.iterparse(path, events=("start",)):
+        uuid = element.get("UniqueId")
+        mt = element.get("MetaType")
+        break
     if mt in FileTypes.ALL_DATASET_TYPES().keys():
         return DataSetMetaData(uuid, mt)
     else:
