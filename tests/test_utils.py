@@ -1,9 +1,11 @@
 import functools
+import tempfile
 import unittest
 import argparse
 import logging
 
-from pbcommand.utils import Singleton, compose, get_parsed_args_log_level
+from pbcommand.utils import (Singleton, compose, get_parsed_args_log_level,
+    get_dataset_metadata)
 
 
 class TestSingleton(unittest.TestCase):
@@ -91,3 +93,20 @@ class TestLogging(unittest.TestCase):
         p = _get_argparser(logging.NOTSET).parse_args([])
         l = get_parsed_args_log_level(p)
         self.assertEqual(l, logging.NOTSET)
+
+
+class TestUtils(unittest.TestCase):
+
+    def test_get_dataset_metadata(self):
+        try:
+            import pbcore.io
+            import pbcore.data
+        except ImportError:
+            raise unittest.SkipTest("pbcore not available, skipping")
+        else:
+            ds = pbcore.io.SubreadSet(pbcore.data.getUnalignedBam())
+            ds_file = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+            ds.write(ds_file)
+            md = get_dataset_metadata(ds_file)
+            self.assertEqual(md.metatype, "PacBio.DataSet.SubreadSet")
+            self.assertEqual(md.uuid, ds.uuid)
