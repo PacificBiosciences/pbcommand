@@ -106,6 +106,9 @@ def validate_xml_file_or_dir(path):
         raise argparse.ArgumentTypeError("Expected dir or file '{p}'".format(p=path))
 
 
+validate_int_or_uuid = validate_or(int, uuid.UUID, "Expected Int or UUID")
+
+
 def _get_size_mb(path):
     return os.stat(path).st_size / 1024.0 / 1024.0
 
@@ -387,7 +390,7 @@ def args_get_sal_summary(args):
 
 def add_get_job_options(p):
     add_base_and_sal_options(p)
-    p.add_argument("job_id", type=int, help="Job id")
+    p.add_argument("job_id", type=validate_int_or_uuid, help="Job id or UUID")
     return p
 
 
@@ -428,9 +431,6 @@ def run_job_list_summary(host, port, max_items, sort_by=None):
 
 def args_get_job_list_summary(args):
     return run_job_list_summary(args.host, args.port, args.max_items, sort_by=_cmp_sort_by_id_desc)
-
-
-validate_int_or_uuid = validate_or(int, uuid.UUID, "Expected Int or UUID")
 
 
 def add_get_dataset_options(p):
