@@ -83,6 +83,9 @@ def __core_resolved_tool_contract_task_from_d(d):
     def _get(attr_name):
         return d[Constants.RTOOL][attr_name]
 
+    def _get_or(attr_name, default_value):
+        return d[Constants.RTOOL].get(attr_name, default_value)
+
     def _get_ascii(x_):
         return _to_a(_get(x_))
 
@@ -97,7 +100,8 @@ def __core_resolved_tool_contract_task_from_d(d):
     tool_options = _get("options")
     # int
     nproc = _get("nproc")
-    log_level = _get("log_level")
+    # allow for backward compatibility
+    log_level = _get_or("log_level", "INFO")
 
     resource_types = [ToolContractResolvedResource.from_d(dx) for dx in _get("resources")]
 
