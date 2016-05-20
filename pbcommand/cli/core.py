@@ -250,7 +250,7 @@ def pbparser_runner(argv,
 
     if EMIT_TOOL_CONTRACT_OPTION in argv:
         # print tool_contract
-        x = json.dumps(tool_contract.to_dict(), indent=4)
+        x = json.dumps(tool_contract.to_dict(), indent=4, separators=(',', ': '))
         print x
     else:
         return pacbio_args_or_contract_runner(argv, arg_parser, args_runner_func, contract_runner_func, alog, setup_log_func)

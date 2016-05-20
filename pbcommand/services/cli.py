@@ -370,7 +370,7 @@ def args_emit_analysis_template(args):
              taskOptions=[],
              workflowOptions=[])
 
-    sx = json.dumps(d, sort_keys=True, indent=4)
+    sx = json.dumps(d, sort_keys=True, indent=4, separators=(',', ': '))
     print sx
 
     return 0

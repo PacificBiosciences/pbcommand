@@ -262,7 +262,7 @@ def __args_emit_tc_runner(registry):
             sys.stderr.write("ERROR. Unable to find tool-contract id {i}".format(i=tc_id))
             return -1
         else:
-            print json.dumps(tc.to_dict(), sort_keys=True, indent=4)
+            print json.dumps(tc.to_dict(), sort_keys=True, indent=4, separators=(',', ': '))
             return 0
     return _w
 
