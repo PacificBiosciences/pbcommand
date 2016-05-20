@@ -16,7 +16,7 @@ def write_pipeline_chunks(chunks, output_json_file, comment):
         _d['_comment'] = comment
 
     with open(output_json_file, 'w') as f:
-        f.write(json.dumps(_d, indent=4))
+        f.write(json.dumps(_d, indent=4, separators=(',', ': ')))
 
     log.debug("Write {n} chunks to {o}".format(n=len(chunks), o=output_json_file))
 

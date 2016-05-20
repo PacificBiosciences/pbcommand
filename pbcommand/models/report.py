@@ -69,9 +69,9 @@ def _get_decoder():
 def _to_json_with_decoder(d):
     decoder_or_none = _get_decoder()
     if decoder_or_none is None:
-        return json.dumps(d, sort_keys=True, indent=4)
+        return json.dumps(d, sort_keys=True, indent=4, separators=(',', ': '))
     else:
-        return json.dumps(d, cls=decoder_or_none, sort_keys=True, indent=4)
+        return json.dumps(d, cls=decoder_or_none, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 class PbReportError(Exception):

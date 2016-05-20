@@ -415,7 +415,7 @@ class DataStore(object):
 
     def _write_json(self, file_name, permission):
         with open(file_name, permission) as f:
-            s = json.dumps(self.to_dict(), indent=4, sort_keys=True)
+            s = json.dumps(self.to_dict(), indent=4, sort_keys=True, separators=(',', ': '))
             f.write(s)
 
     def write_json(self, file_name):
