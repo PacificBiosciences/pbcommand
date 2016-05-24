@@ -207,16 +207,19 @@ def import_local_dataset(sal, path):
     else:
         ds = openDataSet(path, strict=True)
         if isinstance(ds, ReadSet) and not isinstance(ds, HdfSubreadSet):
-            log.info("checking BAM file integrity")
-            for rr in ds.resourceReaders():
-                try:
-                    _ = rr[-1]
-                except Exception as e:
-                    log.exception("Import failed because the underlying "+
-                                  "data appear to be corrupted.  Run "+
-                                  "'pbvalidate' on the dataset for more "+
-                                  "thorough checking.")
-                    return 1
+            if len(ds) > 0:
+                log.info("checking BAM file integrity")
+                for rr in ds.resourceReaders():
+                    try:
+                        _ = rr[-1]
+                    except Exception as e:
+                        log.exception("Import failed because the underlying "+
+                                      "data appear to be corrupted.  Run "+
+                                      "'pbvalidate' on the dataset for more "+
+                                      "thorough checking.")
+                        return 1
+            else:
+                log.warn("Empty dataset - will import anyway")
 
     # this will raise if the import wasn't successful
     _ = sal.run_import_local_dataset(path)
