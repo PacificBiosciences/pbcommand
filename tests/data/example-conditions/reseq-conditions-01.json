@@ -1,0 +1,24 @@
+{
+  "_condition_doc": "Example of a 'Resequencing' Condition Type",
+  "conditions": [
+    {
+      "condId": "cond_alpha",
+      "subreadset": "/path/to/subreadset-01.xml",
+      "alignmentset": "/path/to/alignmentset-A.xml",
+      "referenceset": "/path/to/reference.xml"
+    },
+    {
+      "condId": "cond_alpha",
+      "subreadset": "/path/to/subreadset-02.xml",
+      "alignmentset": "/path/to/alignmentset-B.xml",
+      "referenceset": "/path/to/reference.xml"
+    },
+    {
+      "condId": "cond_beta",
+      "subreadset": "/path/to/subreadset-03.xml",
+      "alignmentset": "/path/to/alignmentset-C.xml",
+      "referenceset": "/path/to/reference.xml"
+    }
+  ],
+  "pipelineId": "pbsmrtpipe.pipelines.my_pipeline"
+}
