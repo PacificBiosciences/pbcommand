@@ -300,8 +300,11 @@ class FileTypes(object):
     # sts.xml
     STS_XML = FileType("PacBio.SubreadFile.ChipStatsFile", "file", "sts.xml", MimeTypes.XML)
 
-    # THIS IS EXPERIMENT for internal analysis. DO NOT use
+    # FIXME(mpkocher)(2016-5-25) This should be deleted in favor of Reseq Cond type
     COND = FileType(to_file_ns("COND"), "file", "conditions.json", MimeTypes.JSON)
+
+    # Resequencing Conditions File Format
+    COND_RESEQ = FileType(to_file_ns("COND_RESEQ"), "file", "conditions-reseq.json", MimeTypes.JSON)
 
     @staticmethod
     def is_valid_id(file_type_id):
