@@ -27,7 +27,8 @@ def run_rtc(rtc):
 
 
 @registry("dev_fastq2fasta", "0.1.0", FileTypes.FASTQ, FileTypes.FASTA,
-          options=dict(beta=QuickOpt(1234.0, "Beta Name", "Beta Description"), gamma=True))
+          options=dict(beta=QuickOpt(1234.0, "Beta Name", "Beta Description"), gamma=True),
+          name="Fastq to Fasta", description="Dev Task Fastq to Fasta Example")
 def run_rtc(rtc):
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0])
 
@@ -48,7 +49,7 @@ def _to_outputs(file_types):
     return [_to_output(i, ft) for i, ft in enumerate(file_types)]
 
 
-@registry("dev_txt_custom_outs", "0.1.0", FileTypes.TXT, _to_outputs((FileTypes.TXT, FileTypes.TXT)))
+@registry("dev_txt_custom_outs", "0.1.0", FileTypes.TXT, _to_outputs((FileTypes.TXT, FileTypes.TXT)), name="Custom Txt Task")
 def run_rtc(rtc):
     """Test for using OutputFileTypes as outputs
 
