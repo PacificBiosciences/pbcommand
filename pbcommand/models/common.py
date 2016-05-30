@@ -300,9 +300,6 @@ class FileTypes(object):
     # sts.xml
     STS_XML = FileType("PacBio.SubreadFile.ChipStatsFile", "file", "sts.xml", MimeTypes.XML)
 
-    # FIXME(mpkocher)(2016-5-25) This should be deleted in favor of Reseq Cond type
-    COND = FileType(to_file_ns("COND"), "file", "conditions.json", MimeTypes.JSON)
-
     # Resequencing Conditions File Format
     COND_RESEQ = FileType(to_file_ns("COND_RESEQ"), "file", "conditions-reseq.json", MimeTypes.JSON)
 
