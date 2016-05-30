@@ -124,7 +124,7 @@ class Registry(object):
                   d=self.driver_base, t=len(self.rtc_runners))
         return "<{k} {n} {d} tool-contracts:{t} >".format(**_d)
 
-    def __call__(self, tool_id, version, input_types, output_types, options=None, nproc=1, is_distributed=True):
+    def __call__(self, tool_id, version, input_types, output_types, options=None, nproc=1, is_distributed=True, name=None, description=None):
         def _w(func):
             """
 
@@ -137,8 +137,12 @@ class Registry(object):
             otypes = _to_list(output_types)
 
             global_id = ".".join([self.namespace, 'tasks', tool_id])
-            name = "Tool {n}".format(n=tool_id)
-            desc = "Quick tool {n} {g}".format(n=tool_id, g=global_id)
+
+            def _or_default(value_, default_value):
+                return default_value if value_ is None else value
+
+            display_name = _or_default(name, "Tool {n}".format(n=tool_id))
+            desc = _or_default(description, "Quick tool {n} {g}".format(n=tool_id, g=global_id))
 
             input_file_types = [_file_type_to_input_file_type(ft, i) for i, ft in enumerate(itypes)]
             output_file_types = [_transform_output_ftype(ft, i) for i, ft in enumerate(otypes)]
@@ -149,7 +153,7 @@ class Registry(object):
                 tool_options = [_convert_to_raw_option(self.namespace, key, value) for key, value in options.iteritems()]
 
             resource_types = []
-            task = ToolContractTask(global_id, name, desc, version, is_distributed,
+            task = ToolContractTask(global_id, display_name, desc, version, is_distributed,
                                     input_file_types, output_file_types, tool_options, nproc, resource_types)
             # trailing space if for 'my-tool --resolved-tool-contract ' /path/to/rtc.json
             driver_exe = " ".join([self.driver_base, Constants.RTC_DRIVER, " "])
