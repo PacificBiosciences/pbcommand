@@ -139,7 +139,7 @@ class Registry(object):
             global_id = ".".join([self.namespace, 'tasks', tool_id])
 
             def _or_default(value_, default_value):
-                return default_value if value_ is None else value
+                return default_value if value_ is None else value_
 
             display_name = _or_default(name, "Tool {n}".format(n=tool_id))
             desc = _or_default(description, "Quick tool {n} {g}".format(n=tool_id, g=global_id))
