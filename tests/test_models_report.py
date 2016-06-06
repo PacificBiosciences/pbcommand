@@ -277,7 +277,7 @@ class TestReportModel(unittest.TestCase):
 
         bad_p = r.get_plotgroup_by_id(
             'pgid1').get_plot_by_id('id_that_does_not_exist')
-        self.assertEqual(bad_p)
+        self.assertIsNone(bad_p)
 
     def test_merge(self):
         EXPECTED_VALUES = {
