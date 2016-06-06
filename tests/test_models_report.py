@@ -190,6 +190,82 @@ class TestReportModel(unittest.TestCase):
         bad_a = report.get_attribute_by_id('id_that_does_not_exist')
         self.assertIsNone(bad_a)
 
+    def test_get_table_by_id(self):
+	r = Report('redfang')
+        t1 = Table('tabid1')
+        t1.add_column(Column('c1'))
+        r.add_table(t1)
+
+	t = r.get_table_by_id('tabid1')
+	self.assertEqual(t,t1)
+
+    def test_get_table_by_id_with_bad_id(self):
+	r = Report('redfang')
+	t1 = Table('tabid1')
+        t1.add_column(Column('c1'))
+        r.add_table(t1)
+
+        bad_t = r.get_table_by_id('id_that_does_not_exist')
+        self.assertIsNone(bad_t)
+
+    def test_get_column_by_id(self):
+        r = Report('redfang')
+        t1 = Table('tabid1')
+        c1 = Column('c1')
+        t1.add_column(c1)
+        r.add_table(t1)
+        
+        c = r.get_table_by_id('tabid1').get_column_by_id('c1')
+        self.assertEqual(c,c1)
+
+    def test_get_column_by_id_with_bad_id(self):
+        r = Report('redfang')
+        t1 = Table('tabid1')
+        c1 = Column('c1')
+        t1.add_column(c1)
+        r.add_table(t1)
+
+        bad_c = r.get_table_by_id('tabid1').get_column_by_id('id_that_does_not_exist')
+        self.assertIsNone(bad_c)
+
+    def test_get_plotgroup_by_id(self):
+	r = Report('redfang')
+	pg1 = PlotGroup('pgid1')
+        pg1.add_plot(Plot('pid1', 'anImg'))
+        r.add_plotgroup(pg1)
+
+	pg = r.get_plotgroup_by_id('pgid1')
+	self.assertEqual(pg, pg1)
+
+    def test_get_plotgroup_by_id_with_bad_id(self):
+        r = Report('redfang')
+        pg1 = PlotGroup('pgid1')
+        pg1.add_plot(Plot('pid1', 'anImg'))
+        r.add_plotgroup(pg1)
+
+        bad_pg = r.get_plotgroup_by_id('id_that_does_not_exist')
+        self.assertIsNone(bad_pg)
+
+    def test_get_plot_by_id(self):
+        r = Report('redfang')
+        pg1 = PlotGroup('pgid1')
+	p1 = Plot('pid1', 'anImg')
+        pg1.add_plot(p1)
+        r.add_plotgroup(pg1)
+
+        p = r.get_plotgroup_by_id('pgid1').get_plot_by_id('pid1')
+        self.assertEqual(p, p1)
+
+    def test_get_plot_by_id_with_bad_id(self):
+        r = Report('redfang')
+        pg1 = PlotGroup('pgid1')
+        p1 = Plot('pid1', 'anImg')
+        pg1.add_plot(p1)
+        r.add_plotgroup(pg1)
+
+        bad_p = r.get_plotgroup_by_id('pgid1').get_plot_by_id('id_that_does_not_exist')
+        self.assertEqual(bad_p)
+
     def test_merge(self):
         EXPECTED_VALUES = {
             "n_reads": 300,
