@@ -14,11 +14,13 @@ from base_utils import get_data_file_from_subdir
 
 log = logging.getLogger(__name__)
 
+
 def _to_report(name):
     file_name = get_data_file_from_subdir(_SERIALIZED_JSON_DIR, name)
     log.info("loading json report from {f}".format(f=file_name))
     r = load_report_from_json(file_name)
     return r
+
 
 class TestReportModel(unittest.TestCase):
 
@@ -94,11 +96,14 @@ class TestReportModel(unittest.TestCase):
         self.assertEqual('redfang.a', d['attributes'][0]['id'])
         self.assertEqual('redfang.a2', d['attributes'][1]['id'])
         self.assertEqual('redfang.pgid', d['plotGroups'][0]['id'])
-        self.assertEqual('redfang.pgid.pid', d['plotGroups'][0]['plots'][0]['id'])
-        self.assertEqual('redfang.pgid.pid2', d['plotGroups'][0]['plots'][1]['id'])
+        self.assertEqual('redfang.pgid.pid', d[
+                         'plotGroups'][0]['plots'][0]['id'])
+        self.assertEqual('redfang.pgid.pid2', d[
+                         'plotGroups'][0]['plots'][1]['id'])
 
         self.assertEqual('redfang.tabid', d['tables'][0]['id'])
-        self.assertEqual('redfang.tabid.c1', d['tables'][0]['columns'][0]['id'])
+        self.assertEqual('redfang.tabid.c1', d['tables'][
+                         0]['columns'][0]['id'])
 
     def test_version_and_changelist(self):
         r = Report('example')
@@ -152,18 +157,24 @@ class TestReportModel(unittest.TestCase):
         self.assertEqual('redfang.a2', d['attributes'][1]['id'])
 
         self.assertEqual('redfang.pgid', d['plotGroups'][0]['id'])
-        self.assertEqual('redfang.pgid.pid', d['plotGroups'][0]['plots'][0]['id'])
-        self.assertEqual('redfang.pgid.pid2', d['plotGroups'][0]['plots'][1]['id'])
+        self.assertEqual('redfang.pgid.pid', d[
+                         'plotGroups'][0]['plots'][0]['id'])
+        self.assertEqual('redfang.pgid.pid2', d[
+                         'plotGroups'][0]['plots'][1]['id'])
 
         self.assertEqual('redfang.pgid2', d['plotGroups'][1]['id'])
-        self.assertEqual('redfang.pgid2.pid2', d['plotGroups'][1]['plots'][0]['id'])
-        self.assertEqual('redfang.pgid2.pid22', d['plotGroups'][1]['plots'][1]['id'])
+        self.assertEqual('redfang.pgid2.pid2', d[
+                         'plotGroups'][1]['plots'][0]['id'])
+        self.assertEqual('redfang.pgid2.pid22', d[
+                         'plotGroups'][1]['plots'][1]['id'])
 
         self.assertEqual('redfang.tabid', d['tables'][0]['id'])
-        self.assertEqual('redfang.tabid.c1', d['tables'][0]['columns'][0]['id'])
+        self.assertEqual('redfang.tabid.c1', d['tables'][
+                         0]['columns'][0]['id'])
 
         self.assertEqual('redfang.tabid2', d['tables'][1]['id'])
-        self.assertEqual('redfang.tabid2.c2', d['tables'][1]['columns'][0]['id'])
+        self.assertEqual('redfang.tabid2.c2', d[
+                         'tables'][1]['columns'][0]['id'])
 
         log.info(repr(r))
         self.assertIsNotNone(repr(r))
@@ -191,17 +202,17 @@ class TestReportModel(unittest.TestCase):
         self.assertIsNone(bad_a)
 
     def test_get_table_by_id(self):
-	r = Report('redfang')
+        r = Report('redfang')
         t1 = Table('tabid1')
         t1.add_column(Column('c1'))
         r.add_table(t1)
 
-	t = r.get_table_by_id('tabid1')
-	self.assertEqual(t,t1)
+        t = r.get_table_by_id('tabid1')
+        self.assertEqual(t, t1)
 
     def test_get_table_by_id_with_bad_id(self):
-	r = Report('redfang')
-	t1 = Table('tabid1')
+        r = Report('redfang')
+        t1 = Table('tabid1')
         t1.add_column(Column('c1'))
         r.add_table(t1)
 
@@ -214,9 +225,9 @@ class TestReportModel(unittest.TestCase):
         c1 = Column('c1')
         t1.add_column(c1)
         r.add_table(t1)
-        
+
         c = r.get_table_by_id('tabid1').get_column_by_id('c1')
-        self.assertEqual(c,c1)
+        self.assertEqual(c, c1)
 
     def test_get_column_by_id_with_bad_id(self):
         r = Report('redfang')
@@ -225,17 +236,18 @@ class TestReportModel(unittest.TestCase):
         t1.add_column(c1)
         r.add_table(t1)
 
-        bad_c = r.get_table_by_id('tabid1').get_column_by_id('id_that_does_not_exist')
+        bad_c = r.get_table_by_id('tabid1').get_column_by_id(
+            'id_that_does_not_exist')
         self.assertIsNone(bad_c)
 
     def test_get_plotgroup_by_id(self):
-	r = Report('redfang')
-	pg1 = PlotGroup('pgid1')
+        r = Report('redfang')
+        pg1 = PlotGroup('pgid1')
         pg1.add_plot(Plot('pid1', 'anImg'))
         r.add_plotgroup(pg1)
 
-	pg = r.get_plotgroup_by_id('pgid1')
-	self.assertEqual(pg, pg1)
+        pg = r.get_plotgroup_by_id('pgid1')
+        self.assertEqual(pg, pg1)
 
     def test_get_plotgroup_by_id_with_bad_id(self):
         r = Report('redfang')
@@ -249,7 +261,7 @@ class TestReportModel(unittest.TestCase):
     def test_get_plot_by_id(self):
         r = Report('redfang')
         pg1 = PlotGroup('pgid1')
-	p1 = Plot('pid1', 'anImg')
+        p1 = Plot('pid1', 'anImg')
         pg1.add_plot(p1)
         r.add_plotgroup(pg1)
 
@@ -263,7 +275,8 @@ class TestReportModel(unittest.TestCase):
         pg1.add_plot(p1)
         r.add_plotgroup(pg1)
 
-        bad_p = r.get_plotgroup_by_id('pgid1').get_plot_by_id('id_that_does_not_exist')
+        bad_p = r.get_plotgroup_by_id(
+            'pgid1').get_plot_by_id('id_that_does_not_exist')
         self.assertEqual(bad_p)
 
     def test_merge(self):
@@ -277,14 +290,16 @@ class TestReportModel(unittest.TestCase):
         }
         chunks = [
             Report("pbcommand_test",
-                attributes=[
-                    Attribute(id_="n_reads", value=50, name="Number of reads"),
-                    Attribute(id_="n_zmws", value=10, name="Number of ZMWs")],
-                dataset_uuids=["12345"]),
+                   attributes=[
+                       Attribute(id_="n_reads", value=50,
+                                 name="Number of reads"),
+                       Attribute(id_="n_zmws", value=10, name="Number of ZMWs")],
+                   dataset_uuids=["12345"]),
             Report("pbcommand_test",
-                attributes=[
-                    Attribute(id_="n_reads", value=250, name="Number of reads"),
-                    Attribute(id_="n_zmws", value=50, name="Number of ZMWs")]),
+                   attributes=[
+                       Attribute(id_="n_reads", value=250,
+                                 name="Number of reads"),
+                       Attribute(id_="n_zmws", value=50, name="Number of ZMWs")]),
         ]
         r = Report.merge(chunks)
         self.assertEqual([a.id for a in r.attributes], ["n_reads", "n_zmws"])
