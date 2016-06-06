@@ -11,7 +11,7 @@ import logging
 import json
 import os
 import re
-import uuid as U # to allow use of uuid as local var
+import uuid as U  # to allow use of uuid as local var
 from pprint import pformat
 
 # make this optional. This is only for serialization
@@ -83,10 +83,12 @@ class BaseReportElement(object):
 
     def __init__(self, id_):
         if not isinstance(id_, basestring):
-            raise PbReportError("Type error. id '{i}' cannot be {t}.".format(i=id_, t=type(id_)))
+            raise PbReportError(
+                "Type error. id '{i}' cannot be {t}.".format(i=id_, t=type(id_)))
 
         if not re.match('^[a-z0-9_]+$', id_):
-            msg = "id '{i}' for {x} must contain only lower-case alphanumeric or underscore characters".format(x=self.__class__.__name__, i=id_)
+            msg = "id '{i}' for {x} must contain only lower-case alphanumeric or underscore characters".format(
+                x=self.__class__.__name__, i=id_)
             log.error(msg)
             raise PbReportError(msg)
 
@@ -100,7 +102,8 @@ class BaseReportElement(object):
         :param id_: (int) id of child BaseReportElement
         """
         if id_ in self._ids:
-            msg = "a plot with id '{i}' has already been added to {t}.".format(i=id_, t=str(type(self)))
+            msg = "a plot with id '{i}' has already been added to {t}.".format(
+                i=id_, t=str(type(self)))
             log.error(msg)
             raise PbReportError(msg)
         self._ids.add(id_)
@@ -189,7 +192,8 @@ class Attribute(BaseReportElement):
         """
         BaseReportElement.__init__(self, id_)
         if value is None:
-            raise PbReportError("value cannot be None. {n} given.".format(n=value))
+            raise PbReportError(
+                "value cannot be None. {n} given.".format(n=value))
         self._value = value
         self._name = name
 
@@ -280,12 +284,21 @@ class PlotGroup(BaseReportElement):
     def _get_attrs_complex_list(self):
         return ['plots']
 
+    def get_plot_by_id(self, id_):
+
+        for plot in self.plots:
+            if plot.id == id_:
+                return plot
+
+        return None
+
     def add_plot(self, plot):
         """
         Add a plot to the plotGroup
         """
         if not isinstance(plot, Plot):
-            raise TypeError("Unable to add plot. Got type {x} expect Plot".format(x=type(plot)))
+            raise TypeError(
+                "Unable to add plot. Got type {x} expect Plot".format(x=type(plot)))
         BaseReportElement.is_unique(self, plot.id)
         self._plots.append(plot)
 
@@ -389,7 +402,8 @@ class Table(BaseReportElement):
                 n = len(c.header)
             max_lengths[c] = n
 
-        header = "".join([c.header.ljust(max_lengths[c] + pad) for c in self.columns])
+        header = "".join([c.header.ljust(max_lengths[c] + pad)
+                          for c in self.columns])
 
         outs = list()
         outs.append("")
@@ -434,6 +448,14 @@ class Table(BaseReportElement):
     def _get_attrs_complex_list(self):
         return ['columns']
 
+    def get_column_by_id(self, id_):
+
+        for col in self.columns:
+            if col.id == id_:
+                return col
+
+        return None
+
     def add_column(self, column):
         """
         Add a column to the table
@@ -441,7 +463,8 @@ class Table(BaseReportElement):
         :param column: (Column instance)
         """
         if not isinstance(column, Column):
-            raise TypeError("Got type {x}. Expected Column type.".format(x=type(column)))
+            raise TypeError(
+                "Got type {x}. Expected Column type.".format(x=type(column)))
 
         BaseReportElement.is_unique(self, column.id)
         self._columns.append(column)
@@ -458,7 +481,8 @@ class Table(BaseReportElement):
         if column_index < len(self._columns):
             self._columns[column_index].values.append(item)
         else:
-            raise IndexError("Unable to find index {i} in columns.".format(i=column_index))
+            raise IndexError(
+                "Unable to find index {i} in columns.".format(i=column_index))
 
     def add_data_by_column_id(self, column_id, value):
         """Add a value to column.
@@ -473,7 +497,8 @@ class Table(BaseReportElement):
                 if column_id == column.id:
                     column.values.append(value)
         else:
-            raise KeyError("Unable to Column with id '{i}' to assign value {v}".format(i=column_id, v=value))
+            raise KeyError("Unable to Column with id '{i}' to assign value {v}".format(
+                i=column_id, v=value))
 
     @staticmethod
     def merge(tables):
@@ -598,7 +623,8 @@ class Report(BaseReportElement):
         :param attribute: (Attribute instance)
         """
         if not isinstance(attribute, Attribute):
-            TypeError("Got type {x}. Expected Attribute type.".format(x=type(attribute)))
+            TypeError("Got type {x}. Expected Attribute type.".format(
+                x=type(attribute)))
 
         BaseReportElement.is_unique(self, attribute.id)
         self._attributes.append(attribute)
@@ -608,7 +634,8 @@ class Report(BaseReportElement):
         Add a plotgroup to the report
         """
         if not isinstance(plotgroup, PlotGroup):
-            TypeError("Got type {x}. Expected Attribute type.".format(x=type(plotgroup)))
+            TypeError("Got type {x}. Expected Attribute type.".format(
+                x=type(plotgroup)))
 
         BaseReportElement.is_unique(self, plotgroup.id)
         self._plotgroups.append(plotgroup)
@@ -661,6 +688,22 @@ class Report(BaseReportElement):
         for attr in self.attributes:
             if attr.id == id_:
                 return attr
+
+        return None
+
+    def get_table_by_id(self, id_):
+
+        for table in self.tables:
+            if table.id == id_:
+                return table
+
+        return None
+
+    def get_plotgroup_by_id(self, id_):
+
+        for pg in self.plotGroups:
+            if pg.id == id_:
+                return pg
 
         return None
 
