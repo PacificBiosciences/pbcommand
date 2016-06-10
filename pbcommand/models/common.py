@@ -261,6 +261,8 @@ class FileTypes(object):
     DS_BARCODE = DataSetFileType(to_ds_ns("BarcodeSet"), "file", "barcodeset.xml", MimeTypes.XML)
     DS_ALIGN_CCS = DataSetFileType(to_ds_ns("ConsensusAlignmentSet"), "file",
                                    "consensusalignmentset.xml", MimeTypes.XML)
+    DS_GMAP_REF = DataSetFileType(to_ds_ns("GmapReferenceSet"), "file",
+                                  "gmapreferenceset.xml", MimeTypes.XML)
 
     # PacBio Defined Formats
     # **** Index Files
@@ -283,6 +285,9 @@ class FileTypes(object):
     # No ':' or '"' in the id
     FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", MimeTypes.TXT)
     CONTIG_FA = FileType("PacBio.ContigFile.ContigFastaFile", "file", "contig.fasta", MimeTypes.TXT)
+
+    # XXX this is actually a directory!
+    DB_GMAP = FileType("PacBio.GmapDB.GmapDBPath", "gmap", "db", None)
 
     # BAM dialects
     BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", MimeTypes.BINARY)
