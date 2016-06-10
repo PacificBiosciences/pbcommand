@@ -286,9 +286,6 @@ class FileTypes(object):
     FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", MimeTypes.TXT)
     CONTIG_FA = FileType("PacBio.ContigFile.ContigFastaFile", "file", "contig.fasta", MimeTypes.TXT)
 
-    # XXX this is actually a directory!
-    DB_GMAP = FileType("PacBio.GmapDB.GmapDBPath", "gmap", "db", None)
-
     # BAM dialects
     BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", MimeTypes.BINARY)
     BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", MimeTypes.BINARY)
