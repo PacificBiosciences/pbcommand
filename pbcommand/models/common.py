@@ -237,7 +237,7 @@ class FileTypes(object):
     SAM = FileType(to_file_ns('sam'), "alignments", "sam", MimeTypes.BINARY)
     VCF = FileType(to_file_ns('vcf'), "file", "vcf", MimeTypes.TXT)
     GFF = FileType(to_file_ns('gff'), "file", "gff", MimeTypes.TXT)
-    BIGWIG = FileType(to_file_ns('bigwig', "annotations", "bw", MimeTypes.BINARY))
+    BIGWIG = FileType(to_file_ns('bigwig'), "annotations", "bw", MimeTypes.BINARY)
     CSV = FileType(to_file_ns('csv'), "file", "csv", MimeTypes.CSV)
     XML = FileType(to_file_ns('xml'), "file", "xml", 'application/xml')
     # Generic Json File
