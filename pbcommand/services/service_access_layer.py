@@ -274,12 +274,30 @@ def _to_datastore(dx):
 
 
 def _to_job_report_files(dx):
-    return [{u"reportTypeId":d["reportTypeId"],
-             u"dataStoreFile":_to_ds_file(d["dataStoreFile"])} for d in dx]
+    return [{u"reportTypeId": d["reportTypeId"],
+             u"dataStoreFile": _to_ds_file(d["dataStoreFile"])} for d in dx]
 
 
 def _to_entry_points(d):
     return [JobEntryPoint.from_d(i) for i in d]
+
+
+def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_func, job_id):
+    """Util func for getting report Attributes
+
+    Note, this assumes that only one report type has been created. This is
+    probably not a great idea. Should re-evaluate this.
+    """
+    report_datafiles = sal_get_reports_func(job_id)
+    report_uuids = [r.values()[0].uuid for r in report_datafiles]
+    reports = [sal_get_reports_details_func(job_id, r_uuid) for r_uuid in report_uuids]
+    all_report_attributes = {}
+
+    for r in reports:
+        for x in r['attributes']:
+            all_report_attributes[x['id']] = x['value']
+
+    return all_report_attributes
 
 
 class ServiceAccessLayer(object):
@@ -356,18 +374,37 @@ class ServiceAccessLayer(object):
         """
         return self.get_job_by_type_and_id(JobTypes.PB_PIPE, job_id)
 
+    def get_import_job_by_id(self, job_id):
+        return self.get_job_by_type_and_id(JobTypes.IMPORT_DS, job_id)
+
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def get_analysis_job_reports(self, job_id):
-        """Get Reports output from (pbsmrtpipe) analysis job"""
+        """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
     def get_analysis_job_report_details(self, job_id, report_uuid):
         _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
         return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)))
+
+    def get_analysis_job_report_attrs(self, job_id):
+        """Return a dict of all the Report Attributes"""
+        return _get_all_report_attributes(self.get_analysis_job_reports, self.get_analysis_job_report_details, job_id)
+
+    def get_import_job_reports(self, job_id):
+        return self._get_job_resource_type_with_transform(JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
+
+    def get_import_job_report_details(self, job_id, report_uuid):
+        # It would have been better to return a Report instance, not raw json
+        _d = dict(t=JobTypes.IMPORT_DS, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
+        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)))
+
+    def get_import_job_report_attrs(self, job_id):
+        """Return a dict of all the Report Attributes"""
+        return _get_all_report_attributes(self.get_import_job_reports, self.get_import_job_report_details, job_id)
 
     def get_analysis_job_entry_points(self, job_id):
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)

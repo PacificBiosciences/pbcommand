@@ -102,10 +102,12 @@ def to_sal_summary(sal):
 
     x = outs.append
 
-    sep = "-" * 10
+    sep = "-" * 30
 
     x(repr(sal))
-    x("Status {s}".format(s=status['message']))
+    x("SystemId : {}".format(status['id']))
+    x("Version  : {}".format(status['version']))
+    x("Status   : {}".format(status['message']))
     x(sep)
     x(to_all_datasets_summary(sal, sep=sep))
     x(sep)
