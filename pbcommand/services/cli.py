@@ -43,7 +43,7 @@ from pbcommand.utils import (is_dataset,
 
 from .utils import to_ascii
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress warning message
@@ -320,7 +320,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
     if time_out is None:
         time_out = sal.JOB_DEFAULT_TIMEOUT
     status = sal.get_status()
-    log.info("Status {x}".format(x=status['message']))
+    log.info("System:{i} v:{v} Status:{x}".format(x=status['message'], i=status['id'], v=status['version']))
 
     resolved_service_entry_points = []
     for service_entry_point in service_entry_points:
@@ -400,11 +400,19 @@ def add_get_job_options(p):
 def run_get_job_summary(host, port, job_id):
     sal = get_sal_and_status(host, port)
     job = sal.get_job_by_id(job_id)
+    epoints = sal.get_analysis_job_entry_points(job_id)
 
     if job is None:
         log.error("Unable to find job {i} from {u}".format(i=job_id, u=sal.uri))
     else:
-        print job
+        # this is not awesome, but the scala code should be the fundamental
+        # tool
+        print "Job {}".format(job_id)
+        # The settings will often make this unreadable
+        print job._replace(settings={})
+        print " Entry Points {}".format(len(epoints))
+        for epoint in epoints:
+            print "  {}".format(epoint)
 
     return 0
 

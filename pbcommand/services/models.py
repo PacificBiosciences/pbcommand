@@ -1,5 +1,6 @@
 """Services Specific Data Models"""
 from collections import namedtuple
+import json
 import uuid
 
 import iso8601
@@ -38,7 +39,7 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
                                     "Secondary Analysis Pbsmrtpipe Job logger")
 
 
-class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type created_at')):
+class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type created_at settings')):
 
     @staticmethod
     def from_d(d):
@@ -51,8 +52,12 @@ class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type crea
         def to_t(x):
             return iso8601.parse_date(se(x))
 
+        def to_d(x):
+            # the "jsonSettings" are a string for some stupid reason
+            return json.loads(sx(x))
+
         return ServiceJob(sx('id'), sx('uuid'), se('name'), se('state'),
-                          se('path'), se('jobTypeId'), to_t('createdAt'))
+                          se('path'), se('jobTypeId'), to_t('createdAt'), to_d('jsonSettings'))
 
     def was_successful(self):
         return self.state == JobStates.SUCCESSFUL
