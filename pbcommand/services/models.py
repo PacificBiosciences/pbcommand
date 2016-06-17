@@ -137,12 +137,13 @@ class JobEntryPoint(namedtuple("JobEntryPoint", "job_id dataset_uuid dataset_met
 
 
 class JobStates(object):
-    RUNNING = "RUNNING"
     CREATED = "CREATED"
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
     FAILED = "FAILED"
     SUCCESSFUL = "SUCCESSFUL"
 
-    ALL = (RUNNING, CREATED, FAILED)
+    ALL = (RUNNING, CREATED, FAILED, SUCCESSFUL, SUBMITTED)
 
     # End points
     ALL_COMPLETED = (FAILED, SUCCESSFUL)
