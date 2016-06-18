@@ -11,7 +11,7 @@
       "condId": "cond_alpha",
       "subreadset": "subreadset-02.xml",
       "alignmentset": "alignmentset-B.xml",
-      "referenceset": "/path/to/reference.xml"
+      "referenceset": "reference.xml"
     },
     {
       "condId": "cond_beta",

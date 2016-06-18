@@ -40,7 +40,6 @@ class TestSerializationOfResequencingConditions(unittest.TestCase):
             self.assertTrue(os.path.isabs(c.subreadset))
             self.assertTrue(os.path.isabs(c.alignmentset))
             self.assertTrue(os.path.isabs(c.referenceset))
-            print "XXX", c
 
 
 class TestSerializationOfResequencingConditionsWithRelativePath(TestSerializationOfResequencingConditions):
