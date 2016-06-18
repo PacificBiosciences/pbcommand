@@ -1,0 +1,24 @@
+{
+  "_condition_doc": "Example of a 'Resequencing' Condition Type with Files that have relative paths",
+  "conditions": [
+    {
+      "condId": "cond_alpha",
+      "subreadset": "subreadset-01.xml",
+      "alignmentset": "alignmentset-A.xml",
+      "referenceset": "reference.xml"
+    },
+    {
+      "condId": "cond_alpha",
+      "subreadset": "subreadset-02.xml",
+      "alignmentset": "alignmentset-B.xml",
+      "referenceset": "/path/to/reference.xml"
+    },
+    {
+      "condId": "cond_beta",
+      "subreadset": "subreadset-03.xml",
+      "alignmentset": "alignmentset-C.xml",
+      "referenceset": "reference.xml"
+    }
+  ],
+  "pipelineId": "pbsmrtpipe.pipelines.my_pipeline"
+}
