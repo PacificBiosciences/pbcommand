@@ -13,6 +13,7 @@ Contents:
 
    commandline_interface
    services
+   report_model
 
 
 Indices and tables:
