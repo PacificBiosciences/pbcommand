@@ -9,8 +9,6 @@ import uuid as U
 from pbcommand.models.report import (Report, Plot, PlotGroup, Attribute,
                                      Table, Column)
 
-SUPPORTED_VERSIONS = ('2.1', '2.2', '2.3')
-_DEFAULT_VERSION = '2.1'  # before the version was officially added
 
 log = logging.getLogger(__name__)
 
@@ -81,23 +79,19 @@ def _to_table(d):
 
 
 def dict_to_report(dct):
-    # MK. We'll revisit this at some point.
-    # if '_version' in dct:
-    #     version = dct['_version']
-    #     if version not in SUPPORTED_VERSIONS:
-    #         # should this raise an exception?
-    #         log.warn("{v} is an unsupported version. Supported versions {vs}".format(v=version, vs=SUPPORTED_VERSIONS))
+    # FIXME. Add support for different version schemas in a cleaner, more
+    # concrete manner.
 
     report_id = dct['id']
 
     # Make this optional for now
-    report_uuid = dct.get('uuid', U.uuid4())
+    report_uuid = dct.get('uuid', str(U.uuid4()))
+
+    # Make sure the UUID is well formed
+    _ = U.UUID(report_uuid)
 
     # Legacy Reports > 0.3.9 will not have the title key
-    if 'title' in dct:
-        title = dct['title']
-    else:
-        title = "Report {i}".format(i=report_id)
+    title = dct.get('title', "Report {i}".format(i=report_id))
 
     plot_groups = []
     if 'plotGroups' in dct:

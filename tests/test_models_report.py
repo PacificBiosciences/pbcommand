@@ -7,6 +7,7 @@ import unittest
 from pbcommand.pb_io import load_report_from_json
 from pbcommand.models.report import (Report, Attribute, PlotGroup, Plot, Table,
                                      Column, PbReportError)
+from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
@@ -109,14 +110,10 @@ class TestReportModel(unittest.TestCase):
         r = Report('example')
         d = r.to_dict()
         log.info("\n" + pformat(d))
-        self.assertTrue('_version' in d)
-        self.assertTrue('_changelist' in d)
 
-        # Not used anymore. The all version information is encoded in _version.
-        # that should be sufficient.
-        # self.assertTrue(isinstance(d['_changelist'], int))
-        rx = re.compile(r'[0-9]*\.[0-9]*')
-        self.assertIsNotNone(rx.search(d['_version']))
+        fields = ('version', 'uuid', 'plotGroups', 'tables', 'dataset_uuids')
+        for field in fields:
+            self.assertTrue(field in d)
 
     def test_to_dict_multi(self):
         """
@@ -333,3 +330,18 @@ class TestReportModel(unittest.TestCase):
                      'BarcodeFasta3'])
             else:
                 self.assertEqual(col.values, [1, 2, 4, 3])
+
+
+class TestMalformedReport(unittest.TestCase):
+
+    def test_bad_01(self):
+        r = Report("stuff", uuid=1234)
+        d = r.to_dict()
+
+        def fx():
+            # when the Report validation is enabled, use to_json
+            # r.to_json()
+            return validate_report(d)
+
+        self.assertRaises(IOError, fx)
+

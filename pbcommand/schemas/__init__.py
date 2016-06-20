@@ -27,10 +27,22 @@ PBREPORT_SCHEMA = _load_schema("pbreport", "pbreport.avsc")
 TC_SCHEMA = _load_schema("tool_contract", "tool_contract.avsc")
 
 
-def _validate(schema, d):
+def _validate(schema, msg, d):
     """Validate a python dict against a avro schema"""
+    if not validate(schema, d):
+        raise IOError("Invalid {m} ".format(m=msg))
+    return True
+
+
+def _is_valid(schema, d):
     return validate(schema, d)
 
-validate_rtc = functools.partial(_validate, RTC_SCHEMA)
-validate_pbreport = functools.partial(_validate, PBREPORT_SCHEMA)
-validate_tc = functools.partial(_validate, TC_SCHEMA)
+
+validate_rtc = functools.partial(_validate, RTC_SCHEMA, "Resolved Tool Contract Model")
+validate_pbreport = functools.partial(_validate, PBREPORT_SCHEMA, "Report Model")
+validate_report = validate_pbreport
+validate_tc = functools.partial(_validate, TC_SCHEMA, "Tool Contract Model")
+
+is_valid_rtc = functools.partial(_is_valid, RTC_SCHEMA)
+is_valid_report = functools.partial(_is_valid, PBREPORT_SCHEMA)
+is_valid_tc = functools.partial(_is_valid, TC_SCHEMA)
