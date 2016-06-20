@@ -109,14 +109,10 @@ class TestReportModel(unittest.TestCase):
         r = Report('example')
         d = r.to_dict()
         log.info("\n" + pformat(d))
-        self.assertTrue('_version' in d)
-        self.assertTrue('_changelist' in d)
 
-        # Not used anymore. The all version information is encoded in _version.
-        # that should be sufficient.
-        # self.assertTrue(isinstance(d['_changelist'], int))
-        rx = re.compile(r'[0-9]*\.[0-9]*')
-        self.assertIsNotNone(rx.search(d['_version']))
+        fields = ('version', 'uuid', 'plotGroups', 'tables', 'dataset_uuids')
+        for field in fields:
+            self.assertTrue(field in d)
 
     def test_to_dict_multi(self):
         """

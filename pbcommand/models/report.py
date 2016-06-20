@@ -13,9 +13,10 @@ import os
 import re
 import uuid as U  # to allow use of uuid as local var
 from pprint import pformat
+import datetime
 
-# make this optional. This is only for serialization
-import numpy as np
+import pbcommand
+
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +28,9 @@ __all__ = ['PbReportError',
            'Column',
            'Table']
 
-import pbcommand
+# If/when the Report datamodel change, this needs to be changed using
+# the semver model
+PB_REPORT_SCHEMA_VERSION = "1.0.0"
 
 _HAS_NUMPY = False
 
@@ -149,14 +152,6 @@ class BaseReportElement(object):
             id_parts.append(self.id)
 
         d = {a: getattr(self, a) for a in self._get_attrs_simple()}
-
-        # Versioning
-        # import pbreports
-        # version = pbreports.get_version()
-        # changelist = pbreports.get_changelist()
-
-        # d['_version'] = version
-        # d['_changelist'] = changelist
 
         d['id'] = '.'.join([str(v) for v in id_parts])
         complex_attrs = self._get_attrs_complex_list()
@@ -618,6 +613,10 @@ class Report(BaseReportElement):
         # Datasets that
         self._dataset_uuids = dataset_uuids
 
+    @property
+    def dataset_uuids(self):
+        return self._dataset_uuids
+
     def add_attribute(self, attribute):
         """Add an attribute to the report
         :param attribute: (Attribute instance)
@@ -708,14 +707,18 @@ class Report(BaseReportElement):
         return None
 
     def to_dict(self, id_parts=None):
-        version = pbcommand.get_version()
+
+        _d = dict(v=pbcommand.get_version(),
+                  t=datetime.datetime.now().isoformat())
 
         d = BaseReportElement.to_dict(self, id_parts=id_parts)
+        d['_comment'] = "Generated with pbcommand version {v} at {t}".format(**_d)
+
+        # Required in 1.0.0 of the spec
         d['uuid'] = self.uuid
         d['title'] = self.title
-        d['_version'] = version
-        d['_changelist'] = "UNKNOWN"
-        d['dataset_uuids'] = list(set(self._dataset_uuids))
+        d['version'] = PB_REPORT_SCHEMA_VERSION
+        d['dataset_uuids'] = list(set(self.dataset_uuids))
         return d
 
     def to_json(self):
@@ -814,7 +817,7 @@ class Report(BaseReportElement):
             assert report.id == report_id
             attr_list.append(report.attributes)
             table_list.extend(report.tables)
-            dataset_uuids.update(set(report._dataset_uuids))
+            dataset_uuids.update(set(report.dataset_uuids))
         table = _attributes_to_table(attr_list, 'chunk_metrics',
                                      "Chunk Metrics")
         tables = _merge_tables(table_list)
