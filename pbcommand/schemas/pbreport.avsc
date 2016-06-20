@@ -8,6 +8,22 @@
       "type": "string",
       "desc": "Pbreports style id, must only have [A-z][0-9]_"
     },
+     {
+      "name": "version",
+      "type": "string",
+      "desc": "Version of the Report Schema Spec"
+    },
+     {
+      "name": "uuid",
+      "type": "string",
+      "desc": "Report UUID"
+    },
+     {
+      "name": "title",
+      "type": ["string", "null"],
+      "default": null,
+      "desc": "Report Display name"
+    },
     {
       "name": "attributes",
       "type": {
@@ -150,7 +166,9 @@
                         "type": "array",
                         "items": [
                           "int",
-                          "float"
+                          "float",
+                          "string",
+                          "null"
                         ]
                       }
                     }
