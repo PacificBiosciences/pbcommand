@@ -287,6 +287,9 @@ class FileTypes(object):
     FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", MimeTypes.TXT)
     CONTIG_FA = FileType("PacBio.ContigFile.ContigFastaFile", "file", "contig.fasta", MimeTypes.TXT)
 
+    # Adapter Fasta File From PPA
+    FASTA_ADAPTER = FileType("PacBio.AdapterFile.AdapterFastaFile", "file", "adapters.fasta", MimeTypes.TXT)
+
     # BAM dialects
     BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", MimeTypes.BINARY)
     BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", MimeTypes.BINARY)
