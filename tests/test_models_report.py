@@ -329,3 +329,15 @@ class TestReportModel(unittest.TestCase):
                      'BarcodeFasta3'])
             else:
                 self.assertEqual(col.values, [1, 2, 4, 3])
+
+
+class TestMalformedReport(unittest.TestCase):
+
+    def test_bad_01(self):
+        r = Report("stuff", uuid=1234)
+
+        def fx():
+            return r.to_json()
+
+        self.assertRaises(IOError, fx)
+

@@ -723,15 +723,21 @@ class Report(BaseReportElement):
 
     def to_json(self):
         """Return a json string of the report"""
+
+        from pbcommand.schemas import validate_pbreport
+
         try:
             s = _to_json_with_decoder(self.to_dict())
+            # this needs to be processed by the decoder, then validate the
+            # dict
+            _ = validate_pbreport(json.loads(s))
+            return s
         except TypeError as e:
             msg = "Unable to serialize report due to {e} \n".format(e=e)
             log.error(msg)
             log.error("Object: " + pformat(self.to_dict()))
             raise
 
-        return s
 
     def write_json(self, file_name):
         """
