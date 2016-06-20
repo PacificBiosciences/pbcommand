@@ -728,9 +728,10 @@ class Report(BaseReportElement):
 
         try:
             s = _to_json_with_decoder(self.to_dict())
+            # FIXME(mkocher)(2016-6-20) Enable schema validation
             # this needs to be processed by the decoder, then validate the
             # dict
-            _ = validate_pbreport(json.loads(s))
+            # _ = validate_pbreport(json.loads(s))
             return s
         except TypeError as e:
             msg = "Unable to serialize report due to {e} \n".format(e=e)
