@@ -7,6 +7,7 @@ import unittest
 from pbcommand.pb_io import load_report_from_json
 from pbcommand.models.report import (Report, Attribute, PlotGroup, Plot, Table,
                                      Column, PbReportError)
+from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
@@ -335,9 +336,12 @@ class TestMalformedReport(unittest.TestCase):
 
     def test_bad_01(self):
         r = Report("stuff", uuid=1234)
+        d = r.to_dict()
 
         def fx():
-            return r.to_json()
+            # when the Report validation is enabled, use to_json
+            # r.to_json()
+            return validate_report(d)
 
         self.assertRaises(IOError, fx)
 
