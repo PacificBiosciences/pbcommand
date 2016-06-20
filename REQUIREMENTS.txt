@@ -3,3 +3,4 @@ jsonschema
 avro
 requests
 iso8601
+numpy
