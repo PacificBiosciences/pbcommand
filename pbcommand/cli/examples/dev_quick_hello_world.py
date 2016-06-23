@@ -6,6 +6,9 @@ from pbcommand.cli import registry_builder, registry_runner, QuickOpt
 
 log = logging.getLogger(__name__)
 
+# Version of the Commandline Tool
+__version__ = "0.1.2"
+
 registry = registry_builder("pbcommand", "python -m pbcommand.cli.examples.dev_quick_hello_world ")
 
 
@@ -62,4 +65,5 @@ if __name__ == '__main__':
     default_log_level = logging.DEBUG
     sys.exit(registry_runner(registry,
                              sys.argv[1:],
-                             default_log_level=default_log_level))
+                             default_log_level=default_log_level,
+                             version=__version__))

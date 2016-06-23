@@ -302,8 +302,10 @@ def _to_registry_parser(version, description, default_log_level):
     return _f
 
 
-def registry_runner(registry, argv, default_log_level=logging.INFO):
+def registry_runner(registry, argv, default_log_level=logging.INFO, version="0.1.0"):
     """Runs a registry
+
+    :arg version: Is the version of the Commandline tool, not the TCs or tasks.
 
     1. Manually build an argparser that has
 
@@ -318,7 +320,7 @@ def registry_runner(registry, argv, default_log_level=logging.INFO):
 
     :type registry: Registry
     """
-    f = _to_registry_parser('0.1.1', "Multi-quick-tool-runner for {r}".format(r=registry.namespace), default_log_level)
+    f = _to_registry_parser(version, "Multi-quick-tool-runner for {r}".format(r=registry.namespace), default_log_level)
     p = f(registry)
     args = p.parse_args(argv)
     # The logger needs to be setup only in specific subparsers. Some commands
