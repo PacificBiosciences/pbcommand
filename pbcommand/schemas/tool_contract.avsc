@@ -4,6 +4,16 @@
   "name": "ToolContract",
   "fields": [
     {
+      "doc": "Version of the ToolContract",
+      "name": "version",
+      "type": "string"
+    },
+    {
+      "doc": "ToolContract Id (this is duplicated in the Task?)",
+      "name": "tool_contract_id",
+      "type": "string"
+    },
+    {
       "name": "tool_contract",
       "type": {
         "type": "record",
@@ -18,11 +28,12 @@
                 "name": "ToolInputFile",
                 "fields": [
                   {
+                    "doc": "Id of the task input",
                     "name": "id",
                     "type": "string"
                   },
                   {
-                    "doc": "PacBio File Type identifier",
+                    "doc": "PacBio File Type identifier, PacBio.DataSet.SubreadSet",
                     "name": "file_type_id",
                     "type": "string"
                   },
@@ -86,7 +97,7 @@
                     "name": "pb_option",
                     "type": {
                       "type": "record",
-                      "name": "pb_option",
+                      "name": "PacBioOption",
                       "fields": [
                         {
                           "name": "default",
@@ -117,6 +128,16 @@
             }
           },
           {
+            "doc": "Description of Tool/Task",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "doc": "Display Name of Tool/Task",
+            "name": "name",
+            "type": "string"
+          },
+          {
             "doc": "Number of processors to use",
             "name": "nproc",
             "type": "int"
@@ -129,7 +150,8 @@
           {
             "doc": "Task class type, Standard, Scatter, Gather",
             "name": "task_type",
-            "type": "string"
+            "type": "string",
+             "default": "pbsmrtpipe.task_types.standard"
           },
           {
             "doc": "Determine if the task will be submitted to the cluster resources",
@@ -155,7 +177,13 @@
         "name": "ToolDriver",
         "fields": [
           {
+            "doc": "path to exe. The first arg will the the resolved tool contract JSON",
             "name": "exe",
+            "type": "string"
+          },
+          {
+            "doc": "Serialization type. Either 'json' or 'avro' binary format ",
+            "name": "serialization",
             "type": "string"
           }
         ]

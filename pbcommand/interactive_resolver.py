@@ -7,7 +7,8 @@ import warnings
 from pbcommand.cli import get_default_argparser
 from pbcommand.models import SymbolTypes
 from pbcommand.pb_io import (load_tool_contract_from,
-                             write_resolved_tool_contract)
+                             write_resolved_tool_contract,
+                             write_resolved_tool_contract_avro)
 
 from pbcommand.resolver import resolve_tool_contract
 
@@ -37,16 +38,34 @@ def run_main(tc):
         in_path = get_input(" {i} file {p} path :".format(i=i, p=input_type))
         if not os.path.exists(in_path):
             warnings.warn("Unable to find {p}".format(p=in_path))
-        input_files.append(in_path)
+
+        # Make sure all inputs are abspaths
+        p = in_path if os.path.isabs(in_path) else os.path.abspath(in_path)
+        input_files.append(p)
 
     tool_options = {}
     rtc = resolve_tool_contract(tc, input_files, output_dir, '/tmp', int(nproc), tool_options, is_distributable=False)
     print rtc
 
-    file_name = tc.task.task_id + "_resolved_tool_contract.json"
-    rtc_path = os.path.join(output_dir, file_name)
+    def to_n(ext):
+        return "resolved_tool_contract." + ext
+
+    def to_f(ext):
+        return "_".join([tc.task.task_id, to_n(ext)])
+
+    def to_p(ext):
+        return os.path.join(output_dir, to_f(ext))
+
+    rtc_path = to_p("json")
     print "writing RTC to {f}".format(f=rtc_path)
+
+    # Always write the JSON RTC file
     write_resolved_tool_contract(rtc, rtc_path)
+
+    if rtc.driver.serialization.lower() == "avro":
+        avro_rtc_path = to_p("avro")
+        print "writing AVRO RTC to {f}".format(f=avro_rtc_path)
+        write_resolved_tool_contract_avro(rtc, avro_rtc_path)
 
     return rtc
 
