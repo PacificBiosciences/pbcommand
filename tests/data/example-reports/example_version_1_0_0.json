@@ -1,0 +1,31 @@
+{
+  "_comment": "Example of v 1.0.0 Report schema.",
+  "tables": [],
+  "uuid": "196136c8-f6fd-11e5-b481-3c15c2cc8f88",
+  "version": "1.0.0",
+  "attributes": [
+    {
+      "name": "SMRT Cells",
+      "value": 1,
+      "id": "overview.ncells"
+    }
+  ],
+  "id": "my_example",
+  "title": "Example Report",
+  "plotGroups": [
+    {
+      "id": "adapter.observed_insert_length_distribution",
+      "thumbnail": "adapter_observed_insert_length_distribution_thumb.png",
+      "plots": [
+        {
+          "title": "My Plot",
+          "caption": null,
+          "image": "adapter_observed_insert_length_distribution.png",
+          "id": "adapter.observed_insert_length_distribution.plot1"
+        }
+      ],
+      "legend": null,
+      "title": "Observed Insert Length Distribution"
+    }
+  ]
+}

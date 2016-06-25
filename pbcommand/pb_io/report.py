@@ -27,7 +27,8 @@ def _to_plot(d):
     caption = d.get('caption', None)
     image = d['image']
     thumbnail = d.get('thumbnail', None)
-    p = Plot(id_, image, caption=caption, thumbnail=thumbnail)
+    title = d.get('title', None)
+    p = Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title)
     return p
 
 
