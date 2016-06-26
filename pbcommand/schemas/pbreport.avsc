@@ -101,6 +101,11 @@
                       "type": "string",
                       "desc": "Relative Path to Image"
                     },
+                     {
+                      "name": "title",
+                      "type": ["string", "null"],
+                      "desc": "Display Name of Plot"
+                    },
                     {
                       "name": "caption",
                       "desc": "Caption of the Plot",

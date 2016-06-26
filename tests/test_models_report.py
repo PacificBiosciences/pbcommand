@@ -345,3 +345,15 @@ class TestMalformedReport(unittest.TestCase):
 
         self.assertRaises(IOError, fx)
 
+
+class TestReportSchemaVersion100(unittest.TestCase):
+
+    name = "example_version_1_0_0.json"
+
+    def test_sanity(self):
+        r = _to_report(self.name)
+        self.assertIsInstance(r, Report)
+
+
+class TestRepotSchemaVersion100WithPlots(TestReportSchemaVersion100):
+    name = "example_with_plot.json"

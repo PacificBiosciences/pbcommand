@@ -312,12 +312,13 @@ class Plot(BaseReportElement):
     A plot contains a path to image file.
     """
 
-    def __init__(self, id_, image, caption=None, thumbnail=None):
+    def __init__(self, id_, image, caption=None, thumbnail=None, title=None):
         """
         :param id_: (str, not None, or empty) Unique id for plot.
         :param image: (str) Required - not None - path to image
         :param caption: (str, None) Plot caption displayed to user under plot.
         :param thumbnail: (str, None) thumbnail path
+        :param title: str Display Name of the Plot
 
         Paths must be given as relative
         """
@@ -329,6 +330,7 @@ class Plot(BaseReportElement):
 
         self._image = image
         self._caption = caption
+        self.title = title
         if thumbnail is not None:
             _validate_not_abs_path(thumbnail)
 
@@ -353,7 +355,7 @@ class Plot(BaseReportElement):
         return self._caption
 
     def _get_attrs_simple(self):
-        return ['image', 'caption']
+        return ['image', 'caption', 'title']
 
     def _get_attrs_complex_list(self):
         return []
@@ -738,7 +740,6 @@ class Report(BaseReportElement):
             log.error(msg)
             log.error("Object: " + pformat(self.to_dict()))
             raise
-
 
     def write_json(self, file_name):
         """
