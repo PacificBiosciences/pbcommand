@@ -99,14 +99,10 @@ class TestUtils(unittest.TestCase):
 
     def test_get_dataset_metadata(self):
         try:
-            import pbcore.io
-            import pbcore.data
+            import pbtestdata
         except ImportError:
-            raise unittest.SkipTest("pbcore not available, skipping")
+            raise unittest.SkipTest("pbtestdata not available, skipping")
         else:
-            ds = pbcore.io.SubreadSet(pbcore.data.getUnalignedBam())
-            ds_file = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
-            ds.write(ds_file)
-            md = get_dataset_metadata(ds_file)
+            md = get_dataset_metadata(pbtestdata.get_file("subreads-xml"))
             self.assertEqual(md.metatype, "PacBio.DataSet.SubreadSet")
             self.assertEqual(md.uuid, ds.uuid)
