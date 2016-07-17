@@ -119,6 +119,23 @@
                         {
                           "name": "description",
                           "type": "string"
+                        },
+                        {
+                          "doc": "PacBio task option type",
+                          "name": "type",
+                          "type": {
+                            "doc": "This needs to be considerably improved and clarified. The option type must be consistent with the value defined. 'number' MUST be removed.",
+                            "type": "enum",
+                            "name": "PacBioOptionType",
+                            "aliases": ["com.pacbio.common.models.contracts.PacBioOptionType"],
+                            "symbols": [
+                              "integer",
+                              "boolean",
+                              "string",
+                              "float",
+                              "number"
+                            ]
+                          }
                         }
                       ]
                     }
@@ -151,7 +168,7 @@
             "doc": "Task class type, Standard, Scatter, Gather",
             "name": "task_type",
             "type": "string",
-             "default": "pbsmrtpipe.task_types.standard"
+            "default": "pbsmrtpipe.task_types.standard"
           },
           {
             "doc": "Determine if the task will be submitted to the cluster resources",
@@ -159,6 +176,7 @@
             "type": "boolean"
           },
           {
+            "doc": "This needs to be converted to an ENUM. Allowed values $tmpfile $tmpdir",
             "name": "resource_types",
             "type": {
               "type": "array",
