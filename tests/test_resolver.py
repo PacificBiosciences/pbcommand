@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from base_utils import get_data_file, get_temp_dir
+from base_utils import (get_temp_dir, get_tool_contract, get_resolved_tool_contract)
 from pbcommand.models import ResolvedToolContract, ResolvedScatteredToolContractTask, ResolvedGatherToolContractTask
 
 from pbcommand.pb_io import load_tool_contract_from
@@ -21,7 +21,7 @@ class TestScatterResolver(unittest.TestCase):
 
     def test_sanity(self):
         d = get_temp_dir("resolved-tool-contract")
-        tc = load_tool_contract_from(get_data_file(self.FILE_NAME))
+        tc = load_tool_contract_from(get_tool_contract(self.FILE_NAME))
         rtc = resolve_scatter_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, self.TOOL_OPTIONS, self.MAX_NCHUNKS, self.CHUNK_KEYS, False)
         self.assertIsInstance(rtc, ResolvedToolContract)
         self.assertIsInstance(rtc.task, ResolvedScatteredToolContractTask)
@@ -40,7 +40,7 @@ class TestGatherResolver(unittest.TestCase):
 
     def test_sanity(self):
         d = get_temp_dir("resolved-tool-contract")
-        tc = load_tool_contract_from(get_data_file(self.FILE_NAME))
+        tc = load_tool_contract_from(get_tool_contract(self.FILE_NAME))
         rtc = resolve_gather_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, self.TOOL_OPTIONS, self.CHUNK_KEY, False)
         self.assertIsInstance(rtc, ResolvedToolContract)
         self.assertIsInstance(rtc.task, ResolvedGatherToolContractTask)

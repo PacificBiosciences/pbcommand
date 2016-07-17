@@ -29,6 +29,7 @@ TC_SCHEMA = _load_schema("tool_contract", "tool_contract.avsc")
 
 def _validate(schema, msg, d):
     """Validate a python dict against a avro schema"""
+    # FIXME(mkocher)(2016-7-16) Add a better error message than "Invalid"
     if not validate(schema, d):
         raise IOError("Invalid {m} ".format(m=msg))
     return True

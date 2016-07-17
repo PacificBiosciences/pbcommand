@@ -1,0 +1,84 @@
+{
+    "driver": {
+        "env": {},
+        "exe": "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc  ",
+        "serialization": "json"
+    },
+    "tool_contract": {
+        "_comment": "Created by v0.4.4",
+        "description": "Dev Task Fastq to Fasta Example",
+        "input_types": [
+            {
+                "description": "description for PacBio.FileTypes.Fastq_0",
+                "file_type_id": "PacBio.FileTypes.Fastq",
+                "id": "Label PacBio.FileTypes.Fastq_0",
+                "title": "<FileType id=PacBio.FileTypes.Fastq name=file >"
+            }
+        ],
+        "is_distributed": true,
+        "name": "Fastq to Fasta",
+        "nproc": 1,
+        "output_types": [
+            {
+                "default_name": "file",
+                "description": "description for <FileType id=PacBio.FileTypes.Fasta name=file >",
+                "file_type_id": "PacBio.FileTypes.Fasta",
+                "id": "Label PacBio.FileTypes.Fasta_0",
+                "title": "<FileType id=PacBio.FileTypes.Fasta name=file >"
+            }
+        ],
+        "resource_types": [],
+        "schema_options": [
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "pb_option": {
+                    "default": 1234.0,
+                    "description": "Beta Description",
+                    "name": "Beta Name",
+                    "option_id": "pbcommand.task_options.beta",
+                    "type": "number"
+                },
+                "properties": {
+                    "pbcommand.task_options.beta": {
+                        "default": 1234.0,
+                        "description": "Beta Description",
+                        "title": "Beta Name",
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "pbcommand.task_options.beta"
+                ],
+                "title": "JSON Schema for pbcommand.task_options.beta",
+                "type": "object"
+            },
+            {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "pb_option": {
+                    "default": true,
+                    "description": "Option gamma description",
+                    "name": "Option gamma",
+                    "option_id": "pbcommand.task_options.gamma",
+                    "type": "boolean"
+                },
+                "properties": {
+                    "pbcommand.task_options.gamma": {
+                        "default": true,
+                        "description": "Option gamma description",
+                        "title": "Option gamma",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "pbcommand.task_options.gamma"
+                ],
+                "title": "JSON Schema for pbcommand.task_options.gamma",
+                "type": "object"
+            }
+        ],
+        "task_type": "pbsmrtpipe.task_types.standard",
+        "tool_contract_id": "pbcommand.tasks.dev_fastq2fasta"
+    },
+    "tool_contract_id": "pbcommand.tasks.dev_fastq2fasta",
+    "version": "0.1.0"
+}
