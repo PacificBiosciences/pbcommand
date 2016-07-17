@@ -29,6 +29,7 @@ def _to_assertion(path, schema_validate_func):
     def test_is_validate(self):
         d = _to_json(path)
         # log.debug(d)
+        log.info("Attempting to validate '{}'".format(path))
         is_valid = schema_validate_func(d)
         log.info(" is-valid? {i} {p}".format(i=is_valid, p=path))
         self.assertTrue(is_valid, "{p} is not valid with the avro schema".format(p=path))
