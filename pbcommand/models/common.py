@@ -69,6 +69,16 @@ class TaskTypes(object):
     GATHERED = to_task_types_ns("gathered")
 
 
+class TaskOptionTypes(object):
+    """Option types. This should also be used the Report Attributes"""
+    # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
+    # For example, pacbio.option_types.int32
+    INT = "integer"
+    BOOL = "boolean"
+    STR = "string"
+    FLOAT = "float"
+
+
 class SymbolTypes(object):
 
     """*Symbols* that are understood during resolving, such as max number of
