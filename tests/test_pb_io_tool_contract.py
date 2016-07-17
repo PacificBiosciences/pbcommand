@@ -3,6 +3,7 @@ import unittest
 import logging
 
 from base_utils import get_data_file, HAS_PBCORE, pbcore_skip_msg, get_temp_file, get_temp_dir
+from base_utils import get_tool_contract, get_resolved_tool_contract
 
 from pbcommand.models import (ToolContract,
                               ResolvedToolContract,
@@ -21,7 +22,7 @@ class TestLoadToolContract(unittest.TestCase):
 
     def test_01(self):
         file_name = "dev_example_tool_contract.json"
-        path = get_data_file(file_name)
+        path = get_tool_contract(file_name)
         tc = load_tool_contract_from(path)
         self.assertIsInstance(tc, ToolContract)
 
@@ -30,7 +31,7 @@ class TestMalformedToolContract(unittest.TestCase):
 
     def test_tc_no_inputs(self):
         file_name = "dev_example_tool_contract.json"
-        path = get_data_file(file_name)
+        path = get_tool_contract(file_name)
         tc = load_tool_contract_from(path)
         tc.task.input_file_types = []
 
@@ -43,7 +44,7 @@ class TestMalformedToolContract(unittest.TestCase):
 class TestWriteResolvedToolContractAvro(unittest.TestCase):
     def test_01(self):
         file_name = "resolved_tool_contract_dev_app.json"
-        rtc = load_resolved_tool_contract_from(get_data_file(file_name))
+        rtc = load_resolved_tool_contract_from(get_resolved_tool_contract(file_name))
         self.assertIsInstance(rtc, ResolvedToolContract)
 
         d = get_temp_dir("rtc-app")

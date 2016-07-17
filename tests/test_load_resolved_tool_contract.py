@@ -4,7 +4,7 @@ import unittest
 import logging
 import os.path
 
-from base_utils import get_data_file
+from base_utils import get_data_file, get_tool_contract, get_resolved_tool_contract
 from pbcommand.resolver import resolve_tool_contract
 from pbcommand.pb_io.tool_contract_io import (load_resolved_tool_contract_from,
                                               load_tool_contract_from)
@@ -28,7 +28,7 @@ class _TestUtil(unittest.TestCase):
 class TestLoadResolvedContract(unittest.TestCase):
 
     def test_01(self):
-        path = get_data_file("dev_example_resolved_tool_contract.json")
+        path = get_resolved_tool_contract("dev_example_resolved_tool_contract.json")
         rtc = load_resolved_tool_contract_from(path)
         log.info(rtc)
         self.assertIsNotNone(rtc)
@@ -38,7 +38,7 @@ class TestResolveContract(unittest.TestCase):
 
     def test_01(self):
         name = "dev_example_dev_txt_app_tool_contract.json"
-        p = get_data_file(name)
+        p = get_tool_contract(name)
         tc = load_tool_contract_from(p)
         input_files = ["/tmp/file.txt"]
         root_output_dir = "/tmp"
