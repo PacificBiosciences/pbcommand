@@ -105,4 +105,10 @@ class TestUtils(unittest.TestCase):
         else:
             md = get_dataset_metadata(pbtestdata.get_file("subreads-xml"))
             self.assertEqual(md.metatype, "PacBio.DataSet.SubreadSet")
-            self.assertEqual(md.uuid, ds.uuid)
+            try:
+                from pbcore.io import SubreadSet
+            except ImportError:
+                raise unittest.SkipTest("pbcore not available, skipping")
+            else:
+                ds = SubreadSet(pbtestdata.get_file("subreads-xml"))
+                self.assertEqual(md.uuid, ds.uuid)

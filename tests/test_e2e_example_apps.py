@@ -51,3 +51,14 @@ class TestQuickCustomTxtCustomOuts(pbcommand.testkit.PbTestApp):
 
     REQUIRES_PBCORE = False
     INPUT_FILES = [get_data_file("example.txt")]
+
+
+class TestOptionTypes(pbcommand.testkit.PbTestApp):
+    DRIVER_BASE = "python -m pbcommand.cli.examples.dev_mixed_app"
+    REQUIRES_PBCORE = False
+    INPUT_FILES = [get_data_file("example.txt")]
+    TASK_OPTIONS = {
+        "pbcommand.task_options.alpha": 50,
+        "pbcommand.task_options.beta": 9.876,
+        "pbcommand.task_options.gamma": False
+    }
