@@ -53,16 +53,18 @@ def _resolve_options(tool_contract, tool_options):
     # Get and Validate resolved value.
     # TODO. None support should be removed.
     for option in tool_contract.task.options:
-        for optid in option_ids:
-            exp_type = option['pb_option']['type']
-            value = tool_options.get(optid, option['pb_option']['default'])
+        optid = option['pb_option']['option_id']
+        exp_type = option['pb_option']['type']
+        value = tool_options.get(optid, option['pb_option']['default'])
 
-            if not isinstance(value, type_map[exp_type]):
-                raise ToolContractError("Incompatible option types. Supplied "
-                                        "{i}. Expected {t}".format(
-                                            i=type(value),
-                                            t=exp_type))
-            resolved_options[optid] = value
+        if not isinstance(value, type_map[exp_type]):
+            #assert False, option['pb_option']
+            raise ToolContractError("Incompatible option types for {o}. "
+                                    "Supplied {i}. Expected {t}".format(
+                                        o=optid,
+                                        i=type(value),
+                                        t=exp_type))
+        resolved_options[optid] = value
 
     return resolved_options
 
