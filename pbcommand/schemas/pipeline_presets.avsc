@@ -1,0 +1,41 @@
+{
+  "namespace": "com.pacbio.common.models.pipeline_presets",
+  "type": "record",
+  "name": "PipelinePreset",
+  "fields": [
+    {
+      "name": "pipelineId",
+      "type": "string",
+      "desc": "Fully qualified pipeline ID, must only have [A-Z][0-9]_."
+    },
+    {
+      "name": "presetId",
+      "type": "string",
+      "desc": "Fully qualified ID, must only have [A-Z][0-9]_."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "desc": "Plain-English name as it will appear in UI, etc."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "desc": "More detailed description"
+    },
+    {
+      "name": "options",
+      "type": {
+        "type": "map",
+        "values": ["long", "boolean", "string", "int", "double"]
+      }
+    },
+    {
+      "name": "taskOptions",
+      "type": {
+        "type": "map",
+        "values": ["long", "boolean", "string", "int", "double"]
+      }
+    }
+  ]
+}

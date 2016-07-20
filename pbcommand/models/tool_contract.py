@@ -374,3 +374,28 @@ class ResolvedToolContract(object):
     def to_dict(self):
         return dict(resolved_tool_contract=self.task.to_dict(),
                     driver=self.driver.to_dict())
+
+
+class PipelinePreset(object):
+
+    def __init__(self, options, task_options, pipeline_id=None,
+                 preset_id=None, name=None, description=None):
+        self.options = options
+        self.task_options = task_options
+        self.pipeline_id = pipeline_id
+        self.preset_id = preset_id
+        self.name = name
+        self.description = description
+
+    def __repr__(self):
+        _d = self.to_dict()
+        return "<{k} >".format(**_d)
+
+    def to_dict(self):
+        return dict(
+            pipelineId=self.pipeline_id,
+            presetId=self.preset_id,
+            name=self.name,
+            description=self.description,
+            options=self.options,
+            taskOptions=self.task_options)

@@ -7,6 +7,7 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
 DATA_DIR_TC = os.path.join(DATA_DIR, 'tool-contracts')
 DATA_DIR_RTC = os.path.join(DATA_DIR, 'resolved-tool-contracts')
+DATA_DIR_PRESETS = os.path.join(DATA_DIR, "pipeline-presets")
 
 
 def get_data_file(path):

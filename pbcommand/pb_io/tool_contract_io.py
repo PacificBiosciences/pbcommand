@@ -23,12 +23,14 @@ from pbcommand.models.tool_contract import (ToolDriver,
                                             OutputFileType,
                                             ResolvedScatteredToolContractTask,
                                             ResolvedGatherToolContractTask,
-                                            ToolContractResolvedResource)
+                                            ToolContractResolvedResource,
+                                            PipelinePreset)
 
 log = logging.getLogger(__name__)
 
 __all__ = ['load_resolved_tool_contract_from',
            'load_tool_contract_from',
+           'load_pipeline_presets_from',
            'write_tool_contract',
            'write_resolved_tool_contract']
 
@@ -304,6 +306,20 @@ def tool_contract_from_d(d):
 @_json_path_or_d
 def load_tool_contract_from(path_or_d):
     return tool_contract_from_d(path_or_d)
+
+
+# XXX this could probably be more robust
+@_json_path_or_d
+def load_pipeline_presets_from(d):
+    """Load pipeline presets from dict"""
+    presets = PipelinePreset(
+        options=d['options'],
+        task_options=d['taskOptions'],
+        pipeline_id=d.get('pipelineId', None),
+        preset_id=d.get('presetId', None),
+        name=d.get('name', None),
+        description=d.get('description', None))
+    return presets
 
 
 def _write_json(s, output_file):
