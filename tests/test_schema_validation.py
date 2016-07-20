@@ -2,7 +2,7 @@ import json
 import os
 import logging
 import unittest
-from pbcommand.models import ToolContract, ResolvedToolContract, PipelinePresets
+from pbcommand.models import ToolContract, ResolvedToolContract, PipelinePreset
 
 from pbcommand.pb_io import (load_tool_contract_from,
                              load_resolved_tool_contract_from,
@@ -53,9 +53,9 @@ class ValidateToolContracts(unittest.TestCase):
             self.assertIsInstance(load_tool_contract_from(path), ToolContract)
 
 
-class ValidatePipelinePresets(unittest.TestCase):
+class ValidatePipelinePreset(unittest.TestCase):
     def test_validate_pipeline_presets(self):
         for path in walker(DATA_DIR_PRESETS, json_filter):
             f = _to_assertion(path, validate_presets)
             f(self)
-            self.assertIsInstance(load_pipeline_presets_from(path), PipelinePresets)
+            self.assertIsInstance(load_pipeline_presets_from(path), PipelinePreset)

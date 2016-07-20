@@ -24,7 +24,7 @@ from pbcommand.models.tool_contract import (ToolDriver,
                                             ResolvedScatteredToolContractTask,
                                             ResolvedGatherToolContractTask,
                                             ToolContractResolvedResource,
-                                            PipelinePresets)
+                                            PipelinePreset)
 
 log = logging.getLogger(__name__)
 
@@ -312,7 +312,7 @@ def load_tool_contract_from(path_or_d):
 @_json_path_or_d
 def load_pipeline_presets_from(d):
     """Load pipeline presets from dict"""
-    presets = PipelinePresets(
+    presets = PipelinePreset(
         options=d['options'],
         task_options=d['taskOptions'],
         pipeline_id=d.get('pipelineId', None),

@@ -376,7 +376,7 @@ class ResolvedToolContract(object):
                     driver=self.driver.to_dict())
 
 
-class PipelinePresets(object):
+class PipelinePreset(object):
 
     def __init__(self, options, task_options, pipeline_id=None,
                  preset_id=None, name=None, description=None):
