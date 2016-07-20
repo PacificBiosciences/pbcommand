@@ -1,7 +1,7 @@
 {
   "namespace": "com.pacbio.common.models.pipeline_presets",
   "type": "record",
-  "name": "PipelinePresets",
+  "name": "PipelinePreset",
   "fields": [
     {
       "name": "pipelineId",
