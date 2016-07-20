@@ -25,6 +25,7 @@ def _load_schema(idx, name):
 RTC_SCHEMA = _load_schema("resolved_tool_contract", "resolved_tool_contract.avsc")
 PBREPORT_SCHEMA = _load_schema("pbreport", "pbreport.avsc")
 TC_SCHEMA = _load_schema("tool_contract", "tool_contract.avsc")
+PRESET_SCHEMA = _load_schema("pipeline_presets", "pipeline_presets.avsc")
 
 
 def _validate(schema, msg, d):
@@ -43,7 +44,9 @@ validate_rtc = functools.partial(_validate, RTC_SCHEMA, "Resolved Tool Contract 
 validate_pbreport = functools.partial(_validate, PBREPORT_SCHEMA, "Report Model")
 validate_report = validate_pbreport
 validate_tc = functools.partial(_validate, TC_SCHEMA, "Tool Contract Model")
+validate_presets = functools.partial(_validate, PRESET_SCHEMA, "Pipeline Presets Model")
 
 is_valid_rtc = functools.partial(_is_valid, RTC_SCHEMA)
 is_valid_report = functools.partial(_is_valid, PBREPORT_SCHEMA)
 is_valid_tc = functools.partial(_is_valid, TC_SCHEMA)
+is_valid_presets = functools.partial(_is_valid, PRESET_SCHEMA)

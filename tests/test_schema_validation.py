@@ -2,14 +2,15 @@ import json
 import os
 import logging
 import unittest
-from pbcommand.models import ToolContract, ResolvedToolContract
+from pbcommand.models import ToolContract, ResolvedToolContract, PipelinePresets
 
 from pbcommand.pb_io import (load_tool_contract_from,
-                             load_resolved_tool_contract_from)
-from pbcommand.schemas import validate_rtc, validate_tc
+                             load_resolved_tool_contract_from,
+                             load_pipeline_presets_from)
+from pbcommand.schemas import validate_rtc, validate_tc, validate_presets
 from pbcommand.utils import walker
 
-from base_utils import DATA_DIR_RTC, DATA_DIR_TC
+from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS
 
 
 log = logging.getLogger(__name__)
@@ -50,3 +51,11 @@ class ValidateToolContracts(unittest.TestCase):
             f = _to_assertion(path, validate_tc)
             f(self)
             self.assertIsInstance(load_tool_contract_from(path), ToolContract)
+
+
+class ValidatePipelinePresets(unittest.TestCase):
+    def test_validate_pipeline_presets(self):
+        for path in walker(DATA_DIR_PRESETS, json_filter):
+            f = _to_assertion(path, validate_presets)
+            f(self)
+            self.assertIsInstance(load_pipeline_presets_from(path), PipelinePresets)

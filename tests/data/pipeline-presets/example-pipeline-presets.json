@@ -1,0 +1,17 @@
+{
+  "_comment": "Resolved Pipeline Template Preset JSON format",
+  "pipelineId": "pbsmrtpipe.pipelines.dev_a",
+  "presetId": "pbsmrtpipe.pipeline_preset.settings_01",
+  "name": "Pipeline Template Preset Name",
+  "description": "Description of preset is required",
+  "options": {
+    "pbsmrtpipe.options.max_nchunks": 10,
+    "pbsmrtpipe.options.chunk_mode": true
+  },
+  "taskOptions": {
+    "pbcommand.task_options.num_records": 51,
+    "pbcommand.task_options.alpha": 1.234,
+    "pbcommand.task_options.beta": false,
+    "pbcommand.task_options.gamma": "this is a string parameter"
+  }
+}
