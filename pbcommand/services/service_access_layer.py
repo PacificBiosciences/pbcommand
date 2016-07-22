@@ -232,7 +232,8 @@ DATASET_METATYPES_TO_ENDPOINTS = {
     FileTypes.DS_BARCODE: "barcodes",
     FileTypes.DS_CCS: "ccsreads",
     FileTypes.DS_CONTIG: "contigs",
-    FileTypes.DS_ALIGN_CCS: "css-alignments"}
+    FileTypes.DS_ALIGN_CCS: "cssalignments",
+    FileTypes.DS_GMAP_REF: "gmapreferences"}
 
 
 def _get_endpoint_or_raise(ds_type):
