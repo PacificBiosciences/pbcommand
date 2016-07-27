@@ -388,7 +388,7 @@ class PipelinePreset(object):
         self.description = description
 
     def __repr__(self):
-        _d = self.to_dict()
+        _d = dict(k=self.__class__.__name__) #self.to_dict()
         return "<{k} >".format(**_d)
 
     def to_dict(self):
@@ -397,5 +397,5 @@ class PipelinePreset(object):
             presetId=self.preset_id,
             name=self.name,
             description=self.description,
-            options=self.options,
-            taskOptions=self.task_options)
+            options=dict(self.options),
+            taskOptions=dict(self.task_options))
