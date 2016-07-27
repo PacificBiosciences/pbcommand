@@ -6,7 +6,7 @@ from avro.io import DatumWriter
 
 import pbcommand
 
-from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA
+from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA, validate_presets
 from pbcommand.models import (TaskTypes,
                               GatherToolContractTask,
                               ScatterToolContractTask,
@@ -312,13 +312,14 @@ def load_tool_contract_from(path_or_d):
 @_json_path_or_d
 def load_pipeline_presets_from(d):
     """Load pipeline presets from dict"""
+    validate_presets(d)
     presets = PipelinePreset(
         options=d['options'],
         task_options=d['taskOptions'],
-        pipeline_id=d.get('pipelineId', None),
-        preset_id=d.get('presetId', None),
-        name=d.get('name', None),
-        description=d.get('description', None))
+        pipeline_id=d['pipelineId'],
+        preset_id=d['presetId'],
+        name=d['name'],
+        description=d['description'])
     return presets
 
 

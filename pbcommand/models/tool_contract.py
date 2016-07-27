@@ -378,8 +378,8 @@ class ResolvedToolContract(object):
 
 class PipelinePreset(object):
 
-    def __init__(self, options, task_options, pipeline_id=None,
-                 preset_id=None, name=None, description=None):
+    def __init__(self, options, task_options, pipeline_id,
+                 preset_id, name, description):
         self.options = options
         self.task_options = task_options
         self.pipeline_id = pipeline_id
