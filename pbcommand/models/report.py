@@ -392,15 +392,20 @@ class Table(BaseReportElement):
         max_values = max(len(column.values) for column in self.columns)
         # max length for each column value
         max_lengths = {}
+        headers = []
         for c in self.columns:
+            this_header = ""
+            if c.header is not None:
+                this_header = c.header
             if c.values:
-                n = max(max(len(str(v)) for v in c.values), len(c.header))
+                n = max(max(len(str(v)) for v in c.values), len(this_header))
             else:
-                n = len(c.header)
+                n=len(this_header)
             max_lengths[c] = n
+            headers.append(this_header)
 
-        header = "".join([c.header.ljust(max_lengths[c] + pad)
-                          for c in self.columns])
+        header="".join([h.ljust(max_lengths[c] + pad)
+                          for h in headers])
 
         outs = list()
         outs.append("")
