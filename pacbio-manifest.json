@@ -1,0 +1,11 @@
+[
+  {
+    "id": "pbcommand",
+    "name": "pbcommand",
+    "_comment": "Need to add the first 6 chars of the GH SHA",
+    "version": "0.4.5-FIXME",
+    "description": "Python Common library for ToolContract Interface, Report, DataStore and SMRT Link Service Client",
+    "dependencies": [
+    ]
+  }
+]
