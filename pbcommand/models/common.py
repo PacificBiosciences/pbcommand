@@ -535,6 +535,10 @@ class DataStoreViewRule(object):
     """
     def __init__(self, source_id, file_type_id, is_hidden, name=None,
                  description=None):
+        # for generating rules compositionally in Python, it's easier to just
+        # pass the FileType object directly
+        if isinstance(file_type_id, FileType):
+            file_type_id = file_type_id.file_type_id
         assert FileTypes.is_valid_id(file_type_id), file_type_id
         self.source_id = source_id
         self.file_type_id = file_type_id
