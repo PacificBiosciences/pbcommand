@@ -527,8 +527,8 @@ class DataStoreViewRule(object):
     """
     Rule specifying if and how the UI should display a datastore file.
     """
-    def __init__(self, source_id, file_type_id, is_hidden, name=None,
-                 description=None):
+    def __init__(self, source_id, file_type_id, is_hidden, name="",
+                 description=""):
         # for generating rules compositionally in Python, it's easier to just
         # pass the FileType object directly
         if isinstance(file_type_id, FileType):
@@ -548,7 +548,7 @@ class DataStoreViewRule(object):
     @staticmethod
     def from_dict(d):
         return DataStoreViewRule(d['sourceId'], d['fileTypeId'], d['isHidden'],
-                                 d['name'], d['description'])
+                                 d.get('name', ''), d.get('description', ''))
 
 
 class PipelineDataStoreViewRules(object):
