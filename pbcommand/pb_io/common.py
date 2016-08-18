@@ -2,7 +2,8 @@ import logging
 import json
 import sys
 
-from pbcommand.models import PipelineChunk
+from pbcommand.models import PipelineChunk, PipelineDataStoreViewRules
+from pbcommand.schemas import validate_datastore_view_rules
 
 log = logging.getLogger(__name__)
 
@@ -43,3 +44,11 @@ def load_pipeline_chunks_from_json(path):
         msg = "Unable to load pipeline chunks from {f}".format(f=path)
         sys.stderr.write(msg + "\n")
         raise
+
+
+def load_pipeline_datastore_view_rules_from_json(path):
+    """Load pipeline presets from dict"""
+    with open(path, 'r') as f:
+        d = json.loads(f.read())
+        validate_datastore_view_rules(d)
+        return PipelineDataStoreViewRules.from_dict(d)

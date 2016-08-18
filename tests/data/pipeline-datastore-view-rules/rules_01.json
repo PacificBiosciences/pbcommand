@@ -1,0 +1,20 @@
+{
+  "pipelineId": "pbsmrtpipe.pipelines.sa3_sat",
+  "smrtlinkVersion": "3.2",
+  "rules": [
+    {
+      "sourceId": "pbreports.tasks.sat_report-out-0",
+      "fileTypeId": "PacBio.FileTypes.JsonReport",
+      "isHidden": true,
+      "name": "Site Acceptance Test",
+      "description": "JSON report for PacBio site acceptance test"
+    },
+    {
+      "sourceId": "pbreports.tasks.top_variants-out-0",
+      "fileTypeId": "PacBio.FileTypes.JsonReport",
+      "isHidden": true,
+      "name": null,
+      "description": null
+    }
+  ]
+}

@@ -430,18 +430,12 @@ class DataStore(object):
                   updatedAt=_datetime_to_string(self.updated_at), files=fs)
         return _d
 
-    def _write_json(self, file_name, permission):
-        with open(file_name, permission) as f:
-            s = json.dumps(self.to_dict(), indent=4, sort_keys=True, separators=(',', ': '))
-            f.write(s)
-
     def write_json(self, file_name):
-        # if the file exists is should raise?
-        self._write_json(file_name, 'w')
+        write_dict_to_json(self.to_dict(), file_name, "w")
 
     def write_update_json(self, file_name):
         """Overwrite Datastore with current state"""
-        self._write_json(file_name, 'w+')
+        write_dict_to_json(self.to_dict(), file_name, "w+")
 
     @staticmethod
     def load_from_d(d):
@@ -527,3 +521,70 @@ class PipelineChunk(object):
 
     def to_dict(self):
         return {'chunk_id': self.chunk_id, 'chunk': self._datum}
+
+
+class DataStoreViewRule(object):
+    """
+    Rule specifying if and how the UI should display a datastore file.
+    """
+    def __init__(self, source_id, file_type_id, is_hidden, name=None,
+                 description=None):
+        # for generating rules compositionally in Python, it's easier to just
+        # pass the FileType object directly
+        if isinstance(file_type_id, FileType):
+            file_type_id = file_type_id.file_type_id
+        assert FileTypes.is_valid_id(file_type_id), file_type_id
+        self.source_id = source_id
+        self.file_type_id = file_type_id
+        self.is_hidden = is_hidden
+        self.name = name
+        self.description = description
+
+    def to_dict(self):
+        return {"sourceId": self.source_id, "fileTypeId": self.file_type_id,
+                "isHidden": self.is_hidden, "name": self.name,
+                "description": self.description}
+
+    @staticmethod
+    def from_dict(d):
+        return DataStoreViewRule(d['sourceId'], d['fileTypeId'], d['isHidden'],
+                                 d['name'], d['description'])
+
+
+class PipelineDataStoreViewRules(object):
+    """
+    A collection of DataStoreViewRule objects associated with a pipeline.
+    """
+
+    def __init__(self, pipeline_id, smrtlink_version, rules=()):
+        self.pipeline_id = pipeline_id
+        self.smrtlink_version = smrtlink_version
+        self.rules = list(rules)
+
+    def to_dict(self):
+        return {"pipelineId": self.pipeline_id,
+                "smrtlinkVersion": self.smrtlink_version,
+                "rules": [r.to_dict() for r in self.rules]}
+
+    @staticmethod
+    def from_dict(d):
+        return PipelineDataStoreViewRules(
+            pipeline_id=d['pipelineId'],
+            smrtlink_version=d['smrtlinkVersion'],
+            rules=[DataStoreViewRule.from_dict(r) for r in d['rules']])
+
+    @staticmethod
+    def load_from_json(path):
+        with open(path, 'r') as reader:
+            d = json.loads(reader.read())
+        return PipelineDataStoreViewRules.from_dict(d)
+
+    def write_json(self, file_name):
+        write_dict_to_json(self.to_dict(), file_name)
+
+
+def write_dict_to_json(d, file_name, permission="w"):
+    with open(file_name, permission) as f:
+        s = json.dumps(d, indent=4, sort_keys=True,
+                       separators=(',', ': '))
+        f.write(s)

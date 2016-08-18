@@ -6,5 +6,6 @@ from .tool_contract_io import (load_tool_contract_from,
                                write_tool_contract,
                                write_resolved_tool_contract_avro,
                                write_tool_contract_avro)
-from .common import load_pipeline_chunks_from_json, write_pipeline_chunks
+from .common import (load_pipeline_chunks_from_json, write_pipeline_chunks,
+                     load_pipeline_datastore_view_rules_from_json)
 from .conditions import load_reseq_conditions_from
