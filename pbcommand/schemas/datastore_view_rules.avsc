@@ -22,6 +22,11 @@
           "name": "DataStoreViewRule",
           "fields": [
             {
+              "name": "sourceId",
+              "type": "string",
+              "desc": "Source ID as it appears in the pbsmrtpipe datastore"
+            },
+            {
               "name": "fileTypeId",
               "type": "string",
               "desc": "File type identifier, e.g. PacBio.FileTypes.JsonReport"

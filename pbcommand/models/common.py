@@ -541,13 +541,13 @@ class DataStoreViewRule(object):
         self.description = description
 
     def to_dict(self):
-        return {"id": self.source_id, "fileTypeId": self.file_type_id,
+        return {"sourceId": self.source_id, "fileTypeId": self.file_type_id,
                 "isHidden": self.is_hidden, "name": self.name,
                 "description": self.description}
 
     @staticmethod
     def from_dict(d):
-        return DataStoreViewRule(d['id'], d['fileTypeId'], d['isHidden'],
+        return DataStoreViewRule(d['sourceId'], d['fileTypeId'], d['isHidden'],
                                  d['name'], d['description'])
 
 

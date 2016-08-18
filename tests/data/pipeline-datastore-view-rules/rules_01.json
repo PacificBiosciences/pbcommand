@@ -3,14 +3,14 @@
   "smrtlinkVersion": "3.2",
   "rules": [
     {
-      "id": "pbreports.tasks.sat_report-out-0",
+      "sourceId": "pbreports.tasks.sat_report-out-0",
       "fileTypeId": "PacBio.FileTypes.JsonReport",
       "isHidden": true,
       "name": "Site Acceptance Test",
       "description": "JSON report for PacBio site acceptance test"
     },
     {
-      "id": "pbreports.tasks.top_variants-out-0",
+      "sourceId": "pbreports.tasks.top_variants-out-0",
       "fileTypeId": "PacBio.FileTypes.JsonReport",
       "isHidden": true,
       "name": null,
