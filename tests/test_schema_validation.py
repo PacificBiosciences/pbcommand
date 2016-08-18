@@ -2,11 +2,13 @@ import json
 import os
 import logging
 import unittest
-from pbcommand.models import ToolContract, ResolvedToolContract, PipelinePreset
+from pbcommand.models import (ToolContract, ResolvedToolContract,
+                              PipelinePreset, PipelineDataStoreViewRules)
 
 from pbcommand.pb_io import (load_tool_contract_from,
                              load_resolved_tool_contract_from,
-                             load_pipeline_presets_from)
+                             load_pipeline_presets_from,
+                             load_pipeline_datastore_view_rules_from_json)
 from pbcommand.schemas import (validate_rtc, validate_tc, validate_presets,
                                validate_datastore_view_rules)
 from pbcommand.utils import walker
@@ -67,4 +69,6 @@ class ValidateDataStoreViewRules(unittest.TestCase):
         for path in walker(DATA_DIR_DSVIEW, json_filter):
             f = _to_assertion(path, validate_datastore_view_rules)
             f(self)
-            #self.assertIsInstance(load_pipeline_datastore_view_rules_from(path), PipelineDataStoreViewRules)
+            self.assertIsInstance(
+                load_pipeline_datastore_view_rules_from_json(path),
+                PipelineDataStoreViewRules)

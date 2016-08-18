@@ -1,7 +1,8 @@
 from .common import (FileType, FileTypes,
                      DataSetFileType, DataSetMetaData,
                      TaskTypes, ResourceTypes, SymbolTypes,
-                     PipelineChunk, DataStoreFile, DataStore)
+                     PipelineChunk, DataStoreFile, DataStore,
+                     DataStoreViewRule, PipelineDataStoreViewRules)
 from .tool_contract import *
 from .parser import (get_pbparser,
                      get_gather_pbparser,

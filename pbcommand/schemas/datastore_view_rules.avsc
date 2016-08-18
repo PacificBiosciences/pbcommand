@@ -4,7 +4,7 @@
   "name": "PipelineDataStoreViewRules",
   "fields": [
     {
-      "name": "id",
+      "name": "pipelineId",
       "type": "string",
       "desc": "Corresponds to sourceId in datastore, e.g. pbalign.tasks.pbalign-out-0"
     },
