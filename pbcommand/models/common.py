@@ -430,18 +430,12 @@ class DataStore(object):
                   updatedAt=_datetime_to_string(self.updated_at), files=fs)
         return _d
 
-    def _write_json(self, file_name, permission):
-        with open(file_name, permission) as f:
-            s = json.dumps(self.to_dict(), indent=4, sort_keys=True, separators=(',', ': '))
-            f.write(s)
-
     def write_json(self, file_name):
-        # if the file exists is should raise?
-        self._write_json(file_name, 'w')
+        write_dict_to_json(self.to_dict(), file_name, "w")
 
     def write_update_json(self, file_name):
         """Overwrite Datastore with current state"""
-        self._write_json(file_name, 'w+')
+        write_dict_to_json(self.to_dict(), file_name, "w+")
 
     @staticmethod
     def load_from_d(d):
@@ -586,7 +580,11 @@ class PipelineDataStoreViewRules(object):
         return PipelineDataStoreViewRules.from_dict(d)
 
     def write_json(self, file_name):
-        with open(file_name, "w") as f:
-            s = json.dumps(self.to_dict(), indent=4, sort_keys=True,
-                           separators=(',', ': '))
-            f.write(s)
+        write_dict_to_json(self.to_dict(), file_name)
+
+
+def write_dict_to_json(d, file_name, permission="w"):
+    with open(file_name, permission) as f:
+        s = json.dumps(d, indent=4, sort_keys=True,
+                       separators=(',', ': '))
+        f.write(s)
