@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 ExtCmdResult = namedtuple("ExtCmdResult", "exit_code cmd run_time")
 
 
-def run_cmd(cmd, stdout_fh, stderr_fh, shell=True, time_out=None):
+def run_cmd(cmd, stdout_fh, stderr_fh, shell=True, time_out=None, env=None, executable="/bin/bash"):
     """Run external command
 
 
@@ -43,7 +43,10 @@ def run_cmd(cmd, stdout_fh, stderr_fh, shell=True, time_out=None):
 
     hostname = platform.node()
     log.debug("calling cmd '{c}' on {h}".format(c=cmd, h=hostname))
-    process = subprocess.Popen(cmd, stderr=stderr_fh, stdout=stdout_fh, shell=shell)
+    process = subprocess.Popen(cmd, stderr=stderr_fh, stdout=stdout_fh,
+                               shell=shell,
+                               executable=executable,
+                               env=env)
 
     # This needs a better dynamic model
     max_sleep_time = 5
