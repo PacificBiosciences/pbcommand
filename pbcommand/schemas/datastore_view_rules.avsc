@@ -1,0 +1,49 @@
+{
+  "namespace": "com.pacbio.common.models.datastore",
+  "type": "record",
+  "name": "PipelineDataStoreViewRules",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "desc": "Corresponds to sourceId in datastore, e.g. pbalign.tasks.pbalign-out-0"
+    },
+    {
+      "name": "smrtlinkVersion",
+      "type": "string",
+      "desc": "Version of SMRTLink to which these rules apply"
+    },
+    {
+      "name": "rules",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "DataStoreViewRule",
+          "fields": [
+            {
+              "name": "fileTypeId",
+              "type": "string",
+              "desc": "File type identifier, e.g. PacBio.FileTypes.JsonReport"
+            },
+            {
+              "name": "isHidden",
+              "type": "boolean",
+              "desc": "Specifies that a file should not appear in the UI"
+            },
+            {
+              "name": "name",
+              "type": ["string", "null"],
+              "desc": "Override the display name (optional)"
+            },
+            {
+              "name": "description",
+              "type": ["string", "null"],
+              "desc": "Override the display description (optional)"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
