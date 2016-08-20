@@ -1,0 +1,89 @@
+{
+  "namespace": "com.pacbio.common.models",
+  "type": "record",
+  "name": "PacBioDataStore",
+  "doc": "Container for datastore files emitted from a 'Job'type (e.g., analysis, import-dataset, merge-dataset)",
+  "fields": [
+    {
+      "name": "createdAt",
+      "type": "string",
+      "doc": "ISO8601 Datetime to specific when the datastore file was created. Example 2016-08-18T07:40:43"
+    },
+    {
+      "name": "updatedAt",
+      "type": "string",
+      "doc": "ISO8601 Datetime to specific when the datastore file was last updated at. Example 2016-08-18T07:40:43"
+    },
+    {
+      "name": "version",
+      "type": "string",
+      "doc": "Datastore schema version "
+    },
+    {
+      "doc": "List of DataStore files in the datastore",
+      "name": "files",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "DataStoreFile",
+          "doc": "DataStore file that contains metadata of a single output file",
+          "fields": [
+            {
+              "name": "sourceId",
+              "type": "string",
+              "doc": "Source ID unique identifer, must have the form {task-id}-{in|out}-{positional-index} Example `pbsmrtpipe.tasks.dev_hello_worlder-out-0`"
+            },
+            {
+              "name": "fileTypeId",
+              "type": "string",
+              "doc": "File type identifier. Example `PacBio.FileTypes.JsonReport`"
+            },
+            {
+              "name": "createdAt",
+              "type": "string",
+              "doc": "ISO8601 Datetime to specific when the file was created Example 2016-08-18T07:40:43"
+            },
+            {
+              "name": "modifiedAt",
+              "type": "string",
+              "doc": "ISO8601 Datetime to specific when the file was last modified at Example 2016-08-18T07:40:43"
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "doc": "Absolute path to the file. Example /path/to/my-file.gff"
+            },
+            {
+              "name": "fileSize",
+              "type": "string",
+              "doc": "File size in kB"
+            },
+            {
+              "default": false,
+              "name": "isChunked",
+              "type": "boolean",
+              "doc": "Is the file an intermediate file used in a chunked pipeline"
+            },
+            {
+              "name": "uniqueId",
+              "type": "string",
+              "doc": "Globally unique UUID of the datastore file. Example feddd711-9b37-4cc4-ac5a-4dd4134ad0ca"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "doc": "The default name of the datastore file will be used in the UI"
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "doc": "the default description of the datastore file will be used in the UI"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+
