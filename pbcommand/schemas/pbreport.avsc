@@ -2,27 +2,28 @@
   "namespace": "com.pacbio.common.models.reports",
   "type": "record",
   "name": "Report",
+  "doc": "PacBio Report data model. Except where specified all `id` values must be of the form [A-z][0-9]_ (e.g., `mapping_stats`)",
   "fields": [
     {
       "name": "id",
       "type": "string",
-      "desc": "Pbreports style id, must only have [A-z][0-9]_"
+      "doc": "Pbreports style id, must only have [A-z][0-9]_"
     },
      {
       "name": "version",
       "type": "string",
-      "desc": "Version of the Report Schema Spec"
+      "doc": "Version of the Report Schema Spec"
     },
      {
       "name": "uuid",
       "type": "string",
-      "desc": "Report UUID"
+      "doc": "Report UUID"
     },
      {
       "name": "title",
       "type": ["string", "null"],
       "default": null,
-      "desc": "Report Display name"
+      "doc": "Report Display name"
     },
     {
       "name": "attributes",
@@ -33,14 +34,17 @@
           "name": "ReportAttribute",
           "fields": [
             {
+              "doc": "Report Attribute id",
               "name": "id",
               "type": "string"
             },
             {
+              "doc": "Report Attribute display name",
               "name": "name",
               "type": "string"
             },
             {
+              "doc": "Report Attribute value",
               "name": "value",
               "type": [
                 "string",
@@ -61,10 +65,12 @@
           "name": "PlotGroup",
           "fields": [
             {
+              "doc": "Plot group Id",
               "name": "id",
               "type": "string"
             },
             {
+              "doc": "The display name of plot group",
               "name": "title",
               "type": "string"
             },
@@ -74,9 +80,10 @@
                 "string",
                 "null"
               ],
-              "desc": "Not clear what the usecase is of this"
+              "doc": "Not clear what the usecase is of this"
             },
             {
+              "doc": "Thumbnail image path for the entire PlotGroup",
               "name": "thumbnail",
               "type": [
                 "string",
@@ -84,31 +91,33 @@
               ]
             },
             {
+              "doc": "List of Plots",
               "name": "plots",
               "type": {
                 "type": "array",
                 "items": {
+                  "doc": "PacBio Report Plot",
                   "type": "record",
                   "name": "ReportPlot",
                   "fields": [
                     {
                       "name": "id",
                       "type": "string",
-                      "desc": "Plot Id"
+                      "doc": "Plot Id"
                     },
                     {
                       "name": "image",
                       "type": "string",
-                      "desc": "Relative Path to Image"
+                      "doc": "Png Path to Image (must be relative to the path of report.json file)"
                     },
                      {
                       "name": "title",
                       "type": ["string", "null"],
-                      "desc": "Display Name of Plot"
+                      "doc": "Display Name of Plot"
                     },
                     {
                       "name": "caption",
-                      "desc": "Caption of the Plot",
+                      "doc": "Caption of the Plot",
                       "type": [
                         "string",
                         "null"
@@ -116,7 +125,7 @@
                     },
                     {
                       "name": "thumbnail",
-                      "desc": "Relative path to thumbnail of the Plot",
+                      "doc": "Relative path to thumbnail of the Plot (must be relative to the path of report.json file)",
                       "type": [
                         "string",
                         "null"
@@ -139,17 +148,18 @@
           "name": "ReportTable",
           "fields": [
             {
+              "doc": "Report Table Id",
               "name": "id",
               "type": "string"
             },
             {
               "name": "title",
               "type": "string",
-              "desc": "Title of the Table"
+              "doc": "Display name of the Table"
             },
             {
               "name": "columns",
-              "desc": "List of Columns",
+              "doc": "List of Columns",
               "type": {
                 "type": "array",
                 "items": {
@@ -157,16 +167,19 @@
                   "name": "ReportTableColumn",
                   "fields": [
                     {
+                      "doc": "Unique id of column (must be report id format style)",
                       "name": "id",
                       "type": "string"
                     },
                     {
+                      "doc": "Display name of Column",
                       "name": "header",
                       "type": "string"
                     },
                     {
                       "name": "value",
-                      "desc": "Column values. Attention to mixed-types attempting to represent 'NA'",
+                      "_comment": "This is a quite unclear interface",
+                      "doc": "Column values. Attention to mixed-types attempting to represent 'NA'",
                       "type": {
                         "type": "array",
                         "items": [
