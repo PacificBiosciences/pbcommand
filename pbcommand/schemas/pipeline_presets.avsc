@@ -11,17 +11,17 @@
     {
       "name": "presetId",
       "type": "string",
-      "desc": "Fully qualified ID, must only have [A-Z][0-9]_."
+      "desc": "Fully qualified ID of the pipeline preset, must only have [A-Z][0-9]_."
     },
     {
       "name": "name",
       "type": "string",
-      "desc": "Plain-English name as it will appear in UI, etc."
+      "desc": "Plain-English name of the task option as it will appear in UI"
     },
     {
       "name": "description",
       "type": "string",
-      "desc": "More detailed description"
+      "desc": "More detailed description of the task option as it will appear in UI"
     },
     {
       "name": "options",

@@ -6,12 +6,12 @@
     {
       "name": "pipelineId",
       "type": "string",
-      "desc": "Corresponds to sourceId in datastore, e.g. pbalign.tasks.pbalign-out-0"
+      "desc": "Fully qualified pipeline id to apply rules to. e.g., pbsmrtpipe.pipelines.dev_01"
     },
     {
       "name": "smrtlinkVersion",
       "type": "string",
-      "desc": "Version of SMRTLink to which these rules apply"
+      "desc": "Version of SMRTLink to which these rules apply. e.g., '3.2'"
     },
     {
       "name": "rules",
@@ -24,7 +24,7 @@
             {
               "name": "sourceId",
               "type": "string",
-              "desc": "Source ID as it appears in the pbsmrtpipe datastore"
+              "desc": "Source ID as it appears in the pbsmrtpipe datastore, Should have the from {task-id}-{in|out}-{positional-index}"
             },
             {
               "name": "fileTypeId",
@@ -39,12 +39,12 @@
             {
               "name": "name",
               "type": ["string", "null"],
-              "desc": "Override the display name (optional)"
+              "desc": "Override the display name (optional). If this is null, the default name of the datastore file will be used in UI"
             },
             {
               "name": "description",
               "type": ["string", "null"],
-              "desc": "Override the display description (optional)"
+              "desc": "Override the display description (optional). If this is null, the default description of the datastore file will be used in UI"
             }
           ]
         }
