@@ -228,7 +228,8 @@ optional arguments:
 
 - [ToolContract](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/pbreport.avsc) : Used in define task interfaces and used in pipeline definitions (i.e., Resolved Pipeline Templates)
 - [ResolvedToolContract](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/resolved_tool_contract.avsc): Used in pipeline running
-- [PacBio Report](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/pbreport.avsc) Core data model for plots, tables and metrics (i.e., attributes) displayed in SMRTLink or available as output from SMRT Link web services) [Examples]()
+- [PacBio Report](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/pbreport.avsc) Core data model for plots, tables and metrics (i.e., attributes) displayed in SMRTLink or available as output from SMRT Link web services) [Examples](https://github.com/PacificBiosciences/pbcommand/tree/master/tests/data/example-reports)
+- [PacBio DataStore](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/datastore.avsc): JSON file of datastore file(s) that are emitted from an analysis, import-dataset or other job type. 
 - [DataStore View Rules](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/datastore_view_rules.avsc) Custom views of datastore files in SMRTLink)
 - [TODO] Pipeline Template View Rules: Custom hiding and renaming of pipeline task options for SMRTLink UI) [Examples](https://github.com/PacificBiosciences/smrtflow/tree/master/smrt-server-analysis/src/main/resources/pipeline-template-view-rules)
 - [TODO] Resolved Pipeline Template: Custom description of pipeline, bindings and task options for SMRTLink UI [Examples](https://github.com/PacificBiosciences/smrtflow/blob/master/smrt-server-analysis/src/main/resources/resolved-pipeline-templates/pbsmrtpipe.pipelines.dev_diagnostic_pipeline_template.json)
