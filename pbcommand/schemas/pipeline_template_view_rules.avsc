@@ -1,0 +1,45 @@
+{
+  "namespace": "com.pacbio.common.models.pipeline",
+  "type": "record",
+  "name": "PipelineTemplateView",
+  "desc": "Custom views of a Resolved Pipeline Template and task options",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "desc": "Fully qualified pipeline ID, must only have [A-Z][0-9]_."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "desc": "Plain-English name of the pipeline as it will appear in UI"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "desc": "More detailed description of the pipeline as it will appear in UI"
+    },
+    {
+      "name": "taskOptions",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "TaskOptionViewRule",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "desc": "Source ID as it appears in the pbsmrtpipe datastore, Should have the from {task-id}-{in|out}-{positional-index}"
+            },
+            {
+              "name": "hidden",
+              "type": "boolean",
+              "desc": "Specifies that a file should not appear in the UI"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
