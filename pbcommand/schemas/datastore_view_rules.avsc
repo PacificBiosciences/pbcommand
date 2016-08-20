@@ -2,6 +2,7 @@
   "namespace": "com.pacbio.common.models.datastore",
   "type": "record",
   "name": "PipelineDataStoreViewRules",
+  "desc": "Custom view of the DataStoreFile(s) emitted from a specific pipeline (by id)",
   "fields": [
     {
       "name": "pipelineId",
