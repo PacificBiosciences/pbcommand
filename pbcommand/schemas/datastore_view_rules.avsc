@@ -2,17 +2,17 @@
   "namespace": "com.pacbio.common.models.datastore",
   "type": "record",
   "name": "PipelineDataStoreViewRules",
-  "desc": "Custom view of the DataStoreFile(s) emitted from a specific pipeline (by id)",
+  "doc": "Custom view of the DataStoreFile(s) emitted from a specific pipeline (by id)",
   "fields": [
     {
       "name": "pipelineId",
       "type": "string",
-      "desc": "Fully qualified pipeline id to apply rules to. e.g., pbsmrtpipe.pipelines.dev_01"
+      "doc": "Fully qualified pipeline id to apply rules to. e.g., pbsmrtpipe.pipelines.dev_01"
     },
     {
       "name": "smrtlinkVersion",
       "type": "string",
-      "desc": "Version of SMRTLink to which these rules apply. e.g., '3.2'"
+      "doc": "Version of SMRTLink to which these rules apply. e.g., '3.2'"
     },
     {
       "name": "rules",
@@ -21,31 +21,32 @@
         "items": {
           "type": "record",
           "name": "DataStoreViewRule",
+          "doc": "Custom View of specific DataStoreFile by source id in the datastore.json",
           "fields": [
             {
               "name": "sourceId",
               "type": "string",
-              "desc": "Source ID as it appears in the pbsmrtpipe datastore, Should have the from {task-id}-{in|out}-{positional-index}"
+              "doc": "Source ID as it appears in the pbsmrtpipe datastore, Should have the form {task-id}-{in|out}-{positional-index}"
             },
             {
               "name": "fileTypeId",
               "type": "string",
-              "desc": "File type identifier, e.g. PacBio.FileTypes.JsonReport"
+              "doc": "File type identifier, e.g. PacBio.FileTypes.JsonReport"
             },
             {
               "name": "isHidden",
               "type": "boolean",
-              "desc": "Specifies that a file should not appear in the UI"
+              "doc": "Specifies that a file should not appear in the UI"
             },
             {
               "name": "name",
               "type": ["string", "null"],
-              "desc": "Override the display name (optional). If this is null, the default name of the datastore file will be used in UI"
+              "doc": "Override the display name (optional). If this is null, the default name of the datastore file will be used in UI"
             },
             {
               "name": "description",
               "type": ["string", "null"],
-              "desc": "Override the display description (optional). If this is null, the default description of the datastore file will be used in UI"
+              "doc": "Override the display description (optional). If this is null, the default description of the datastore file will be used in UI"
             }
           ]
         }

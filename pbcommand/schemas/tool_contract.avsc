@@ -9,7 +9,8 @@
       "type": "string"
     },
     {
-      "doc": "ToolContract Id (this is duplicated in the Task?)",
+      "_comment": "(this is duplicated in the Task?)",
+      "doc": "Fully qualified id of the tool contract (in the legacy model this is also the task type id)",
       "name": "tool_contract_id",
       "type": "string"
     },
@@ -18,6 +19,7 @@
       "type": {
         "type": "record",
         "name": "ToolContractTask",
+        "doc": "Task for defining metadata of the task interface such as Input and Output file types, task options and other metadata",
         "fields": [
           {
             "name": "input_types",
@@ -28,7 +30,7 @@
                 "name": "ToolInputFile",
                 "fields": [
                   {
-                    "doc": "Id of the task input",
+                    "doc": "Id of input file",
                     "name": "id",
                     "type": "string"
                   },
@@ -38,11 +40,12 @@
                     "type": "string"
                   },
                   {
-                    "doc": "Display Name",
+                    "doc": "Display Name of input file type",
                     "name": "title",
                     "type": "string"
                   },
                   {
+                    "doc": "Description of input file type",
                     "name": "description",
                     "type": "string"
                   }
@@ -52,32 +55,37 @@
           },
           {
             "name": "output_types",
+            "doc": "Output file types of Task",
             "type": {
               "type": "array",
               "items": {
                 "type": "record",
                 "name": "ToolOutputFile",
+                "doc": "",
                 "fields": [
                   {
+                    "_comment": "FIXME(mpkocher) This needs to be clearly defined",
+                    "doc": "Unique id for referencing the output file",
                     "name": "id",
                     "type": "string"
                   },
                   {
-                    "doc": "PacBio FileType identifier",
+                    "doc": "PacBio FileType identifier, e.g., PacBio.DataSets.SubreadSet",
                     "name": "file_type_id",
                     "type": "string"
                   },
                   {
-                    "doc": "Display Name",
+                    "doc": "Display Name of the output file name",
                     "name": "title",
                     "type": "string"
                   },
                   {
-                    "doc": "Default file name",
+                    "doc": "Default base name of the file name. This must be provided without the extension. The extension is determined by the `file_type_id`",
                     "name": "default_name",
                     "type": "string"
                   },
                   {
+                    "doc": "Description of Output file",
                     "name": "description",
                     "type": "string"
                   }
@@ -98,8 +106,10 @@
                     "type": {
                       "type": "record",
                       "name": "PacBioOption",
+                      "doc": "Task Option model",
                       "fields": [
                         {
+                          "doc": "Default value for the task option. Every task *must* have default value",
                           "name": "default",
                           "type": [
                             "int",
@@ -109,14 +119,17 @@
                           ]
                         },
                         {
+                          "doc": "Globally unique id of the form {namespace}.task_options.{key}. Example (pbtacos.task_options.max_records)",
                           "name": "option_id",
                           "type": "string"
                         },
                         {
+                          "doc": "Display name of task option",
                           "name": "name",
                           "type": "string"
                         },
                         {
+                          "doc": "Description of Task Option",
                           "name": "description",
                           "type": "string"
                         },
@@ -155,7 +168,8 @@
             "type": "string"
           },
           {
-            "doc": "Number of processors to use",
+            "_comment": "FIXME(mpkocher) This can be given as a Symbol `$max_nproc`",
+            "doc": "Number of processors to use. This can be given as a Symbol `$max_nproc` See pbsmrtpipe docs for more details",
             "name": "nproc",
             "type": "int"
           },

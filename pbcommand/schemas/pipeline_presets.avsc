@@ -2,28 +2,30 @@
   "namespace": "com.pacbio.common.models.pipeline_presets",
   "type": "record",
   "name": "PipelinePreset",
+  "doc": "Pipeline Preset with custom task options",
   "fields": [
     {
       "name": "pipelineId",
       "type": "string",
-      "desc": "Fully qualified pipeline ID, must only have [A-Z][0-9]_."
+      "doc": "Fully qualified pipeline ID, must only have [A-Z][0-9]_."
     },
     {
       "name": "presetId",
       "type": "string",
-      "desc": "Fully qualified ID of the pipeline preset, must only have [A-Z][0-9]_."
+      "doc": "Fully qualified ID of the pipeline preset, must only have [A-Z][0-9]_."
     },
     {
       "name": "name",
       "type": "string",
-      "desc": "Plain-English name of the task option as it will appear in UI"
+      "doc": "Plain-English name of the task option as it will appear in UI"
     },
     {
       "name": "description",
       "type": "string",
-      "desc": "More detailed description of the task option as it will appear in UI"
+      "doc": "More detailed description of the task option as it will appear in UI"
     },
     {
+      "doc": "Workflow level options. See the pbsmrtpipe docs for details",
       "name": "options",
       "type": {
         "type": "map",
@@ -31,6 +33,7 @@
       }
     },
     {
+      "doc": "Task level options. Please see the pipeline of interest to get a list of available task options using `pbsmrtpipe show-template-details <my-pipeline-id>`",
       "name": "taskOptions",
       "type": {
         "type": "map",
