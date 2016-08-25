@@ -197,6 +197,7 @@ class MimeTypes(object):
     BINARY = 'application/octet-stream'
     PICKLE = 'application/python-pickle'
     GZIP = 'application/x-gzip'
+    ZIP = 'application/zip'
 
 
 class FileTypes(object):
@@ -258,6 +259,7 @@ class FileTypes(object):
     PICKLE = FileType(to_file_ns("pickle"), "file", "pickle", MimeTypes.PICKLE)
     # GZIPped archive
     GZIP = FileType(to_file_ns("gzip"), "file", "gz", MimeTypes.GZIP)
+    ZIP = FileType(to_file_ns("zip"), "file", "zip", MimeTypes.ZIP)
 
     # ******************* NEW SA3 File Types ********************
     # DataSet Types. The default file names should have well-defined agreed
