@@ -96,40 +96,41 @@ def fofn_to_files(fofn):
         raise IOError("Unable to find FOFN {f}".format(f=fofn))
 
 
-def validate_report(file_name):
+def validate_report(file_name, raise_failure=True):
+    e = []
     base_path = os.path.dirname(file_name)
     r = load_report_from_json(file_name)
     if r.title is None:
-        raise ValueError("Report {i} is missing a title".format(i=r.id))
+        e.append(ValueError("Report {i} is missing a title".format(i=r.id)))
     for t in r.tables:
         if t.title is None:
-            raise ValueError("Table {r.t} is missing a title".format(
-                             r=r.id, t=t.id))
+            e.append(ValueError("Table {r.t} is missing a title".format(
+                                r=r.id, t=t.id)))
         for col in t.columns:
             if col.header is None:
-                raise ValueError("Column {r.t.c} is missing a header".format(
-                                 r=r.id, t=t.id, c=col.id))
+                e.append(ValueError("Column {r.t.c} is missing a header".format(
+                                    r=r.id, t=t.id, c=col.id)))
         lengths = set([len(col.values) for col in t.columns])
         if len(lengths) != 1:
-            raise ValueError(
+            e.append(ValueError(
                 "Inconsistent column sizes in table {r.t}: {s}".format(
                 r=r.id, t=t.id, s=",".join(
-                [str(x) for x in sorted(list(lengths))])))
+                [str(x) for x in sorted(list(lengths))]))))
     for pg in r.plotGroups:
         if pg.title is None:
-            raise ValueError("Plot group {r.g} is missing a title".format(
-                             r=r.id, g=pg.id))
+            e.append(ValueError("Plot group {r.g} is missing a title".format(
+                                r=r.id, g=pg.id)))
         for plot in pg.plots:
             #if plot.caption is None:
             #    raise ValueError("Plot {r.g.p} is missing a caption".format(
             #                     r=r.id, g=pg.id, p=plot.id))
             if plot.image is None:
-                raise ValueError("Plot {r.g.p} does not have an image".format(
-                                 r=r.id, g=pg.id, p=plot.id))
+                e.append(ValueError("Plot {r.g.p} does not have an image".format(
+                                    r=r.id, g=pg.id, p=plot.id)))
             img_path = os.path.join(base_path, plot.image)
             if not os.path.exists(img_path):
-                raise ValueError("The plot image {f} does not exist".format(
-                              f=img_path))
+                e.append(ValueError("The plot image {f} does not exist".format(
+                                    f=img_path)))
             if plot.thumbnail is None:
                 pass
                 #raise ValueError("Plot {r.g.p} does not have an thumbnail image".format(
@@ -137,9 +138,11 @@ def validate_report(file_name):
             else:
                 thumbnail = os.path.join(base_path, plot.thumbnail)
                 if not os.path.exists(thumbnail):
-                    raise ValueError("The thumbnail image {f} does not exist".format(f=img_path))
+                    e.append(ValueError("The thumbnail image {f} does not exist".format(f=img_path)))
         if pg.thumbnail is not None:
             thumbnail = os.path.join(base_path, pg.thumbnail)
             if not os.path.exists(thumbnail):
-                raise ValueError("The thumbnail image {f} does not exist".format(f=img_path))
-    return r
+                e.append(ValueError("The thumbnail image {f} does not exist".format(f=img_path)))
+    if raise_failure and len(e) > 0:
+        raise e[0]
+    return e
