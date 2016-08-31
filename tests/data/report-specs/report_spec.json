@@ -9,21 +9,28 @@
             "type": "int",
             "id": "attribute1",
             "name": "Attribute 1",
-            "format": "%d"
+            "format": "{:,d}"
         },
         {
             "description": "An attribute of type float",
             "type": "float",
             "id": "attribute2",
             "name": "Attribute 2",
-            "format": "%.3f"
+            "format": "{p:5g} %"
+        },
+        {
+            "description": "An attribute of type bool",
+            "type": "boolean",
+            "id": "attribute3",
+            "name": "Attribute 3",
+            "format": null
         },
         {
             "description": "An attribute of type string",
-            "type": "str",
-            "id": "attribute3",
-            "name": "Attribute 3",
-            "format": "%s"
+            "type": "string",
+            "id": "attribute4",
+            "name": "Attribute 4",
+            "format": null
         }
     ],
     "tables": [

@@ -1,17 +1,18 @@
 import json
 import logging
 from pprint import pformat
+import os.path
 import re
 import unittest
 
-from pbcommand.pb_io import load_report_from_json
+from pbcommand.pb_io import load_report_from_json, load_report_spec_from_json
 from pbcommand.models.report import (Report, Attribute, PlotGroup, Plot, Table,
-                                     Column, PbReportError)
+                                     Column, PbReportError, format_metric)
 from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from base_utils import get_data_file_from_subdir
+from base_utils import get_data_file_from_subdir, DATA_DIR
 
 log = logging.getLogger(__name__)
 
@@ -357,3 +358,33 @@ class TestReportSchemaVersion100(unittest.TestCase):
 
 class TestRepotSchemaVersion100WithPlots(TestReportSchemaVersion100):
     name = "example_with_plot.json"
+
+
+class TestReportSpec(unittest.TestCase):
+
+    def setUp(self):
+        self.spec = load_report_spec_from_json(
+            os.path.join(DATA_DIR, "report-specs", "report_spec.json"))
+
+    def test_report_validation(self):
+        rpt = _to_report("test_report.json")
+        errors = self.spec.validate_report(rpt, False)
+        self.assertEqual(len(errors), 0)
+        rpt.attributes.append(Attribute("attribute5", value=12345))
+        errors = self.spec.validate_report(rpt, False)
+        self.assertEqual(len(errors), 1)
+        rpt.attributes[0] = Attribute("attribute1", value=1.2345)
+        errors = self.spec.validate_report(rpt, False)
+        self.assertEqual(len(errors), 2)
+
+    def test_format_metric(self):
+        s = format_metric("{:,d}", 123456789)
+        self.assertEqual(s, "123,456,789")
+        s = format_metric("{:.4g}", 1.2345678)
+        self.assertEqual(s, "1.235")
+        s = format_metric("{M:.2f} Mb", 123456789)
+        self.assertEqual(s, "123.46 Mb")
+        s = format_metric("{p:.5g}%", 0.987654321)
+        self.assertEqual(s, "98.765%")
+        s = format_metric("{p:g}", 0.000001)
+        self.assertEqual(s, "0.0001%")

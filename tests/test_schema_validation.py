@@ -17,7 +17,7 @@ from pbcommand.schemas import (validate_rtc, validate_tc, validate_presets,
                                validate_report_spec)
 from pbcommand.utils import walker
 
-from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORTS
+from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
 
 
 log = logging.getLogger(__name__)
@@ -80,8 +80,8 @@ class ValidateDataStoreViewRules(unittest.TestCase):
 
 class ValidateReportSpec(unittest.TestCase):
     def test_validate_report_spec(self):
-        for path in walker(DATA_DIR_REPORTS, json_filter):
-            if os.path.basename(path).startswith("report_spec"):
+        for path in walker(DATA_DIR_REPORT_SPECS, json_filter):
+            if os.path.basename(path).startswith("report-specs"):
                 f = _to_assertion(path, validate_report_spec)
                 f(self)
                 self.assertIsInstance(load_report_spec_from_json(path),
