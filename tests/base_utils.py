@@ -9,6 +9,7 @@ DATA_DIR_TC = os.path.join(DATA_DIR, 'tool-contracts')
 DATA_DIR_RTC = os.path.join(DATA_DIR, 'resolved-tool-contracts')
 DATA_DIR_PRESETS = os.path.join(DATA_DIR, "pipeline-presets")
 DATA_DIR_DSVIEW = os.path.join(DATA_DIR, "pipeline-datastore-view-rules")
+DATA_DIR_REPORTS = os.path.join(DATA_DIR, "reports")
 
 
 def get_data_file(path):

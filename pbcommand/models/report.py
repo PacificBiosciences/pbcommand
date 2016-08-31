@@ -838,3 +838,125 @@ class Report(BaseReportElement):
         merged_attributes = _sum_attributes(attr_list)
         return Report(report_id, attributes=merged_attributes, tables=tables,
                       dataset_uuids=sorted(list(dataset_uuids)))
+
+
+########################################################################
+# SPECIFICATION MODELS
+class AttributeSpec(object):
+
+    def __init__(self, id_, name, description, type_, format_):
+        self.id = id_
+        self.name = name
+        self.description = description
+        self.type = type_
+        self.format = format
+
+    @staticmethod
+    def from_dict(d):
+        return AttributeSpec(d['id'].split(".")[-1], d['name'],
+                             d['description'], d["type"],
+                             d.get("format", "%s"))
+
+
+class ColumnSpec(object):
+    def __init__(self, id_, header, description, type_, format_):
+        self.id = id_
+        self.header = header
+        self.description = description
+        self.type = type_
+        self.format = format
+
+    @staticmethod
+    def from_dict(d):
+        return ColumnSpec(d['id'].split(".")[-1], d['header'],
+                          d['description'], d["type"], d.get("format", "%s"))
+
+
+class TableSpec(object):
+
+    def __init__(self, id_, title, description, columns):
+        self.id = id_
+        self.title = title
+        self.description = description
+        self.columns = columns
+        self._col_dict = {c.id: c for c in columns}
+
+    @staticmethod
+    def from_dict(d):
+        return TableSpec(d['id'].split(".")[-1], d['title'], d['description'],
+                         [ColumnSpec.from_dict(c) for c in d['columns']])
+
+    def get_column_spec(self, id_):
+        return self._col_dict[id_]
+
+
+class PlotSpec(object):
+
+    def __init__(self, id_, description, caption, title, xlabel, ylabel):
+        self.id = id_
+        self.description = description
+        self.caption = caption
+        self.title = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+
+    @staticmethod
+    def from_dict(d):
+        return PlotSpec(d['id'].split(".")[-1], d['description'],
+                        d['caption'], d['title'],
+                        d.get('xlabel', None), d.get('ylabel', None))
+
+
+class PlotGroupSpec(object):
+
+    def __init__(self, id_, title, description, legend, plots=()):
+        self.id = id_
+        self.title = title
+        self.description = description
+        self.legend = legend
+        self.plots = plots
+        self._plot_dict = {p.id: p for p in plots}
+
+    @staticmethod
+    def from_dict(d):
+        return PlotGroupSpec(d['id'].split(".")[-1], d['title'],
+                             d["description"], d['legend'],
+                             [PlotSpec.from_dict(p) for p in d['plots']])
+
+
+    def get_plot_spec(self, id_):
+        return self._plot_dict[id_]
+
+
+class ReportSpec(object):
+
+    def __init__(self, id_, version, title, description, attributes=(),
+                 plotgroups=(), tables=()):
+        self.id = id_
+        self.version = version
+        self.title = title
+        self.description = description
+        self.attributes = attributes
+        self.plotgroups = plotgroups
+        self.tables = tables
+        self._attr_dict = {a.id: a for a in attributes}
+        self._plotgrp_dict = {p.id: p for p in plotgroups}
+        self._table_dict = {t.id: t for t in tables}
+
+    @staticmethod
+    def from_dict(d):
+        return ReportSpec(d['id'], d['version'], d['title'], d['description'],
+                          [AttributeSpec.from_dict(a)
+                           for a in d['attributes']],
+                          [PlotGroupSpec.from_dict(p)
+                           for p in d['plotGroups']],
+                          [TableSpec.from_dict(t) for t in d['tables']])
+
+    def get_attribute_spec(self, id_):
+        return self._attr_dict[id_]
+
+    def get_plotgroup_spec(self, id_):
+        return self._plotgrp_dict[id_]
+
+    def get_table_spec(self, id_):
+        return self._table_dict[id_]

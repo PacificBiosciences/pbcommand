@@ -2,18 +2,22 @@ import json
 import os
 import logging
 import unittest
+
 from pbcommand.models import (ToolContract, ResolvedToolContract,
                               PipelinePreset, PipelineDataStoreViewRules)
+from pbcommand.models.report import Report, ReportSpec
 
 from pbcommand.pb_io import (load_tool_contract_from,
                              load_resolved_tool_contract_from,
                              load_pipeline_presets_from,
-                             load_pipeline_datastore_view_rules_from_json)
+                             load_pipeline_datastore_view_rules_from_json,
+                             load_report_spec_from_json)
 from pbcommand.schemas import (validate_rtc, validate_tc, validate_presets,
-                               validate_datastore_view_rules)
+                               validate_datastore_view_rules,
+                               validate_report_spec)
 from pbcommand.utils import walker
 
-from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW
+from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORTS
 
 
 log = logging.getLogger(__name__)
@@ -72,3 +76,13 @@ class ValidateDataStoreViewRules(unittest.TestCase):
             self.assertIsInstance(
                 load_pipeline_datastore_view_rules_from_json(path),
                 PipelineDataStoreViewRules)
+
+
+class ValidateReportSpec(unittest.TestCase):
+    def test_validate_report_spec(self):
+        for path in walker(DATA_DIR_REPORTS, json_filter):
+            if os.path.basename(path).startswith("report_spec"):
+                f = _to_assertion(path, validate_report_spec)
+                f(self)
+                self.assertIsInstance(load_report_spec_from_json(path),
+                                      ReportSpec)
