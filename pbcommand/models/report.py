@@ -1031,7 +1031,7 @@ class ReportSpec(object):
     def get_table_spec(self, id_):
         return self._table_dict.get(id_, None)
 
-    def validate_report(self, rpt, raise_if_found=True):
+    def validate_report(self, rpt):
         """
         Check that a generated report corresponding to this spec is compliant
         with the expected types and object IDs.  (Missing objects will not
@@ -1082,8 +1082,15 @@ class ReportSpec(object):
                     if plot_spec is None:
                         errors.append("Plot {i} not found in spec".format(
                                       i=plot.id))
-        if len(errors) > 0 and raise_if_found:
+        if len(errors) > 0:
             raise ValueError(
                 "Report {i} failed validation against spec:\n{e}".format(
                 i=self.id, e="\n".join(errors)))
-        return errors
+        return rpt
+
+    def is_valid_report(self, rpt):
+        try:
+            rpt = self.validate_report(rpt)
+            return True
+        except ValueError:
+            return False

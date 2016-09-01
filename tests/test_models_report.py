@@ -368,14 +368,25 @@ class TestReportSpec(unittest.TestCase):
 
     def test_report_validation(self):
         rpt = _to_report("test_report.json")
-        errors = self.spec.validate_report(rpt, False)
-        self.assertEqual(len(errors), 0)
+        r = self.spec.validate_report(rpt)
+        self.assertTrue(isinstance(r, Report))
         rpt.attributes.append(Attribute("attribute5", value=12345))
-        errors = self.spec.validate_report(rpt, False)
-        self.assertEqual(len(errors), 1)
+        error_len = lambda e: len(e.message.split("\n"))
+        try:
+            self.spec.validate_report(rpt)
+        except ValueError as e:
+            self.assertEqual(error_len(e), 2)
+        else:
+            self.fail("Expected exception")
+        self.assertFalse(self.spec.is_valid_report(rpt))
         rpt.attributes[0] = Attribute("attribute1", value=1.2345)
-        errors = self.spec.validate_report(rpt, False)
-        self.assertEqual(len(errors), 2)
+        try:
+            self.spec.validate_report(rpt)
+        except ValueError as e:
+            self.assertEqual(error_len(e), 3)
+        else:
+            self.fail("Expected exception")
+        self.assertFalse(self.spec.is_valid_report(rpt))
 
     def test_format_metric(self):
         s = format_metric("{:,d}", 123456789)
