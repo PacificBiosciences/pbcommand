@@ -881,6 +881,7 @@ def format_metric(format_str, value):
 # FIXME this needs to be standardized
 DATA_TYPES = {
     "int": int,
+    "long": int,
     "float": float,
     "string": basestring, # this is hacky too
     "boolean": bool

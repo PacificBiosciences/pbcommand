@@ -8,6 +8,7 @@ import uuid as U
 
 from pbcommand.models.report import (Report, Plot, PlotGroup, Attribute,
                                      Table, Column, ReportSpec)
+from pbcommand.schemas import validate_report, validate_report_spec
 
 
 log = logging.getLogger(__name__)
@@ -140,7 +141,9 @@ def fofn_to_report(nfofns):
     return _to_report(nfofns, "nfofns", "fofn_report")
 
 
-def load_report_spec_from_json(json_file):
+def load_report_spec_from_json(json_file, validate=True):
     with open(json_file, 'r') as f:
         d = json.loads(f.read())
+        if validate:
+            validate_report_spec(d)
         return ReportSpec.from_dict(d)
