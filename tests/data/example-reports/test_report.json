@@ -1,0 +1,40 @@
+{
+  "id": "test_report",
+  "version": "0.1",
+  "title": "Example report for comparing to specification",
+  "attributes": [
+    {
+      "id": "attribute1",
+      "name": "Attribute 1",
+      "value": 123456789
+    },
+    {
+      "id": "attribute2",
+      "name": "Attribute 2",
+      "value": 0.987654321
+    },
+    {
+      "id": "attribute3",
+      "name": "Attribute 3",
+      "value": true
+    },
+    {
+      "id": "attribute4",
+      "name": "Attribute 4",
+      "value": "qwerty"
+    }
+  ],
+  "tables": [
+    {
+      "id": "table1",
+      "title": "Table 1",
+      "columns": [
+        {
+          "id": "column1",
+          "header": "Column 1",
+          "values": [1,2,3,4,5,6]
+        }
+      ]
+    }
+  ]
+}

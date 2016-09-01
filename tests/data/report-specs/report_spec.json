@@ -1,0 +1,115 @@
+{
+    "id": "test_report",
+    "version": "0.1",
+    "title": "Example report spec",
+    "description": "This is a small test report which is used to ensure report_spec.py is working",
+    "attributes": [
+        {
+            "description": "An attribute of type int",
+            "type": "int",
+            "id": "attribute1",
+            "name": "Attribute 1",
+            "format": "{:,d}"
+        },
+        {
+            "description": "An attribute of type float",
+            "type": "float",
+            "id": "attribute2",
+            "name": "Attribute 2",
+            "format": "{p:5g} %"
+        },
+        {
+            "description": "An attribute of type bool",
+            "type": "boolean",
+            "id": "attribute3",
+            "name": "Attribute 3",
+            "format": null
+        },
+        {
+            "description": "An attribute of type string",
+            "type": "string",
+            "id": "attribute4",
+            "name": "Attribute 4",
+            "format": null
+        }
+    ],
+    "tables": [
+        {
+            "id": "table1",
+            "title": "Table 1",
+            "description": "The first table",
+            "columns": [
+                {
+                    "header": "Column 1",
+                    "type": "int",
+                    "id": "column1",
+                    "description": "A column of type int",
+                    "format": "{:d}"
+                }
+            ]
+        },
+        {
+            "id": "table2",
+            "title": "Table 2",
+            "description": "The second table",
+            "columns": [
+                {
+                    "header": "Column 1",
+                    "type": "float",
+                    "id": "column1",
+                    "description": "A column of type float",
+                    "format": "{:.2f}"
+                },
+                {
+                    "header": "Column 2",
+                    "type": "str",
+                    "id": "column2",
+                    "description": "A column of type str",
+                    "format": null
+                }
+            ]
+        }
+    ],
+    "plotGroups": [
+        {
+            "plots": [
+                {
+                    "description": "The first plot of the first plotgroup",
+                    "title": "Plot 1",
+                    "caption": "Plot 1",
+                    "xlabel": "x variable",
+                    "ylabel": "y variable",
+                    "id": "plot1"
+                }
+            ],
+            "description": "The first plotgroup",
+            "legend": "legend1.png",
+            "id": "plotgroup1",
+            "title": "Plotgroup 1"
+        },
+        {
+            "plots": [
+                {
+                    "description": "The first plot of the second plotgroup",
+                    "title": "Plot 1",
+                    "caption": "Plot 1",
+                    "xlabel": "x variable",
+                    "ylabel": "y variable",
+                    "id": "plot1"
+                },
+                {
+                    "description": "The second plot of the second plotgroup",
+                    "title": "Plot 2",
+                    "caption": "Plot 2",
+                    "xlabel": "x variable",
+                    "ylabel": "y variable",
+                    "id": "plot2"
+                }
+            ],
+            "description": "The second plotgroup",
+            "legend": "legend2.png",
+            "id": "plotgroup2",
+            "title": "Plotgroup 2"
+        }
+    ]
+}

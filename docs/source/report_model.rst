@@ -1,5 +1,5 @@
 Report Models
--------------
+=============
 
 A report is composed of model objects whose classes are defined in pbreports.model. Typically, a report object is created and then attributes, tables, or plotGroups are
 added to the report. Lastly, the report is serialized as json to a file.
@@ -138,3 +138,39 @@ preview), an optional legend and a list of plots.
 .. note:: The image paths must be written relative to where the report JSON file will be written.
 
 .. note:: Currently, only PNG is supported
+
+
+Report Specs
+============
+
+A parallel family of models in the same module handles specifications for
+individual reports, i.e. enumerating the data items expected for each model
+type, along with view metadata.
+
+Format strings
+--------------
+
+For formatting numerical attribute and column values, we are using a
+lightweight syntax based on Python's `str.format(...)` method.  If the
+`format` attribute is set to `None` (`null` in JSON), the value should
+simply be directly converted to string without any formatting.  (In the case
+of string and boolean values, the format should always be left unset.)  More
+complex operations values must match this regular expression::
+
+  {([GMkp]{0,1})(:)([\.,]{0,1})([0-9]*)([dfg]{1})}(.*)$
+
+The `[GMkp]` group specifies scaling - if one of these characters is present,
+the value should be divided by one billion (`G`), one million (`M`), or one
+thousand (`k`) before formatting, or multiplied by 100 (`p`).  The period or
+comma after the colon modifies the display of floating-point and integer
+values respectively.  The following characters before the closing brace
+correspond to conventional format string syntax.  The format can optionally
+include a suffix to be appended to the formatted value.
+
+Examples of use::
+
+  format_value("{:,d}", 123456)           # 123,456
+  format_value("{:.2f)", 1.23456)         # 1.23
+  format_value("{G:.2f} Gb", 1234567890)  # 1.23 Gb
+  format_value("{p:5g}%", 0.987654321)    # 98.765%
+  format_value(None, 0.987654321)         # 0.987654321

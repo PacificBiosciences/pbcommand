@@ -28,6 +28,7 @@ PBREPORT_SCHEMA = _load_schema("pbreport", "pbreport.avsc")
 TC_SCHEMA = _load_schema("tool_contract", "tool_contract.avsc")
 PRESET_SCHEMA = _load_schema("pipeline_presets", "pipeline_presets.avsc")
 DS_VIEW_SCHEMA = _load_schema("datastore_view_rules", "datastore_view_rules.avsc")
+REPORT_SPEC_SCHEMA = _load_schema("report_spec", "report_spec.avsc")
 
 
 def _validate(schema, msg, d):
@@ -48,9 +49,11 @@ validate_report = validate_pbreport
 validate_tc = functools.partial(_validate, TC_SCHEMA, "Tool Contract Model")
 validate_presets = functools.partial(_validate, PRESET_SCHEMA, "Pipeline Presets Model")
 validate_datastore_view_rules = functools.partial(_validate, DS_VIEW_SCHEMA, "Pipeline DataStore View Rules")
+validate_report_spec = functools.partial(_validate, REPORT_SPEC_SCHEMA, "Report Specification Model")
 
 is_valid_rtc = functools.partial(_is_valid, RTC_SCHEMA)
 is_valid_report = functools.partial(_is_valid, PBREPORT_SCHEMA)
 is_valid_tc = functools.partial(_is_valid, TC_SCHEMA)
 is_valid_presets = functools.partial(_is_valid, PRESET_SCHEMA)
 is_valid_datastore_view_rules = functools.partial(_is_valid, DS_VIEW_SCHEMA)
+is_valid_report_spec = functools.partial(_is_valid, REPORT_SPEC_SCHEMA)

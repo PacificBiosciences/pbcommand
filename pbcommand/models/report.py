@@ -838,3 +838,259 @@ class Report(BaseReportElement):
         merged_attributes = _sum_attributes(attr_list)
         return Report(report_id, attributes=merged_attributes, tables=tables,
                       dataset_uuids=sorted(list(dataset_uuids)))
+
+
+########################################################################
+# SPECIFICATION MODELS
+
+FS_RE = "{([GMkp]{0,1})(:)([\.,]{0,1})([0-9]*)([dfg]{1})}(.*)$"
+def format_metric(format_str, value):
+    """
+    Format a report metric (attribute or table column value) according to our
+    in-house rules.  These resemble Python format strings (plus optional
+    suffix), but with the addition of optional scaling flags.
+    """
+    if value is None:
+        return "NA"
+    elif format_str is None:
+        return str(value)
+    else:
+        m = re.match(FS_RE, format_str)
+        if m is None:
+            raise ValueError("Format string '{s}' is uninterpretable".format(
+                             s=format_str))
+        if m.groups()[0] == 'p':
+            value *= 100.0
+        elif m.groups()[0] == 'G':
+            value /= 1000000000.0
+        elif m.groups()[0] == 'M':
+            value /= 1000000.0
+        elif m.groups()[0] == 'k':
+            value /= 1000.0
+        if isinstance(value, float) and m.groups()[4] == 'd':
+            value = int(value)
+        fs_python = "{{:{:s}{:s}{:s}}}".format(*(m.groups()[2:5]))
+        formatted = fs_python.format(value)
+        # the percent symbol can be implicit
+        if m.groups()[0] == 'p' and m.groups()[-1] == '':
+            return formatted + "%"
+        else:
+            return formatted + m.groups()[-1]
+
+
+# FIXME this needs to be standardized
+DATA_TYPES = {
+    "int": int,
+    "long": int,
+    "float": float,
+    "string": basestring, # this is hacky too
+    "boolean": bool
+}
+
+class AttributeSpec(object):
+
+    def __init__(self, id_, name, description, type_, format_):
+        self.id = id_
+        self.name = name
+        self.description = description
+        self._type = type_
+        self.format_str = format_
+
+    @property
+    def type(self):
+        return DATA_TYPES[self._type]
+
+    @staticmethod
+    def from_dict(d):
+        return AttributeSpec(d['id'].split(".")[-1], d['name'],
+                             d['description'], d["type"],
+                             d.get("format", None))
+
+    def validate_attribute(self, attr):
+        assert attr.id == self.id
+        if attr.value is not None and not isinstance(attr.value, self.type):
+            raise TypeError("Attribute {i} has value of type {v} (expected {t})".format(i=self.id, v=type(attr.value).__name__, t=self.type))
+
+
+class ColumnSpec(object):
+    def __init__(self, id_, header, description, type_, format_):
+        self.id = id_
+        self.header = header
+        self.description = description
+        self._type = type_
+        self.format_str = format
+
+    @property
+    def type(self):
+        return DATA_TYPES[self._type]
+
+    @staticmethod
+    def from_dict(d):
+        return ColumnSpec(d['id'].split(".")[-1], d['header'],
+                          d['description'], d["type"], d.get("format", "%s"))
+
+    def validate_column(self, col):
+        assert col.id == self.id
+        for value in col.values:
+            if value is not None and not isinstance(value, self.type):
+                raise TypeError("Column {i} contains value of type {v} (expected {t})".format(i=self.id, v=value_type, t=self.type))
+
+
+class TableSpec(object):
+
+    def __init__(self, id_, title, description, columns):
+        self.id = id_
+        self.title = title
+        self.description = description
+        self.columns = columns
+        self._col_dict = {c.id: c for c in columns}
+
+    @staticmethod
+    def from_dict(d):
+        return TableSpec(d['id'].split(".")[-1], d['title'], d['description'],
+                         [ColumnSpec.from_dict(c) for c in d['columns']])
+
+    def get_column_spec(self, id_):
+        return self._col_dict.get(id_, None)
+
+
+class PlotSpec(object):
+
+    def __init__(self, id_, description, caption, title, xlabel, ylabel):
+        self.id = id_
+        self.description = description
+        self.caption = caption
+        self.title = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+
+    @staticmethod
+    def from_dict(d):
+        return PlotSpec(d['id'].split(".")[-1], d['description'],
+                        d['caption'], d['title'],
+                        d.get('xlabel', None), d.get('ylabel', None))
+
+
+class PlotGroupSpec(object):
+
+    def __init__(self, id_, title, description, legend, plots=()):
+        self.id = id_
+        self.title = title
+        self.description = description
+        self.legend = legend
+        self.plots = plots
+        self._plot_dict = {p.id: p for p in plots}
+
+    @staticmethod
+    def from_dict(d):
+        return PlotGroupSpec(d['id'].split(".")[-1], d['title'],
+                             d["description"], d['legend'],
+                             [PlotSpec.from_dict(p) for p in d['plots']])
+
+
+    def get_plot_spec(self, id_):
+        return self._plot_dict.get(id_, None)
+
+
+class ReportSpec(object):
+    """
+    Model for a specification of the expected content of a uniquely
+    identified report.  For obvious reasons this mirrors the Report model,
+    minus values and with added view metadata.  These specs should usually
+    be written out explicitly in JSON rather than built programatically.
+    """
+
+    def __init__(self, id_, version, title, description, attributes=(),
+                 plotgroups=(), tables=()):
+        self.id = id_
+        self.version = version
+        self.title = title
+        self.description = description
+        self.attributes = attributes
+        self.plotgroups = plotgroups
+        self.tables = tables
+        self._attr_dict = {a.id: a for a in attributes}
+        self._plotgrp_dict = {p.id: p for p in plotgroups}
+        self._table_dict = {t.id: t for t in tables}
+
+    @staticmethod
+    def from_dict(d):
+        return ReportSpec(d['id'], d['version'], d['title'], d['description'],
+                          [AttributeSpec.from_dict(a)
+                           for a in d['attributes']],
+                          [PlotGroupSpec.from_dict(p)
+                           for p in d['plotGroups']],
+                          [TableSpec.from_dict(t) for t in d['tables']])
+
+    def get_attribute_spec(self, id_):
+        return self._attr_dict.get(id_, None)
+
+    def get_plotgroup_spec(self, id_):
+        return self._plotgrp_dict.get(id_, None)
+
+    def get_table_spec(self, id_):
+        return self._table_dict.get(id_, None)
+
+    def validate_report(self, rpt):
+        """
+        Check that a generated report corresponding to this spec is compliant
+        with the expected types and object IDs.  (Missing objects will not
+        result in an error, but unexpected object IDs will.)
+        """
+        assert rpt.id == self.id
+        # TODO check version?
+        errors = []
+        for attr in rpt.attributes:
+            attr_spec = self.get_attribute_spec(attr.id)
+            if attr_spec is None:
+                errors.append("Attribute {i} not found in spec".format(
+                              i=attr.id))
+            else:
+                try:
+                    attr_spec.validate_attribute(attr)
+                except TypeError as e:
+                    errors.append(str(e))
+                try:
+                    format_metric(attr_spec.format_str, attr.value)
+                except (ValueError, TypeError) as e:
+                    log.error(e)
+                    errors.append("Couldn't format {i}: {e}".format(
+                                  i=attr.id, e=str(e)))
+        for table in rpt.tables:
+            table_spec = self.get_table_spec(table.id)
+            if table_spec is None:
+                errors.append("Table {i} not found in spec".format(i=table.id))
+            else:
+                for column in table.columns:
+                    column_spec = table_spec.get_column_spec(column.id)
+                    if column_spec is None:
+                        errors.append("Column {i} not found in spec".format(
+                                      i=column.id))
+                    else:
+                        try:
+                            column_spec.validate_column(column)
+                        except TypeError as e:
+                            errors.append(str(e))
+        for pg in rpt.plotGroups:
+            pg_spec = self.get_plotgroup_spec(pg.id)
+            if pg_spec is None:
+                errors.append("Plot group {i} not found in spec".format(
+                              i=pg.id))
+            else:
+                for plot in pg.plots:
+                    plot_spec = pg.get_plot_spec(plot.id)
+                    if plot_spec is None:
+                        errors.append("Plot {i} not found in spec".format(
+                                      i=plot.id))
+        if len(errors) > 0:
+            raise ValueError(
+                "Report {i} failed validation against spec:\n{e}".format(
+                i=self.id, e="\n".join(errors)))
+        return rpt
+
+    def is_valid_report(self, rpt):
+        try:
+            rpt = self.validate_report(rpt)
+            return True
+        except ValueError:
+            return False

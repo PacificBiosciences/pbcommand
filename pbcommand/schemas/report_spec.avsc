@@ -1,0 +1,216 @@
+{
+  "namespace": "com.pacbio.common.models.reports",
+  "type": "record",
+  "name": "ReportSpec",
+  "doc": "Specification and view rules for a single PacBio report.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "Pbreports style id, must only have [A-z][0-9]_"
+    },
+    {
+      "name": "version",
+      "type": "string",
+      "doc": "Version of the report corresponding to this spec"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "doc": "Report display name"
+    },
+    {
+      "name": "description",
+      "type": ["string", "null"],
+      "default": null,
+      "doc": "Plain-English description of this report, suitable for documentation"
+    },
+    {
+      "name": "attributes",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "AttributeSpec",
+          "fields": [
+            {
+              "name": "id",
+              "doc": "Report attribute ID",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "doc": "Report attribute display name"
+            },
+            {
+              "name": "description",
+              "type": ["string", "null"],
+              "default": null,
+              "doc": "Plain-English description of the attribute's meaning"
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "doc": "Expected type of the attribute value"
+            },
+            {
+              "name": "format",
+              "type": ["string", "null"],
+              "default": "%s",
+              "doc": "Format string to apply to the value in UI"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "tables",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "TableSpec",
+          "fields": [
+            {
+              "doc": "Report table Id",
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "doc": "Display name of the Table"
+            },
+            {
+              "name": "description",
+              "type": ["string", "null"],
+              "default": null,
+              "doc": "Plain-English description of the table"
+            },
+            {
+              "name": "columns",
+              "doc": "List of Columns",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "TableColumnSpec",
+                  "fields": [
+                    {
+                      "doc": "Unique id of column (must be report id format style)",
+                      "name": "id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "header",
+                      "type": "string",
+                      "doc": "Display name of Column"
+                    },
+                    {
+                      "name": "description",
+                      "type": ["string", "null"],
+                      "default": null,
+                      "doc": "Plain-English description of column"
+                    },
+                    {
+                      "name": "type",
+                      "type": "string",
+                      "doc": "Expected type of column values"
+                    },
+                    {
+                      "name": "format",
+                      "type": ["string", "null"],
+                      "default": null,
+                      "doc": "Format string to apply to values in the UI"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "plotGroups",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "PlotGroupSpec",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "doc": "Plot group ID"
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "doc": "Plot group title"
+            },
+            {
+              "name": "legend",
+              "type": ["string", "null"],
+              "doc": "Not clear what the use case of this is",
+              "default": null
+            },
+            {
+              "name": "description",
+              "type": ["string", "null"],
+              "default": null,
+              "doc": "Plain-English description"
+            },
+            {
+              "doc": "List of Plots",
+              "name": "plots",
+              "type": {
+                "type": "array",
+                "items": {
+                  "doc": "PacBio Report Plot",
+                  "type": "record",
+                  "name": "PlotSpec",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": "string",
+                      "doc": "Plot Id"
+                    },
+                    {
+                      "name": "title",
+                      "type": ["string", "null"],
+                      "doc": "Display Name of Plot"
+                    },
+                    {
+                      "name": "caption",
+                      "doc": "Caption of the Plot",
+                      "type": ["string", "null"]
+                    },
+                    {
+                      "name": "description",
+                      "type": "string",
+                      "doc": "Plain-English description"
+                    },
+                    {
+                      "name": "xlabel",
+                      "type": ["string", "null"],
+                      "default": null,
+                      "doc": "X-axis label (optional)"
+                    },
+                    {
+                      "name": "ylabel",
+                      "type": ["string", "null"],
+                      "default": null,
+                      "doc": "Y-axis label (optional)"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
