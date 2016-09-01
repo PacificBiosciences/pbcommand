@@ -44,7 +44,7 @@
                     "type": "int",
                     "id": "column1",
                     "description": "A column of type int",
-                    "format": "%d"
+                    "format": "{:d}"
                 }
             ]
         },
@@ -58,14 +58,14 @@
                     "type": "float",
                     "id": "column1",
                     "description": "A column of type float",
-                    "format": "%f"
+                    "format": "{:.2f}"
                 },
                 {
                     "header": "Column 2",
                     "type": "str",
                     "id": "column2",
                     "description": "A column of type str",
-                    "format": "%s"
+                    "format": null
                 }
             ]
         }
