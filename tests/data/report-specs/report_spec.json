@@ -62,7 +62,7 @@
                 },
                 {
                     "header": "Column 2",
-                    "type": "str",
+                    "type": "string",
                     "id": "column2",
                     "description": "A column of type str",
                     "format": null
