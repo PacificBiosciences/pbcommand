@@ -189,8 +189,9 @@
                     },
                     {
                       "name": "description",
-                      "type": "string",
-                      "doc": "Plain-English description"
+                      "type": ["string", "null"],
+                      "doc": "Plain-English description",
+                      "default": null
                     },
                     {
                       "name": "xlabel",

@@ -844,6 +844,13 @@ class Report(BaseReportElement):
 # SPECIFICATION MODELS
 
 FS_RE = "{([GMkp]{0,1})(:)([\.,]{0,1})([0-9]*)([dfg]{1})}(.*)$"
+def validate_format(format_str):
+    m = re.match(FS_RE, format_str)
+    if m is None:
+         raise ValueError("Format string '{s}' is uninterpretable".format(
+                          s=format_str))
+    return m
+
 def format_metric(format_str, value):
     """
     Format a report metric (attribute or table column value) according to our
@@ -855,10 +862,7 @@ def format_metric(format_str, value):
     elif format_str is None:
         return str(value)
     else:
-        m = re.match(FS_RE, format_str)
-        if m is None:
-            raise ValueError("Format string '{s}' is uninterpretable".format(
-                             s=format_str))
+        m = validate_format(format_str)
         if m.groups()[0] == 'p':
             value *= 100.0
         elif m.groups()[0] == 'G':
@@ -902,9 +906,11 @@ class AttributeSpec(object):
 
     @staticmethod
     def from_dict(d):
+        format_str = d.get("format", None)
+        if format_str is not None:
+            validate_format(format_str)
         return AttributeSpec(d['id'].split(".")[-1], d['name'],
-                             d['description'], d["type"],
-                             d.get("format", None))
+                             d['description'], d["type"], format_str)
 
     def validate_attribute(self, attr):
         assert attr.id == self.id
