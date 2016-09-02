@@ -893,12 +893,14 @@ DATA_TYPES = {
 
 class AttributeSpec(object):
 
-    def __init__(self, id_, name, description, type_, format_):
+    def __init__(self, id_, name, description, type_, format_=None,
+                 is_hidden=False):
         self.id = id_
         self.name = name
         self.description = description
         self._type = type_
         self.format_str = format_
+        self.is_hidden = is_hidden
 
     @property
     def type(self):
@@ -911,7 +913,8 @@ class AttributeSpec(object):
             validate_format(format_str)
         assert d["type"] in DATA_TYPES, d["type"]
         return AttributeSpec(d['id'].split(".")[-1], d['name'],
-                             d['description'], d["type"], format_str)
+                             d['description'], d["type"], format_str,
+                             d.get("isHidden", False))
 
     def validate_attribute(self, attr):
         assert attr.id == self.id
@@ -920,12 +923,14 @@ class AttributeSpec(object):
 
 
 class ColumnSpec(object):
-    def __init__(self, id_, header, description, type_, format_):
+    def __init__(self, id_, header, description, type_, format_=None,
+                 is_hidden=False):
         self.id = id_
         self.header = header
         self.description = description
         self._type = type_
         self.format_str = format
+        self.is_hidden = is_hidden
 
     @property
     def type(self):
@@ -938,7 +943,8 @@ class ColumnSpec(object):
             validate_format(format_str)
         assert d["type"] in DATA_TYPES, d["type"]
         return ColumnSpec(d['id'].split(".")[-1], d['header'],
-                          d['description'], d["type"], format_str)
+                          d['description'], d["type"], format_str,
+                          d.get("isHidden", False))
 
     def validate_column(self, col):
         assert col.id == self.id

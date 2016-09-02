@@ -22,8 +22,7 @@
             "description": "An attribute of type bool",
             "type": "boolean",
             "id": "attribute3",
-            "name": "Attribute 3",
-            "format": null
+            "name": "Attribute 3"
         },
         {
             "description": "An attribute of type string",

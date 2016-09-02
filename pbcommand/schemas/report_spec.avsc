@@ -57,8 +57,14 @@
             {
               "name": "format",
               "type": ["string", "null"],
-              "default": "%s",
+              "default": null,
               "doc": "Format string to apply to the value in UI"
+            },
+            {
+              "name": "isHidden",
+              "type": ["boolean", "null"],
+              "default": null,
+              "doc": "Flag to hide this attribute"
             }
           ]
         }
@@ -123,6 +129,12 @@
                       "type": ["string", "null"],
                       "default": null,
                       "doc": "Format string to apply to values in the UI"
+                    },
+                    {
+                      "name": "isHidden",
+                      "type": ["boolean", "null"],
+                      "default": null,
+                      "doc": "Flag to hide this attribute"
                     }
                   ]
                 }
@@ -185,7 +197,8 @@
                     {
                       "name": "caption",
                       "doc": "Caption of the Plot",
-                      "type": ["string", "null"]
+                      "type": ["string", "null"],
+                      "default": null
                     },
                     {
                       "name": "description",
