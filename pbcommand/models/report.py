@@ -887,7 +887,6 @@ DATA_TYPES = {
     "int": int,
     "long": int,
     "float": float,
-    "str": basestring,
     "string": basestring, # this is hacky too
     "boolean": bool
 }
