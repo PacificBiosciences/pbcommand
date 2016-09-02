@@ -893,12 +893,14 @@ DATA_TYPES = {
 
 class AttributeSpec(object):
 
-    def __init__(self, id_, name, description, type_, format_):
+    def __init__(self, id_, name, description, type_, format_=None,
+                 is_hidden=False):
         self.id = id_
         self.name = name
         self.description = description
         self._type = type_
         self.format_str = format_
+        self.is_hidden = is_hidden
 
     @property
     def type(self):
@@ -909,8 +911,10 @@ class AttributeSpec(object):
         format_str = d.get("format", None)
         if format_str is not None:
             validate_format(format_str)
+        assert d["type"] in DATA_TYPES, d["type"]
         return AttributeSpec(d['id'].split(".")[-1], d['name'],
-                             d['description'], d["type"], format_str)
+                             d['description'], d["type"], format_str,
+                             d.get("isHidden", False))
 
     def validate_attribute(self, attr):
         assert attr.id == self.id
@@ -919,12 +923,14 @@ class AttributeSpec(object):
 
 
 class ColumnSpec(object):
-    def __init__(self, id_, header, description, type_, format_):
+    def __init__(self, id_, header, description, type_, format_=None,
+                 is_hidden=False):
         self.id = id_
         self.header = header
         self.description = description
         self._type = type_
         self.format_str = format
+        self.is_hidden = is_hidden
 
     @property
     def type(self):
@@ -932,14 +938,19 @@ class ColumnSpec(object):
 
     @staticmethod
     def from_dict(d):
+        format_str = d.get("format", None)
+        if format_str is not None:
+            validate_format(format_str)
+        assert d["type"] in DATA_TYPES, d["type"]
         return ColumnSpec(d['id'].split(".")[-1], d['header'],
-                          d['description'], d["type"], d.get("format", "%s"))
+                          d['description'], d["type"], format_str,
+                          d.get("isHidden", False))
 
     def validate_column(self, col):
         assert col.id == self.id
         for value in col.values:
             if value is not None and not isinstance(value, self.type):
-                raise TypeError("Column {i} contains value of type {v} (expected {t})".format(i=self.id, v=value_type, t=self.type))
+                raise TypeError("Column {i} contains value of type {v} (expected {t})".format(i=self.id, v=type(value).__name__, t=self.type))
 
 
 class TableSpec(object):
@@ -1084,10 +1095,15 @@ class ReportSpec(object):
                               i=pg.id))
             else:
                 for plot in pg.plots:
-                    plot_spec = pg.get_plot_spec(plot.id)
+                    plot_spec = pg_spec.get_plot_spec(plot.id)
+                    # FIXME how should we handle plots with variable IDs?
+                    # maybe let the title/caption vary and keep the ID
+                    # constant?
                     if plot_spec is None:
-                        errors.append("Plot {i} not found in spec".format(
+                        warnings.warn("Plot {i} not found in spec".format(
                                       i=plot.id))
+                    #    errors.append("Plot {i} not found in spec".format(
+                    #                  i=plot.id))
         if len(errors) > 0:
             raise ValueError(
                 "Report {i} failed validation against spec:\n{e}".format(

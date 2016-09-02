@@ -22,8 +22,7 @@
             "description": "An attribute of type bool",
             "type": "boolean",
             "id": "attribute3",
-            "name": "Attribute 3",
-            "format": null
+            "name": "Attribute 3"
         },
         {
             "description": "An attribute of type string",
@@ -62,7 +61,7 @@
                 },
                 {
                     "header": "Column 2",
-                    "type": "str",
+                    "type": "string",
                     "id": "column2",
                     "description": "A column of type str",
                     "format": null
