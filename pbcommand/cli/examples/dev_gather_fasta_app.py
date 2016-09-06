@@ -1,8 +1,5 @@
 """Example of Gather TC to gather several $chunk.fasta_id in chunk.json file.
 
-
-There's a bit of code here that is copied from pbsmrtpipe.tools.chunk_utils.
-Martin will eventually refactor this into pbcore.
 """
 import logging
 import sys
@@ -82,10 +79,8 @@ def run_main(chunked_json, output_fasta, chunk_key):
 
 def get_parser():
 
-    driver = "python -m pbcommand.cli.examples.dev_scatter_fasta_app --resolved-tool-contract "
+    driver = "python -m pbcommand.cli.examples.dev_gather_fasta_app --resolved-tool-contract "
     desc = "Gather a fasta resources in a Chunk.json file"
-    # chunk keys that will be written to the file
-    chunk_key = "$chunk.fasta_id"
     p = get_gather_pbparser(TOOL_ID, __version__, "Fasta Chunk Gather",
                             desc, driver, is_distributed=False)
     p.add_input_file_type(FileTypes.CHUNK, "chunk_json", "Chunk JSON", "Chunked Fasta JSON Out")
