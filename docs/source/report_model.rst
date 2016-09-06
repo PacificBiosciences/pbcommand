@@ -145,7 +145,23 @@ Report Specs
 
 A parallel family of models in the same module handles specifications for
 individual reports, i.e. enumerating the data items expected for each model
-type, along with view metadata.
+type, along with view metadata.  The overall structure and names of objects in
+the hierarchy is identical to the Report model.  For any of the nodes in the
+hierarchy, the following view metadata may be specified:
+
+  - a UI label, usually `title` (or `name` for Attributes, `header` for table
+    columns)
+  - a description suitable for formal documentation or mouseover text
+  - a boolean `isHidden` attribute that controls visibility
+
+There is some redundancy between the report specifications and the actual
+reports - for example the Report `title` and Attribute `name` occur in both
+models.  This was due to the lack of a clear model for view metadata in previous
+versions of SMRTAnalysis; the Report model may be slimmed down in the future as
+the view rules are deployed and utilized.
+
+The `pbcommand` module itself does not actually define any reports; currently
+most of these are part of the `pbreports` module.
 
 Format strings
 --------------
