@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    commandline_interface
+   advanced_task_types
    services
    report_model
 
