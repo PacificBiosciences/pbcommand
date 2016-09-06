@@ -1,15 +1,4 @@
-"""Example of Generating a Chunk.json file that 'scatters' a pair of fasta files
-
-
-In the example, the first fasta file is chunked, while the path to the second
-fasta file is passed directly.
-
-It generates a fasta_1_id and fasta_2_id chunk keys,
-
-There's a bit of code here that is copied from pbsmrtpipe.tools.chunk_utils.
-
-Martin will eventually refactor this into pbcore.
-"""
+"""Example of Generating a Chunk.json file that 'scatters' a pair of fasta files"""
 import os
 import logging
 import sys
@@ -127,8 +116,8 @@ def get_parser():
 
     driver = "python -m pbcommand.cli.examples.dev_scatter_fasta_app --resolved-tool-contract "
     desc = "Scatter a single fasta file to create chunk.json file"
-    # chunk keys that will be written to the file
-    chunk_keys = ("$chunk.fasta_id", )
+    # chunk keys that **will** be written to the file
+    chunk_keys = (Constants.FA_CHUNK_KEY, )
     p = get_scatter_pbparser(TOOL_ID, __version__, "Fasta Scatter",
                              desc, driver, chunk_keys, is_distributed=False)
     p.add_input_file_type(FileTypes.FASTA, "fasta_in", "Fasta In", "Fasta file to scatter")
