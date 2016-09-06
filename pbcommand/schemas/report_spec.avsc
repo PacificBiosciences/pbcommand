@@ -26,6 +26,12 @@
       "doc": "Plain-English description of this report, suitable for documentation"
     },
     {
+      "name": "isHidden",
+      "type": ["boolean", "null"],
+      "default": null,
+      "doc": "Flag to hide the entire report"
+    },
+    {
       "name": "attributes",
       "type": {
         "type": "array",
@@ -95,6 +101,12 @@
               "doc": "Plain-English description of the table"
             },
             {
+              "name": "isHidden",
+              "type": ["boolean", "null"],
+              "default": null,
+              "doc": "Flag to hide this table"
+            },
+            {
               "name": "columns",
               "doc": "List of Columns",
               "type": {
@@ -134,7 +146,7 @@
                       "name": "isHidden",
                       "type": ["boolean", "null"],
                       "default": null,
-                      "doc": "Flag to hide this attribute"
+                      "doc": "Flag to hide this column"
                     }
                   ]
                 }
@@ -217,6 +229,12 @@
                       "type": ["string", "null"],
                       "default": null,
                       "doc": "Y-axis label (optional)"
+                    },
+                    {
+                      "name": "isHidden",
+                      "type": ["boolean", "null"],
+                      "default": null,
+                      "doc": "Flag to hide this plot"
                     }
                   ]
                 }
