@@ -165,15 +165,16 @@ $> python -m pbcommand.cli.examples.dev_quick_hello_world -o /path/to/my-tool-co
 
 
 Three Steps
-- define Parser
+- define Parser using `get_pbparser`
 - add running from argparse and running from Resolved ToolContract funcs to call your main
 - add call to driver
 
-Import or define your main function.
+Import or define your main function from your library.
 
 ```python
+
 def run_my_main(fasta_in, fasta_out, min_length):
-    # do stuff. Main should return an int exit code
+    # do work. Main should return an int exit code and be completely independent of argparse
     return 0
 ```
 
@@ -220,11 +221,11 @@ def get_contract_parser():
 ```
         
 
-Define a Wrapping layer to call your main from both the tool contract and raw argparse IO layer
+Define a Wrapping IO layer to call your main function from both the tool contract and raw argparse IO layer
 
 ```python
 def _args_runner(args):
-    # this is the args from parser.parse_args()
+    # this is the args from parser.parse_args() using the python stdlib argparse model
     # the properties of args are defined as "labels" in the add_args_and_options func.
     return run_my_main(args.fasta_in, args.fasta_out, args.read_length)
 
@@ -273,7 +274,7 @@ Now you can run your tool via the argparse standard interface as well as emittin
 And you can run the tool from a **Resolved Tool Contract**
 
 ```sh
-> python -m pbcommand.cli.example.dev_app --resolved-tool-contract /path/to/resolved_contract.json
+> python -m pbcommand.cli.examples.dev_app --resolved-tool-contract /path/to/resolved_contract.json
 ```
 
 See the dev apps in ["pbcommand.cli.examples"](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/cli/examples/dev_app.py) for a complete application (They require pbcore to be installed).
