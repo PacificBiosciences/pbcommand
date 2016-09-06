@@ -1,37 +1,37 @@
 {
-    "version": "0.1.0", 
+    "version": "0.1.0",
     "driver": {
-        "serialization": "json", 
-        "exe": "python -m pbcommand.cli.examples.dev_scatter_fasta_app --resolved-tool-contract ", 
+        "serialization": "json",
+        "exe": "python -m pbcommand.cli.examples.dev_scatter_fasta_app --resolved-tool-contract ",
         "env": {}
-    }, 
-    "tool_contract_id": "pbcommand.tasks.dev_gather_fasta", 
+    },
+    "tool_contract_id": "pbcommand.tasks.dev_gather_fasta",
     "tool_contract": {
-        "task_type": "pbsmrtpipe.task_types.gathered", 
-        "resource_types": [], 
-        "description": "Gather a fasta resources in a Chunk.json file", 
-        "schema_options": [], 
+        "task_type": "pbsmrtpipe.task_types.gathered",
+        "resource_types": [],
+        "description": "Gather a fasta resources in a Chunk.json file",
+        "schema_options": [],
         "output_types": [
             {
-                "title": "Chunk JSON", 
-                "description": "Output Fasta", 
-                "default_name": "gathered", 
-                "id": "output", 
+                "title": "Chunk JSON",
+                "description": "Output Fasta",
+                "default_name": "gathered",
+                "id": "output",
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
-        ], 
-        "_comment": "Created by v0.2.14", 
-        "name": "Fasta Chunk Gather", 
+        ],
+        "_comment": "Created by v0.4.9",
+        "name": "Fasta Chunk Gather",
         "input_types": [
             {
-                "description": "Chunked Fasta JSON Out", 
-                "title": "Chunk JSON", 
-                "id": "chunk_json", 
+                "description": "Chunked Fasta JSON Out",
+                "title": "Chunk JSON",
+                "id": "chunk_json",
                 "file_type_id": "PacBio.FileTypes.CHUNK"
             }
-        ], 
-        "nproc": 1, 
-        "is_distributed": false, 
+        ],
+        "nproc": 1,
+        "is_distributed": false,
         "tool_contract_id": "pbcommand.tasks.dev_gather_fasta"
     }
 }
