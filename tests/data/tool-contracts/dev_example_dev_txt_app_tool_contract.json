@@ -1,65 +1,65 @@
 {
-    "version": "0.1.0", 
+    "version": "0.1.0",
     "driver": {
-        "serialization": "json", 
-        "exe": "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract ", 
+        "serialization": "json",
+        "exe": "python -m pbcommand.cli.examples.dev_app --resolved-tool-contract ",
         "env": {}
-    }, 
-    "tool_contract_id": "pbcommand.tasks.dev_txt_app", 
+    },
+    "tool_contract_id": "pbcommand.tasks.dev_txt_app",
     "tool_contract": {
-        "task_type": "pbsmrtpipe.task_types.standard", 
+        "task_type": "pbsmrtpipe.task_types.standard",
         "resource_types": [
-            "$tmpfile", 
-            "$tmpfile", 
+            "$tmpfile",
+            "$tmpfile",
             "$tmpdir"
-        ], 
-        "description": "Dev app for Testing that supports emitting tool contracts", 
+        ],
+        "description": "Dev app for Testing that supports emitting tool contracts",
         "schema_options": [
             {
                 "pb_option": {
-                    "default": 10, 
-                    "type": "integer", 
-                    "option_id": "pbcommand.task_options.dev_max_nlines", 
-                    "name": "Max Lines", 
+                    "default": 10,
+                    "type": "integer",
+                    "option_id": "pbcommand.task_options.dev_max_nlines",
+                    "name": "Max Lines",
                     "description": "Max Number of lines to Copy"
-                }, 
-                "title": "JSON Schema for pbcommand.task_options.dev_max_nlines", 
+                },
+                "title": "JSON Schema for pbcommand.task_options.dev_max_nlines",
                 "required": [
                     "pbcommand.task_options.dev_max_nlines"
-                ], 
-                "$schema": "http://json-schema.org/draft-04/schema#", 
-                "type": "object", 
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
                 "properties": {
                     "pbcommand.task_options.dev_max_nlines": {
-                        "default": 10, 
-                        "type": "integer", 
-                        "description": "Max Number of lines to Copy", 
+                        "default": 10,
+                        "type": "integer",
+                        "description": "Max Number of lines to Copy",
                         "title": "Max Lines"
                     }
                 }
             }
-        ], 
+        ],
         "output_types": [
             {
-                "title": "Txt outfile", 
-                "description": "Generic Output Txt file", 
-                "default_name": "output", 
-                "id": "txt_out", 
+                "title": "Txt outfile",
+                "description": "Generic Output Txt file",
+                "default_name": "output",
+                "id": "txt_out",
                 "file_type_id": "PacBio.FileTypes.txt"
             }
-        ], 
-        "_comment": "Created by v0.2.14", 
-        "name": "Txt App", 
+        ],
+        "_comment": "Created by v0.4.9",
+        "name": "Txt App",
         "input_types": [
             {
-                "description": "Generic Text File", 
-                "title": "Txt file", 
-                "id": "txt_in", 
+                "description": "Generic Text File",
+                "title": "Txt file",
+                "id": "txt_in",
                 "file_type_id": "PacBio.FileTypes.txt"
             }
-        ], 
-        "nproc": 1, 
-        "is_distributed": false, 
+        ],
+        "nproc": 1,
+        "is_distributed": false,
         "tool_contract_id": "pbcommand.tasks.dev_txt_app"
     }
 }

@@ -12,9 +12,9 @@ Motivation And High Level Example
 Benefits
 ~~~~~~~~
 
-- A consistent concrete common interface for shelling out to executables
+- A consistent concrete common interface for shelling out to an executable
 - task options have a consistent model for validation
-- task versioning is supported
+- task version is supported
 - A principled model for wrapping tools. For example, pbalign would "inherit" blasr options and extend, or wrap them.
 - Once a manifest has been defined and registered to pbsmrtpipe, the task/manifest can be referenced in pipelines with no additional work
 
@@ -28,13 +28,13 @@ Terms
 - 'Resolved Tool Contract' is a single file that contains the resolved values in the manifest
 - 'Driver' is the general interface for calling a commandline exe. This can be called from the commandline or directly as an API call (via any language which supports the manifest interface).
 
-Hello World Example
-~~~~~~~~~~~~~~~~~~~
+Hello World Dev Example
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Tool Contract file for 'my-exe'
+Tool Contract example for an exe, 'python -m pbcommand.cli.example.dev_app` with tool contract id `pbcommand.tasks.dev_app`.
 
 
-.. literalinclude:: ../../tests/data/dev_example_tool_contract.json
+.. literalinclude:: ../../tests/data/tool-contracts/pbcommand.tasks.dev_app_tool_contract.json
     :language: javascript
 
 
@@ -56,7 +56,9 @@ Note. A single driver can reference many manifests. For example "pbreports" woul
 Programmatically defining a Parser to Emit a Tool Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pbcommand provides a API to create a tool contract and an argparse instance from a single interface. This facilitates a single point of defining options and keeps the standard commandline entry point and the tool contract to be in sync. This also allows your tool to emit the tool contract to stdout using "--emit-tool-contract" and to be run from a **Resolved Tool Contract** using the "--resolved-tool-contract /path/to/resolved-tool-contract.json" commandline argument.
+pbcommand provides a API to create a tool contract and an argparse instance from a single interface. This facilitates a single point of defining options and keeps the standard commandline entry point and the tool contract to be in sync.
+
+This also allows your tool to emit the tool contract to stdout using "--emit-tool-contract" **and** the tool to be run from a **Resolved Tool Contract** using the "--resolved-tool-contract /path/to/resolved-tool-contract.json" commandline argument **while** also supporting the python standards commandline interface via argparse.
 
 Complete App shown below.
 
@@ -66,77 +68,50 @@ Complete App shown below.
 
 .. note:: Options must be prefixed with {pbcommand}.task_options.{option_id} format.
 
-Details of Resolved Tool Contract
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Details and Example of a Resolved Tool Contract
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+- Language agnostic JSON format to encode the resolved values
 - input, outputs file types are resolved to file paths
 - nproc and other resources are resolved
+- IO layers to convert between JSON and python using `load_resolved_tool_contract_from` in `pbcommand.pb_io`
 
+Example Resolved Tool Contract:
 
-.. literalinclude:: ../../tests/data/dev_example_resolved_tool_contract.json
+.. literalinclude:: ../../tests/data/resolved-tool-contracts/dev_example_resolved_tool_contract.json
     :language: javascript
 
 
-Library usage
-~~~~~~~~~~~~~
+Testing Tool Contracts
+~~~~~~~~~~~~~~~~~~~~~~
 
-(language API example)
+There is a thin test framework in `pbcommand.testkit` to help test tool contracts from within nose.
 
+The `PbTestApp` base class will provide the core validation of the outputs as well as handled the creation of the resolved tool contract.
 
-Example of using a manifest in an tool, such as mapping status report.
+Output Validation assertions
 
-.. code-block:: python
+- validates Output files exist
+- validates resolved task options
+- validates resolved value of is distributed
+- validates resolved value of nproc
 
-    from pbcommand.pb_io import load_tool_contract_from
-    # your application was called via "pbreports resolved-manifest.json"
-    p = "/path/to/resolved-tool-contract.json"
-    # load resolved manifest from
-    rtc = load_tool_contract_from(p)
+Example:
 
-    # general call to mapping stats report main
-    # mapping_stats_main("/path/to/align.dataset.xml", "/path/to/reference.dataset.xml", "/path/to/output.json", my_option=1235)
-    exit_code = mapping_stats_main(rtc.input_files[0], rtc.input_files[1], rtc.output_files[0], rtc.opts["pbreports.task_options.my_option"])
-
-
-Example to resolving the Tool Contract
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The resolver must have assigned values for max nproc, root temp dir,
-output dir. The output dir can be used to assign the output paths of
-the output files.
-
-.. code-block:: python
-
-    # simple python example, the scala or C++ API would be similar
-
-    from pbcommand.pb_io import load_tool_contract_from
-    from pbcommand.cli import resolve_tool_contract
-
-    # load tool contract that is registered to your python package
-    tool_contract = load_tool_contract_from("/path/to/tool-contract.json")
-    tool_contract = ToolContractRegistry.get("pbsmrtpipe.tasks.dev_static_task")
-
-    max_nproc = 3
-    tmp_dir = "/tmp/my-tmp"
-    output_dir = os.getcwd()
-
-    input_files = ("/path/to/file.csv", "/path/to/dataset.subreads.xml")
-    options = {"pbsmrtipe.task_options.my_option": 1234}
-
-    # create instance of Resolved Tool Contract
-    rtc = resolve_tool_contract(tool_contract, input_files, output_dir, tmp_dir, max_nproc, options)
-
-    # TODO. Not implemented yet
-    # The driver will run the tool, validate output files exist and
-    # cleanup any temp files/resources.
-    result = run_tool_contract_driver(rtc, cleanup=False)
-
-    print result.exit_code
-    print result.error_message
-    print result.host_name
-    print result.run_time
-
-    # sugar to persist results
-    result.write_json("output-results.json")
+.. literalinclude:: ../../tests/test_e2e_example_apps.py
+    :language: python
 
 
+Tips
+~~~~
+
+A dev tool within pbcommand can help convert Tool Contract JSON files to Resolved Tool Contract for testing purposes.
+
+
+.. argparse::
+   :module: pbcommand.interactive_resolver
+   :func: get_parser
+   :prog: python -m pbcommand.interactive_resolver
+
+
+.. note::  This tool has dependency on `prompt_kit` and can be installed via pip.

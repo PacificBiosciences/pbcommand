@@ -25,6 +25,7 @@ import functools
 import time
 import traceback
 import uuid
+import warnings
 
 from requests import RequestException
 import iso8601
@@ -626,12 +627,19 @@ def main_runner(argv, parser, exe_runner_func,
     """
     Fundamental interface to commandline applications
     """
+
+    dep_msg = "The `pbservice` commandline is deprecated and will be removed " \
+              "in a future version. Please using the scala implementation in smrtflow " \
+              "at https://github.com/PacificBiosciences/smrtflow"
+
     started_at = time.time()
     args = parser.parse_args(argv)
 
     level = get_parsed_args_log_level(args, default_level=level)
     console_or_file = args.log_file
     setup_logger(console_or_file, level, formatter=str_formatter)
+
+    log.warn(dep_msg)
 
     log.debug(args)
     log.info("Starting tool version {v}".format(v=parser.version))
