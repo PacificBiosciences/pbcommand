@@ -8,3 +8,5 @@ jsonschema
 avro
 requests
 iso8601
+# For sphinx extension
+ipython
