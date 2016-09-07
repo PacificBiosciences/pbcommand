@@ -73,12 +73,24 @@ Currently, python is the only language that is supported for writing CHUNK JSON 
 The python Scatter tool contract API follows similar to base Tool Contract API,
 
 
-Example of Scattering/Chunking a Fasta file. The notable points are adding the required `chunk_keys` and `nchunks` to the scattering specific pbparser.
+Simple example of Scattering/Chunking a single Fasta file. The notable points are adding the required `chunk_keys` and `nchunks` to the scattering specific pbparser.
 
 
 .. literalinclude:: ../../pbcommand/cli/examples/dev_scatter_fasta_app.py
     :language: python
 
+
+Advanced Scattering/Chunking Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For more advanced scattering/chunks usecases, such as chunking multiple input files (e.g., task input signature SubreadSet and ReferenceSet XML), this will require writing a chunk key for each input. Specifically, `$chunk.subreadset_id` and `$chunk.referenceset_id` to the `PipelineChunk`.
+
+This enables the chunking pattern of a specific task to be completely decoupled from the workflow level. The chunking pattern is communicated in the chunk(s) in `PipelineChunk` defined by the chunking task. In this specific chunking pattern, the SubreadSet is chunked into N files, while the ReferenceSet is passed unchunked.
+
+These chunk keys combined with the chunk operator (defined in pbsmrtpipe_) communicates to the workflow engine how to pass `$chunk.subreadset_id` to the first input of N-chunked instances of unchunked task. Similarly, the `$chunk.referenceset_id` to the second input of the N-chunked task instance.
+
+
+See the pbsmrtpipe_ docs and the testkit-data jobs in pbsmrtpipe for more details.
 
 
 Gather ToolContract
