@@ -399,3 +399,12 @@ class TestReportSpec(unittest.TestCase):
         self.assertEqual(s, "98.765%")
         s = format_metric("{p:g}", 0.000001)
         self.assertEqual(s, "0.0001%")
+
+    def test_apply_view(self):
+        rpt = _to_report("test_report2.json")
+        rpt = self.spec.apply_view(rpt)
+        self.assertTrue(all([a.name is not None for a in rpt.attributes]))
+        self.assertTrue(all([t.title is not None for t in rpt.tables]))
+        self.assertTrue(all([c.header is not None for c in rpt.tables[0].columns]))
+        self.assertTrue(all([pg.title is not None for pg in rpt.plotGroups]))
+        self.assertTrue(all([p.title is not None for p in rpt.plotGroups[0].plots]))

@@ -1111,8 +1111,45 @@ class ReportSpec(object):
         return rpt
 
     def is_valid_report(self, rpt):
+        """
+        Returns True if report passes spec validation.
+        """
         try:
             rpt = self.validate_report(rpt)
             return True
         except ValueError:
             return False
+
+    def apply_view(self, rpt, force=False):
+        """
+        Propagate view metadata (i.e. labels) to a Report object corresponding to
+        this spec.
+        """
+        assert rpt.id == self.id
+        for attr in rpt.attributes:
+            attr_spec = self.get_attribute_spec(attr.id)
+            if force or attr.name is None:
+                attr._name = attr_spec.name
+        for table in rpt.tables:
+            table_spec = self.get_table_spec(table.id)
+            if force or table.title is None:
+                table._title = table_spec.title
+            for col in table.columns:
+                col_spec = table_spec.get_column_spec(col.id)
+                if force or col.header is None:
+                    col._header = col_spec.header
+        for pg in rpt.plotGroups:
+            pg_spec = self.get_plotgroup_spec(pg.id)
+            if force or pg.title is None:
+                pg._title = pg_spec.title
+            for plot in pg.plots:
+                plot_spec = pg_spec.get_plot_spec(plot.id)
+                # FIXME see comment above - maybe we just need to repeat IDs?
+                if plot_spec is not None:
+                    if force or plot.title is None:
+                        plot.title = plot_spec.title
+                    if force or plot.caption is None:
+                        plot._caption = plot_spec.caption
+                else:
+                    warnings.warn("Can't find spec for {i}".format(i=plot.id))
+        return rpt
