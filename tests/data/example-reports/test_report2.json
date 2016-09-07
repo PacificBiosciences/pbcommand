@@ -1,0 +1,72 @@
+{
+  "id": "test_report",
+  "version": "1.0.0",
+  "title": null,
+  "attributes": [
+    {
+      "id": "test_report.attribute1",
+      "name": null,
+      "value": 123456789
+    },
+    {
+      "id": "test_report.attribute2",
+      "name": null,
+      "value": 0.987654321
+    },
+    {
+      "id": "test_report.attribute3",
+      "name": null,
+      "value": true
+    },
+    {
+      "id": "test_report.attribute4",
+      "name": null,
+      "value": "qwerty"
+    }
+  ],
+  "tables": [
+    {
+      "id": "test_report.table1",
+      "title": null,
+      "columns": [
+        {
+          "id": "test_report.table1.column1",
+          "header": null,
+          "values": [1,2,3,4,5,6]
+        }
+      ]
+    }
+  ],
+  "plotGroups": [
+    {
+      "id": "test_report.plotgroup1",
+      "title": null,
+      "plots": [
+        {
+          "id": "test_report.plotgroup1.plot1",
+          "image": "unknown.png",
+          "title": null,
+          "caption": null
+        }
+      ]
+    },
+    {
+      "id": "test_report.plotgroup2",
+      "title": null,
+      "plots": [
+        {
+          "id": "test_report.plotgroup2.plot1",
+          "image": "unknown.png",
+          "title": null,
+          "caption": null
+        },
+        {
+          "id": "test_report.plotgroup2.plot2",
+          "image": "unknown.png",
+          "title": null,
+          "caption": null
+        }
+      ]
+    }
+  ]
+}
