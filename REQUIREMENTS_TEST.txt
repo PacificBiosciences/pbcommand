@@ -10,3 +10,5 @@ requests
 iso8601
 # For sphinx extension
 ipython
+# ipython requires this?
+matplotlib
