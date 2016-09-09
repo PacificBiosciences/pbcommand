@@ -186,9 +186,6 @@ class Attribute(BaseReportElement):
         :param name: (str, None) optional display name. Can be changed in portal display rules
         """
         BaseReportElement.__init__(self, id_)
-        if value is None:
-            raise PbReportError(
-                "value cannot be None. {n} given.".format(n=value))
         self._value = value
         self._name = name
 

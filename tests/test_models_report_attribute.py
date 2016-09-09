@@ -15,13 +15,6 @@ class TestAttribute(unittest.TestCase):
 
         self.assertRaises(PbReportError, _test)
 
-    def test_attribute_null_value(self):
-        """Can't create an attribute without a value."""
-        def _test():
-            a = Attribute('bob', None)
-
-        self.assertRaises(PbReportError, _test)
-
     def test_attribute_int_id(self):
         """Test exception of handling Attribute with int ids"""
         def _test():
