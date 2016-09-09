@@ -26,7 +26,7 @@ PacBio library for common utils, models, and tools to interface with pbsmrtpipe 
 
 ## PacBio Core Models and Schemas
 
-- [ToolContract](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/pbreport.avsc) : Used in define task interfaces and used in pipeline definitions (i.e., Resolved Pipeline Templates)
+- [ToolContract](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/tool_contract.avsc) : Used in define task interfaces and used in pipeline definitions (i.e., Resolved Pipeline Templates)
 - [ResolvedToolContract](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/resolved_tool_contract.avsc): Used in pipeline running
 - [PacBio Report](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/pbreport.avsc) Core data model for plots, tables and metrics (i.e., attributes) displayed in SMRTLink or available as output from SMRT Link web services) [Examples](https://github.com/PacificBiosciences/pbcommand/tree/master/tests/data/example-reports)
 - [PacBio DataStore](https://github.com/PacificBiosciences/pbcommand/blob/master/pbcommand/schemas/datastore.avsc): JSON file of datastore file(s) that are emitted from an analysis, import-dataset or other job type. 
