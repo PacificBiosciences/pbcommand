@@ -916,7 +916,8 @@ class AttributeSpec(object):
     def validate_attribute(self, attr):
         assert attr.id == self.id
         if attr.value is not None and not isinstance(attr.value, self.type):
-            raise TypeError("Attribute {i} has value of type {v} (expected {t})".format(i=self.id, v=type(attr.value).__name__, t=self.type))
+            msg = "Attribute {i} has value of type {v} (expected {t})".format(i=self.id, v=type(attr.value).__name__, t=self.type)
+            raise TypeError(msg)
 
 
 class ColumnSpec(object):
@@ -947,7 +948,11 @@ class ColumnSpec(object):
         assert col.id == self.id
         for value in col.values:
             if value is not None and not isinstance(value, self.type):
-                raise TypeError("Column {i} contains value of type {v} (expected {t})".format(i=self.id, v=type(value).__name__, t=self.type))
+                msg = "Column {i} contains value of type {v} (expected {t})".format(i=self.id, v=type(value).__name__, t=self.type)
+                if isinstance(value, int) and self._type == "float":
+                    warnings.warn(msg)
+                else:
+                    raise TypeError(msg)
 
 
 class TableSpec(object):
