@@ -142,8 +142,4 @@ def fofn_to_report(nfofns):
 
 
 def load_report_spec_from_json(json_file, validate=True):
-    with open(json_file, 'r') as f:
-        d = json.loads(f.read())
-        if validate:
-            validate_report_spec(d)
-        return ReportSpec.from_dict(d)
+    return ReportSpec.from_json_file(json_file, validate_report_spec)

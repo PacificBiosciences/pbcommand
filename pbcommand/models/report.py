@@ -1020,7 +1020,10 @@ class ReportSpec(object):
     """
 
     def __init__(self, id_, version, title, description, attributes=(),
-                 plotgroups=(), tables=()):
+                 plotgroups=(), tables=(), filename=''):
+        """
+        filename is empty if this did not come from a file.
+        """
         self.id = id_
         self.version = version
         self.title = title
@@ -1031,6 +1034,24 @@ class ReportSpec(object):
         self._attr_dict = {a.id: a for a in attributes}
         self._plotgrp_dict = {p.id: p for p in plotgroups}
         self._table_dict = {t.id: t for t in tables}
+        self._filename = filename
+
+    def __repr__(self):
+        return 'ReportSpec(id={}, title={!r}, description={!r}, filename={!r})'.format(
+            self.id, self.title, self.description, self._filename)
+
+    @staticmethod
+    def from_json_file(json_file, validate_report_spec=lambda spec_dict: None):
+        """
+        validate_report_spec is a function which takes a dict
+        and raises exception on error.
+        """
+        with open(json_file, 'r') as f:
+            d = json.loads(f.read())
+            validate_report_spec(d)
+            spec = ReportSpec.from_dict(d)
+            spec._filename = json_file
+            return spec
 
     @staticmethod
     def from_dict(d):
@@ -1108,8 +1129,8 @@ class ReportSpec(object):
                     #                  i=plot.id))
         if len(errors) > 0:
             raise ValueError(
-                "Report {i} failed validation against spec:\n{e}".format(
-                i=self.id, e="\n".join(errors)))
+                "Report {i} failed validation against spec {s}:\n{e}".format(
+                i=self.id, s=repr(self), e="\n".join(errors)))
         return rpt
 
     def is_valid_report(self, rpt):
