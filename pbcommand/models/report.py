@@ -1153,5 +1153,5 @@ class ReportSpec(object):
                     if force or plot.caption in [None, ""]:
                         plot._caption = plot_spec.caption
                 else:
-                    warnings.warn("Can't find spec for {i}".format(i=plot.id))
+                    pass #warnings.warn("Can't find spec for {i}".format(i=plot.id))
         return rpt
