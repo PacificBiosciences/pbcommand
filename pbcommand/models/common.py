@@ -318,6 +318,7 @@ class FileTypes(object):
 
     # sts.xml
     STS_XML = FileType("PacBio.SubreadFile.ChipStatsFile", "file", "sts.xml", MimeTypes.XML)
+    STS_H5 = FileType("PacBio.SubreadFile.ChipStatsH5File", "file", "sts.h5", MimeTypes.BINARY)
 
     # Resequencing Conditions File Format
     COND_RESEQ = FileType(to_file_ns("COND_RESEQ"), "file", "conditions-reseq.json", MimeTypes.JSON)
