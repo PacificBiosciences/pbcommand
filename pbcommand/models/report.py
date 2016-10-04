@@ -840,7 +840,7 @@ class Report(BaseReportElement):
 ########################################################################
 # SPECIFICATION MODELS
 
-FS_RE = "{([GMkp]{0,1})(:)([\.,]{0,1})([0-9]*)([dfg]{1})}(.*)$"
+FS_RE = "{([GMkp]{0,1})(:)([,]{0,1})([\.]{0,1})([0-9]*)([dfg]{1})}(.*)$"
 def validate_format(format_str):
     m = re.match(FS_RE, format_str)
     if m is None:
@@ -868,9 +868,9 @@ def format_metric(format_str, value):
             value /= 1000000.0
         elif m.groups()[0] == 'k':
             value /= 1000.0
-        if isinstance(value, float) and m.groups()[4] == 'd':
+        if isinstance(value, float) and m.groups()[5] == 'd':
             value = int(value)
-        fs_python = "{{:{:s}{:s}{:s}}}".format(*(m.groups()[2:5]))
+        fs_python = "{{:{:s}{:s}{:s}{:s}}}".format(*(m.groups()[2:6]))
         formatted = fs_python.format(value)
         # the percent symbol can be implicit
         if m.groups()[0] == 'p' and m.groups()[-1] == '':
