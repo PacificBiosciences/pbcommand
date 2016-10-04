@@ -383,6 +383,7 @@ class TestReportSpec(unittest.TestCase):
         try:
             self.spec.validate_report(rpt)
         except ValueError as e:
+            print e
             self.assertEqual(error_len(e), 3)
         else:
             self.fail("Expected exception")
@@ -399,6 +400,8 @@ class TestReportSpec(unittest.TestCase):
         self.assertEqual(s, "98.765%")
         s = format_metric("{p:g}", 0.000001)
         self.assertEqual(s, "0.0001%")
+        s = format_metric("{:,.3f}", 1000000.2345678)
+        self.assertEqual(s, "1,000,000.235")
 
     def test_apply_view(self):
         rpt = _to_report("test_report2.json")
