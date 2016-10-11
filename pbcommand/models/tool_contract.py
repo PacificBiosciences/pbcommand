@@ -4,6 +4,7 @@
 Author: Michael Kocher
 """
 import abc
+from collections import OrderedDict
 
 import pbcommand
 
@@ -392,10 +393,10 @@ class PipelinePreset(object):
         return "<{k} >".format(**_d)
 
     def to_dict(self):
-        return dict(
-            pipelineId=self.pipeline_id,
-            presetId=self.preset_id,
-            name=self.name,
-            description=self.description,
-            options=dict(self.options),
-            taskOptions=dict(self.task_options))
+        return OrderedDict([
+            (pipelineId, self.pipeline_id),
+            (presetId, self.preset_id),
+            (name, self.name),
+            (description, self.description),
+            (options, dict(self.options)),
+            (taskOptions, dict(self.task_options))])
