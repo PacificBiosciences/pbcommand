@@ -394,9 +394,9 @@ class PipelinePreset(object):
 
     def to_dict(self):
         return OrderedDict([
-            (pipelineId, self.pipeline_id),
-            (presetId, self.preset_id),
-            (name, self.name),
-            (description, self.description),
-            (options, dict(self.options)),
-            (taskOptions, dict(self.task_options))])
+            ("pipelineId", self.pipeline_id),
+            ("presetId", self.preset_id),
+            ("name", self.name),
+            ("description", self.description),
+            ("options", dict(self.options)),
+            ("taskOptions", dict(self.task_options))])
