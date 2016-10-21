@@ -48,7 +48,6 @@ setup(
     packages=find_packages(),
     package_data={"pbcommand": ["schemas/*.avsc"]},
     zip_safe=False,
-    entry_points={'console_scripts': ['pbservice = pbcommand.services.cli:main']},
     extras_require={"pbcore": ["pbcore", "ipython", "autopep8"],
                     "interactive": ['prompt_toolkit']},
     classifiers=['Development Status :: 4 - Beta',

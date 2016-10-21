@@ -39,12 +39,6 @@ Example:
 Commandline Tool Interface to Services
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. warning:: This is/has been migrated to scala in smrtflow_. Support for the python Client layer API will remain, however the python commandline tool will be deprecated in a future version.
-
-.. argparse::
-   :module: pbcommand.services.cli
-   :func: get_parser
-   :prog: pbservice
-
+.. warning:: This has been migrated to scala in smrtflow_. Support for the python Client layer API will remain, however the python commandline tool is no longer installed by default and will be removed in a future version.
 
 .. _smrtflow: https://github.com/PacificBiosciences/smrtflow
