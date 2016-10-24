@@ -1,4 +1,5 @@
-"""CLI for interacting with the PacBio Services
+"""
+CLI (deprecated) for interacting with the PacBio Services
 
 0.1.0 Version, Import/Convert datasets
 
@@ -12,7 +13,7 @@ pbservice import-fasta /path/to/file.fasta --name my-name --organism my-org --pl
 pbservice run-analysis path/to/file.json
 pbservice run-merge-dataset path/to/file.json
 
-
+This program is largely replaced by the Scala version in 'smrtflow'.
 """
 import argparse
 import json
@@ -639,6 +640,7 @@ def main_runner(argv, parser, exe_runner_func,
     console_or_file = args.log_file
     setup_logger(console_or_file, level, formatter=str_formatter)
 
+    warnings.warn(dep_msg, DeprecationWarning)
     log.warn(dep_msg)
 
     log.debug(args)
