@@ -20,7 +20,7 @@ clean:
 	rm -rf docs/_build
 
 test:
-	tox
+	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py
 
 doc:
 	cd docs && make html
