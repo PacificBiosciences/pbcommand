@@ -112,6 +112,7 @@ def is_valid(schema, v):
     return False
 
 
+# FIXME deprecated, remove
 def validate_schema(f):
     """Deco for validate the returned jsonschema against Draft 4 of the spec"""
     def w(*args, **kwargs):
@@ -121,7 +122,7 @@ def validate_schema(f):
     return w
 
 
-def to_option_schema(option_id, dtype_or_dtypes, display_name, description, default_value):
+def to_option_schema(option_id, dtype_or_dtypes, display_name, description, default_value, choices=None):
     """
     Simple util factory method
     :param dtype_or_dtypes: single data type or list of data types
@@ -143,7 +144,8 @@ def to_option_schema(option_id, dtype_or_dtypes, display_name, description, defa
            "type": dtype_or_dtypes,
            "default": default_value,
            "name": display_name,
-           "description": description}
+           "description": description,
+           "choices": choices}
 
     d = {'$schema': "http://json-schema.org/draft-04/schema#",
          'type': 'object',
@@ -268,6 +270,22 @@ class PbParserBase(object):
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def add_choice_str(self, option_id, option_str, name, description, default=None):
+        """
+        Add a generic enumerated argument whose type is a string.
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param choices: allowed values
+        :param name: plain-English name
+        :param description: help string
+        :param default: default value (if None, will use first choice)
+        """
+        raise NotImplementedError
+
 _validate_argparse_int = functools.partial(_validate_option_or_cast, int)
 _validate_argparse_float = functools.partial(_validate_option_or_cast, float)
 _validate_argparse_bool = functools.partial(_validate_option_or_cast, bool)
@@ -335,6 +353,14 @@ class PyParser(PbParserBase):
         self.parser.add_argument(opt, action=d[_validate_argparse_bool(not default)],
                                  help=description)
 
+    def add_choice_str(self, option_id, option_str, choices, name, description,
+                       default=None):
+        if default is None:
+            default = choices[0]
+        opt = '--' + option_str
+        self.parser.add_argument(opt, action="store", choices=choices,
+                                 help=description, default=default)
+
 
 class ToolContractParser(PbParserBase):
     """Parser to support Emitting and running ToolContracts"""
@@ -382,6 +408,15 @@ class ToolContractParser(PbParserBase):
         self.options.append(to_option_schema(option_id,
                                              JsonSchemaTypes.BOOL, name, description,
                                              _validate_option(bool, default)))
+
+    def add_choice_str(self, option_id, option_str, choices, name, description,
+                       default=None):
+        if default is None:
+            default = choices[0]
+        self.options.append(to_option_schema(option_id,
+                                             JsonSchemaTypes.STR, name, description,
+                                             _validate_option(str, default),
+                                             choices))
 
     def to_tool_contract(self):
         # Not a well formed tool contract, must have at least one input and
@@ -517,6 +552,11 @@ class PbParser(PbParserBase):
     def add_boolean(self, option_id, option_str, default, name, description):
         args = option_id, option_str, default, name, description
         self._dispatch("add_boolean", args, {})
+
+    def add_choice_str(self, option_id, option_str, choices, name, description,
+                       default=None):
+        args = option_id, option_str, choices, name, description, default
+        self._dispatch("add_choice_str", args, {})
 
     def to_contract(self):
         return self.tool_contract_parser.to_tool_contract()

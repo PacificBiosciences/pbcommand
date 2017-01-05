@@ -79,15 +79,32 @@ class TestParsers(unittest.TestCase):
         p.add_boolean("pbcommand.task_options.loud", "loud", default=False,
                       name="Verbose", description="Boolean option")
 
+        p.add_choice_str("pbcommand.task_options.ploidy", "ploidy",
+                         choices=["haploid","diploid"], name="Ploidy",
+                         description="Choice Option", default="haploid")
+
         pa = p.arg_parser.parser.parse_args
 
         opts = pa(["--n", "250", "--f", "1.2345", "--loud"])
         self.assertEqual(opts.n, 250)
         self.assertEqual(opts.f, 1.2345)
         self.assertTrue(opts.loud)
+        self.assertEqual(opts.ploidy, "haploid")
 
         opts2 = pa([])
         self.assertFalse(opts2.loud)
+
+        p.add_input_file_type(FileTypes.JSON,
+            "json",
+            "JSON file",
+            "JSON file description")
+        p.add_output_file_type(
+            file_type=FileTypes.GFF,
+            file_id="gff",
+            name="GFF file",
+            description="GFF file description",
+            default_name="annotations")
+        tc = p.to_contract()
 
     def test_catch_output_file_extension(self):
         p = get_pbparser(

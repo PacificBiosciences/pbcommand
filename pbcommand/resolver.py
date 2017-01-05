@@ -56,6 +56,7 @@ def _resolve_options(tool_contract, tool_options):
         optid = option['pb_option']['option_id']
         exp_type = option['pb_option']['type']
         value = tool_options.get(optid, option['pb_option']['default'])
+        choices = option["pb_option"].get("choices", None)
 
         if not isinstance(value, type_map[exp_type]):
             #assert False, option['pb_option']
@@ -64,6 +65,11 @@ def _resolve_options(tool_contract, tool_options):
                                         o=optid,
                                         i=type(value),
                                         t=exp_type))
+        elif choices is not None:
+            if not value in choices:
+                raise ToolContractError("Inappropriate value for {o}. "
+                                        "Supplied {i}.  Choices are {c}".format(
+                                        o=optid, i=value, c=", ".join(choices)))
         resolved_options[optid] = value
 
     return resolved_options

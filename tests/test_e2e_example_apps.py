@@ -2,6 +2,7 @@ import logging
 
 from base_utils import get_data_file
 from pbcommand.testkit import PbTestApp
+from pbcommand.resolver import ToolContractError
 
 log = logging.getLogger(__name__)
 
@@ -60,5 +61,24 @@ class TestOptionTypes(PbTestApp):
     TASK_OPTIONS = {
         "pbcommand.task_options.alpha": 50,
         "pbcommand.task_options.beta": 9.876,
-        "pbcommand.task_options.gamma": False
+        "pbcommand.task_options.gamma": False,
+        "pbcommand.task_options.ploidy": "diploid"
     }
+    RESOLVED_TASK_OPTIONS = {
+        "pbcommand.task_options.alpha": 50,
+        "pbcommand.task_options.beta": 9.876,
+        "pbcommand.task_options.gamma": False,
+        "pbcommand.task_options.ploidy": "diploid"
+    }
+
+
+class TestBadChoiceValue(TestOptionTypes):
+    TASK_OPTIONS = {
+        "pbcommand.task_options.alpha": 50,
+        "pbcommand.task_options.beta": 9.876,
+        "pbcommand.task_options.gamma": False,
+        "pbcommand.task_options.ploidy": "other"
+    }
+
+    def test_run_e2e(self):
+        self.assertRaises(ToolContractError, super(TestBadChoiceValue, self).test_run_e2e)

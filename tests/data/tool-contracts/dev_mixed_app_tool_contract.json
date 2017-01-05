@@ -1,0 +1,137 @@
+{
+    "version": "0.2.0",
+    "driver": {
+        "serialization": "json",
+        "exe": "python -m pbcommand.cli.example.dev_app --resolved-tool-contract ",
+        "env": {}
+    },
+    "tool_contract_id": "pbcommand.tasks.dev_mixed_app",
+    "tool_contract": {
+        "task_type": "pbsmrtpipe.task_types.standard",
+        "resource_types": [],
+        "description": "Dev app for Testing that supports emitting tool contracts",
+        "schema_options": [
+            {
+                "pb_option": {
+                    "name": "Alpha",
+                    "default": 25,
+                    "option_id": "pbcommand.task_options.alpha",
+                    "choices": null,
+                    "type": "integer",
+                    "description": "Alpha description"
+                },
+                "title": "JSON Schema for pbcommand.task_options.alpha",
+                "required": [
+                    "pbcommand.task_options.alpha"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.alpha": {
+                        "default": 25,
+                        "type": "integer",
+                        "description": "Alpha description",
+                        "title": "Alpha"
+                    }
+                }
+            },
+            {
+                "pb_option": {
+                    "name": "Beta",
+                    "default": 1.234,
+                    "option_id": "pbcommand.task_options.beta",
+                    "choices": null,
+                    "type": "number",
+                    "description": "Beta description"
+                },
+                "title": "JSON Schema for pbcommand.task_options.beta",
+                "required": [
+                    "pbcommand.task_options.beta"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.beta": {
+                        "default": 1.234,
+                        "type": "number",
+                        "description": "Beta description",
+                        "title": "Beta"
+                    }
+                }
+            },
+            {
+                "pb_option": {
+                    "name": "Gamma",
+                    "default": true,
+                    "option_id": "pbcommand.task_options.gamma",
+                    "choices": null,
+                    "type": "boolean",
+                    "description": "Gamma description"
+                },
+                "title": "JSON Schema for pbcommand.task_options.gamma",
+                "required": [
+                    "pbcommand.task_options.gamma"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.gamma": {
+                        "default": true,
+                        "type": "boolean",
+                        "description": "Gamma description",
+                        "title": "Gamma"
+                    }
+                }
+            },
+            {
+                "pb_option": {
+                    "name": "Ploidy",
+                    "default": "haploid",
+                    "option_id": "pbcommand.task_options.ploidy",
+                    "choices": [
+                        "haploid",
+                        "diploid"
+                    ],
+                    "type": "string",
+                    "description": "Genome ploidy"
+                },
+                "title": "JSON Schema for pbcommand.task_options.ploidy",
+                "required": [
+                    "pbcommand.task_options.ploidy"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.ploidy": {
+                        "default": "haploid",
+                        "type": "string",
+                        "description": "Genome ploidy",
+                        "title": "Ploidy"
+                    }
+                }
+            }
+        ],
+        "output_types": [
+            {
+                "title": "Output Report",
+                "description": "Output PacBio Report JSON",
+                "default_name": "example.report",
+                "id": "rpt",
+                "file_type_id": "PacBio.FileTypes.JsonReport"
+            }
+        ],
+        "_comment": "Created by v0.5.0",
+        "name": "DevApp",
+        "input_types": [
+            {
+                "description": "Input csv description",
+                "title": "Input CSV",
+                "id": "csv",
+                "file_type_id": "PacBio.FileTypes.csv"
+            }
+        ],
+        "nproc": 2,
+        "is_distributed": false,
+        "tool_contract_id": "pbcommand.tasks.dev_mixed_app"
+    }
+}
