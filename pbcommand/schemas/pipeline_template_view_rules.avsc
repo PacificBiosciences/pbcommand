@@ -35,7 +35,12 @@
             {
               "name": "hidden",
               "type": "boolean",
-              "doc": "Specifies that a file should not appear in the UI"
+              "doc": "Specifies that a field should not appear in the UI"
+            },
+            {
+              "name": "advanced",
+              "type": "boolean",
+              "doc": "Specifies that a field should only appear in the advanced settings window"
             }
           ]
         }
