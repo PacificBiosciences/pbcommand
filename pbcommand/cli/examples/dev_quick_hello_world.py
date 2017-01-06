@@ -1,4 +1,5 @@
 import sys
+import pprint
 import logging
 
 from pbcommand.models import FileTypes, OutputFileType
@@ -19,7 +20,10 @@ def _example_main(input_files, output_files, **kwargs):
     xs = output_files if isinstance(output_files, (list, tuple)) else [output_files]
     for x in xs:
         with open(x, 'w') as writer:
-            writer.write("Mock data\n")
+            if len(kwargs) > 0:
+                pprint.pprint(dict(kwargs), writer)
+            else:
+                writer.write("Mock data\n")
     return 0
 
 
@@ -39,6 +43,14 @@ def run_rtc(rtc):
 @registry("dev_txt_hello", "0.1.0", FileTypes.TXT, (FileTypes.TXT, FileTypes.TXT), nproc=3, is_distributed=False)
 def run_rtc(rtc):
     return _example_main(rtc.task.input_files, rtc.task.output_files)
+
+
+@registry("dev_test_options", "0.1.0", FileTypes.TXT, FileTypes.TXT,
+          nproc=1,
+          options=dict(alpha=1234, beta=5.4321, gamma=True, ploidy=("haploid", "diploid")))
+def run_rtc(rtc):
+    log.debug("Dev Quick Hello World Example with various option types")
+    return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], options=rtc.task.options)
 
 
 def _to_output(i, file_type):

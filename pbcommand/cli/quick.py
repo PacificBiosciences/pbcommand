@@ -11,9 +11,9 @@ import pbcommand
 from .core import get_default_argparser_with_base_opts
 from pbcommand.common_options import add_base_options, add_common_options
 
-from pbcommand.models import (ToolContractTask, ToolContract,
+from pbcommand.models import (ToolContractTask, ToolContract, TaskOptionTypes,
                               InputFileType, OutputFileType, FileType)
-from pbcommand.models.parser import (to_option_schema, JsonSchemaTypes)
+from pbcommand.models.parser import to_option
 from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
                              write_tool_contract)
@@ -53,7 +53,7 @@ def _file_type_to_output_file_type(file_type, index):
                           file_type.default_name)
 
 
-def __convert_to_option(jtype, namespace, key, value, name=None, description=None):
+def __convert_to_option(jtype, namespace, key, value, name=None, description=None, choices=None):
     """Convert to Option dict
 
     This really should have been a concrete type, at least a namedtuple
@@ -61,19 +61,21 @@ def __convert_to_option(jtype, namespace, key, value, name=None, description=Non
     opt_id = ".".join([namespace, 'task_options', key])
     name = "Option {n}".format(n=key) if name is None else name
     desc = "Option {n} description".format(n=key) if description is None else description
-    opt = to_option_schema(opt_id, jtype, name, desc, value)
+    opt = to_option(opt_id, jtype, name, desc, value, choices)
     return opt
 
 
-def _convert_to_option(namespace, key, value, name=None, description=None):
-    if isinstance(value, basestring):
-        opt = __convert_to_option(JsonSchemaTypes.STR, namespace, key, value, name=name, description=description)
+def _convert_to_option(namespace, key, value, name=None, description=None, choices=None):
+    if isinstance(value, tuple):
+        opt = __convert_to_option(TaskOptionTypes.CHOICE, namespace, key, value[0], name=name, description=description, choices=value)
+    elif isinstance(value, basestring):
+        opt = __convert_to_option(TaskOptionTypes.STR, namespace, key, value, name=name, description=description)
     elif isinstance(value, bool):
-        opt = __convert_to_option(JsonSchemaTypes.BOOL, namespace, key, value, name=name, description=description)
+        opt = __convert_to_option(TaskOptionTypes.BOOL, namespace, key, value, name=name, description=description)
     elif isinstance(value, int):
-        opt = __convert_to_option(JsonSchemaTypes.INT, namespace, key, value, name=name, description=description)
+        opt = __convert_to_option(TaskOptionTypes.INT, namespace, key, value, name=name, description=description)
     elif isinstance(value, float):
-        opt = __convert_to_option(JsonSchemaTypes.NUM, namespace, key, value, name=name, description=description)
+        opt = __convert_to_option(TaskOptionTypes.FLOAT, namespace, key, value, name=name, description=description)
     else:
         raise TypeError("Unsupported option {k} type. {t} ".format(k=key, t=type(value)))
 

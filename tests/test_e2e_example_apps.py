@@ -82,3 +82,21 @@ class TestBadChoiceValue(TestOptionTypes):
 
     def test_run_e2e(self):
         self.assertRaises(ToolContractError, super(TestBadChoiceValue, self).test_run_e2e)
+
+
+class TestQuickOptionTypes(PbTestApp):
+    DRIVER_EMIT = "python -m pbcommand.cli.examples.dev_quick_hello_world  emit-tool-contract pbcommand.tasks.dev_test_options"
+    DRIVER_RESOLVE = "python -m pbcommand.cli.examples.dev_quick_hello_world run-rtc "
+    INPUT_FILES = [get_data_file("example.txt")]
+    TASK_OPTIONS = {
+        "pbcommand.task_options.alpha": 50,
+        "pbcommand.task_options.beta": 9.876,
+        "pbcommand.task_options.gamma": False,
+        "pbcommand.task_options.ploidy": "diploid"
+    }
+    RESOLVED_TASK_OPTIONS = {
+        "pbcommand.task_options.alpha": 50,
+        "pbcommand.task_options.beta": 9.876,
+        "pbcommand.task_options.gamma": False,
+        "pbcommand.task_options.ploidy": "diploid"
+    }

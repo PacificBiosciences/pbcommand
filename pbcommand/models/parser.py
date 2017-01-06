@@ -7,11 +7,12 @@ import os
 import logging
 import argparse
 import functools
+import warnings
 import re
 
 import jsonschema
 
-from .common import SymbolTypes
+from .common import SymbolTypes, TaskOptionTypes
 from pbcommand.common_options import (add_base_options_with_emit_tool_contract,
                                       add_subcomponent_versions_option)
 from .tool_contract import (ToolDriver,
@@ -38,6 +39,7 @@ def _to_file_type(format_):
     return "pacbio.file_types.{x}".format(x=format_)
 
 
+# FIXME obsolete
 class JsonSchemaTypes(object):
     # array is a native type, but not supported
     BOOL = "boolean"
@@ -47,11 +49,13 @@ class JsonSchemaTypes(object):
     NULL = "null"
     OBJ = "object"
 
-    # Optional values e.g., Option[String]
-    OPT_BOOL = [BOOL, NULL]
-    OPT_INT = [INT, NULL]
-    OPT_STR = [STR, NULL]
-    OPT_NUM = [NUM, NULL]
+    @staticmethod
+    def from_task_option_type(t):
+        return {TaskOptionTypes.INT: JsonSchemaTypes.INT,
+                TaskOptionTypes.FLOAT: JsonSchemaTypes.NUM,
+                TaskOptionTypes.BOOL: JsonSchemaTypes.BOOL,
+                TaskOptionTypes.STR: JsonSchemaTypes.STR,
+                TaskOptionTypes.CHOICE: JsonSchemaTypes.STR}.get(t)
 
 
 def _validate_file(label, path):
@@ -122,7 +126,67 @@ def validate_schema(f):
     return w
 
 
-def to_option_schema(option_id, dtype_or_dtypes, display_name, description, default_value, choices=None):
+class PacBioOption(object):
+    def __init__(self, option_id, name, default, description, pb_option_type,
+                 choices=None):
+        if not pb_option_type in TaskOptionTypes.ALL():
+            raise ValueError("Invalid optionTypeId '{i}'".format(i=pb_option_type))
+        self.option_id = option_id
+        self.name = name
+        self.default = default
+        self.description = description
+        self.pb_option_type = pb_option_type
+        self.choices = choices
+
+    def __repr__(self):
+        _d = dict(i=self.option_id,
+                  n=self.name,
+                  v=self.default,
+                  k=self.__class__.__name__,
+                  t=self.pb_option_type)
+        return "<{k} {i} name: {n} default: {v} {t} >".format(**_d)
+
+    @staticmethod
+    def from_dict(d):
+        if "pb_option" in d:
+            return PacBioOption.from_jsonschema(d)
+        return PacBioOption(d['id'], d['name'], d['default'], d['description'], d['optionTypeId'], d.get("choices", None))
+
+    def to_dict(self):
+        return dict(id=self.option_id,
+                    name=self.name,
+                    default=self.default,
+                    description=self.description,
+                    optionTypeId=self.pb_option_type,
+                    choices=self.choices)
+
+    # FIXME obsolete, to be removed
+    @staticmethod
+    def from_jsonschema(opt_jschema_d):
+        """
+        Create a new instance from the old-style dictionary
+        """
+        warnings.warn("This is obsolete and will disappear soon", DeprecationWarning)
+        types_d = {JsonSchemaTypes.BOOL: TaskOptionTypes.BOOL,
+                   JsonSchemaTypes.INT: TaskOptionTypes.INT,
+                   JsonSchemaTypes.STR: TaskOptionTypes.STR,
+                   JsonSchemaTypes.NUM: TaskOptionTypes.FLOAT}
+
+        opt_id = opt_jschema_d['pb_option']['option_id']
+        name = opt_jschema_d['pb_option']['name']
+        default = opt_jschema_d['pb_option']['default']
+        desc = opt_jschema_d['pb_option']['description']
+        choices = opt_jschema_d['pb_option'].get("choices", None)
+        jschema_type = opt_jschema_d['pb_option']['type']
+        pb_option_type_id = types_d[jschema_type]
+        if choices is not None:
+            types_d_ = {JsonSchemaTypes.STR:TaskOptionTypes.CHOICE}
+            pb_option_type_id = types_d_[jschema_type]
+        return PacBioOption(opt_id, name, default, desc, pb_option_type_id,
+                            choices)
+
+
+def to_option(option_id, type_id, display_name, description, default_value, choices=None):
     """
     Simple util factory method
     :param dtype_or_dtypes: single data type or list of data types
@@ -133,6 +197,7 @@ def to_option_schema(option_id, dtype_or_dtypes, display_name, description, defa
     :param required: Is the option required.
     """
     # annoying that you can't specify a tuple
+    dtype_or_dtypes = JsonSchemaTypes.from_task_option_type(type_id)
     if isinstance(dtype_or_dtypes, tuple):
         dtype_or_dtypes = list(dtype_or_dtypes)
 
@@ -140,8 +205,10 @@ def to_option_schema(option_id, dtype_or_dtypes, display_name, description, defa
 
     # Steps toward moving away from JSON schema as the format, but reuse
     # the jsonschema defined types. Only non-union types are supported.
+    # FIXME use PacBioOption model
     pbd = {"option_id": option_id,
            "type": dtype_or_dtypes,
+           "optionTypeId": type_id,
            "default": default_value,
            "name": display_name,
            "description": description,
@@ -388,35 +455,35 @@ class ToolContractParser(PbParserBase):
         self.output_types.append(x)
 
     def add_int(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id,
-                                             JsonSchemaTypes.INT, name, description,
-                                             _validate_option(int, default)))
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.INT, name, description,
+                                      _validate_option(int, default)))
 
     def add_float(self, option_id, option_str, default, name, description):
         if isinstance(default, int):
             default = float(default)
-        self.options.append(to_option_schema(option_id,
-                                             JsonSchemaTypes.NUM, name, description,
-                                             _validate_option(float, default)))
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.FLOAT, name, description,
+                                      _validate_option(float, default)))
 
     def add_str(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id,
-                                             JsonSchemaTypes.STR, name, description,
-                                             _validate_option(str, default)))
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.STR, name, description,
+                                      _validate_option(str, default)))
 
     def add_boolean(self, option_id, option_str, default, name, description):
-        self.options.append(to_option_schema(option_id,
-                                             JsonSchemaTypes.BOOL, name, description,
-                                             _validate_option(bool, default)))
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.BOOL, name, description,
+                                      _validate_option(bool, default)))
 
     def add_choice_str(self, option_id, option_str, choices, name, description,
                        default=None):
         if default is None:
             default = choices[0]
-        self.options.append(to_option_schema(option_id,
-                                             JsonSchemaTypes.STR, name, description,
-                                             _validate_option(str, default),
-                                             choices))
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.STR, name, description,
+                                      _validate_option(str, default),
+                                      choices))
 
     def to_tool_contract(self):
         # Not a well formed tool contract, must have at least one input and

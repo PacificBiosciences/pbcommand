@@ -45,6 +45,8 @@ class PacBioNamespaces(object):
     PBSMRTPIPE_CONSTANTS_PREFIX = 'pbsmrtpipe.constants'
     # Pipelines
     PBSMRTPIPE_PIPELINES = "pbsmrtpipe.pipelines"
+    # Option Types
+    PBSMRTPIPE_OPTS_TYPE = "pbsmrtpipe.option_types"
 
 
 def __to_type(prefix, name):
@@ -59,6 +61,7 @@ to_task_types_ns = functools.partial(__to_type, PacBioNamespaces.PB_TASK_TYPES)
 to_workflow_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_PREFIX)
 to_pipeline_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_PIPELINES)
 to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
+to_opt_type_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_TYPE)
 
 
 class TaskTypes(object):
@@ -73,10 +76,15 @@ class TaskOptionTypes(object):
     """Option types. This should also be used the Report Attributes"""
     # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
     # For example, pacbio.option_types.int32
-    INT = "integer"
-    BOOL = "boolean"
-    STR = "string"
-    FLOAT = "float"
+    INT = to_opt_type_ns("integer")
+    BOOL = to_opt_type_ns("boolean")
+    STR = to_opt_type_ns("string")
+    FLOAT = to_opt_type_ns("float")
+    CHOICE = to_opt_type_ns("choice_str")
+
+    @classmethod
+    def ALL(cls):
+        return set([cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE])
 
 
 class SymbolTypes(object):
