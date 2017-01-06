@@ -100,5 +100,7 @@ class TestQuickOptionTypes(PbTestApp):
         "pbcommand.task_options.alpha": 50,
         "pbcommand.task_options.beta": 9.876,
         "pbcommand.task_options.gamma": False,
-        "pbcommand.task_options.ploidy": "diploid"
+        "pbcommand.task_options.ploidy": "diploid",
+        "pbcommand.task_options.delta": 1,
+        "pbcommand.task_options.epsilon": 0.01
     }

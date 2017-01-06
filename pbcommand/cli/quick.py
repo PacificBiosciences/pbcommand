@@ -67,7 +67,14 @@ def __convert_to_option(jtype, namespace, key, value, name=None, description=Non
 
 def _convert_to_option(namespace, key, value, name=None, description=None, choices=None):
     if isinstance(value, tuple):
-        opt = __convert_to_option(TaskOptionTypes.CHOICE, namespace, key, value[0], name=name, description=description, choices=value)
+        if isinstance(value[0], basestring):
+            opt = __convert_to_option(TaskOptionTypes.CHOICE, namespace, key, value[0], name=name, description=description, choices=value)
+        elif isinstance(value[0], int):
+            opt = __convert_to_option(TaskOptionTypes.CHOICE_INT, namespace, key, value[0], name=name, description=description, choices=value)
+        elif isinstance(value[0], float):
+            opt = __convert_to_option(TaskOptionTypes.CHOICE_FLOAT, namespace, key, value[0], name=name, description=description, choices=value)
+        else:
+            raise TypeError("Can't auto-infer choice type for {t}".format(t=type(value[0])))
     elif isinstance(value, basestring):
         opt = __convert_to_option(TaskOptionTypes.STR, namespace, key, value, name=name, description=description)
     elif isinstance(value, bool):
