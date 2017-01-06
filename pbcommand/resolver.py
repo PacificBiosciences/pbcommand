@@ -6,7 +6,8 @@ import os
 import uuid
 
 from pbcommand.models.common import (SymbolTypes, REGISTERED_FILE_TYPES,
-                                     ResourceTypes)
+                                     ResourceTypes, TaskOptionTypes)
+from pbcommand.models.parser import PacBioOption
 from pbcommand.models.tool_contract import (ResolvedToolContract,
                                             ToolContract,
                                             ResolvedToolContractTask,
@@ -43,28 +44,34 @@ def _resolve_options(tool_contract, tool_options):
     resolved_options = {}
 
     # These probably exist somewhere else, feel free to replace:
-    type_map = {'integer': int,
-                'object': object,
-                'boolean': bool,
-                'number': (int, float),
-                'string': basestring}
+    type_map = {TaskOptionTypes.INT: int,
+                TaskOptionTypes.BOOL: bool,
+                TaskOptionTypes.FLOAT: (int, float),
+                TaskOptionTypes.STR: basestring,
+                TaskOptionTypes.CHOICE: basestring,
+                TaskOptionTypes.CHOICE_INT: int,
+                TaskOptionTypes.CHOICE_FLOAT: float}
 
-    option_ids = {o['pb_option']['option_id'] for o in tool_contract.task.options}
     # Get and Validate resolved value.
     # TODO. None support should be removed.
-    for option in tool_contract.task.options:
-        optid = option['pb_option']['option_id']
-        exp_type = option['pb_option']['type']
-        value = tool_options.get(optid, option['pb_option']['default'])
+    for d in tool_contract.task.options:
+        # This hides whatever underlying JSON grossness remains
+        option = PacBioOption.from_dict(d)
+        value = tool_options.get(option.option_id, option.default)
 
-        if not isinstance(value, type_map[exp_type]):
-            #assert False, option['pb_option']
+        # FIXME should this be a method of PacBioOption?
+        if not isinstance(value, type_map[option.pb_option_type]):
             raise ToolContractError("Incompatible option types for {o}. "
                                     "Supplied {i}. Expected {t}".format(
-                                        o=optid,
+                                        o=option.option_id,
                                         i=type(value),
-                                        t=exp_type))
-        resolved_options[optid] = value
+                                        t=option.pb_option_type))
+        elif option.choices is not None:
+            if not value in option.choices:
+                raise ToolContractError("Inappropriate value for {o}. "
+                                        "Supplied {i}.  Choices are {c}".format(
+                                        o=option.option_id, i=value, c=", ".join(option.choices)))
+        resolved_options[option.option_id] = value
 
     return resolved_options
 

@@ -1,4 +1,4 @@
-from .common import (FileType, FileTypes,
+from .common import (FileType, FileTypes, TaskOptionTypes,
                      DataSetFileType, DataSetMetaData,
                      TaskTypes, ResourceTypes, SymbolTypes,
                      PipelineChunk, DataStoreFile, DataStore,
