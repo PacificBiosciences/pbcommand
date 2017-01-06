@@ -133,6 +133,33 @@ def validate_schema(f):
 # subclass to add choice field/property. This will enable future types of
 # RangeNumberOption which would add min_value, and max_value for int and float.
 class PacBioOption(object):
+    """
+    Base class for all task and pipeline configurable options including
+    metadata.  This is represented in JSON as, for example:
+
+        {
+            "id": "pbcommand.task_options.alpha",
+            "name": "Alpha",
+            "description": "Floating-point option",
+            "optionTypeId": "pbsmrtpipe.option_types.float",
+            "default": 1.234
+        }
+
+    with an optional "choices" field for option types that enumerate a list of
+    allowed values.  The type is passed explicitly using the IDs included in
+    pbcommand.models.common.TaskOptionTypes (as well as Scala and TypeScript
+    code).  The default value must be non-null, although empty strings are
+    allowed for string types.
+
+    :param option_id: equivalent to "id" field in JSON, a fully-qualified unique
+                      identifier (<TASK>.task_options.<ID>).
+    :param name: display name/label/title
+    :param default: default value, must be appropriate for type (non-null)
+    :param description: help text
+    :param pb_option_type: equivalent to "optionTypeId" in JSON, one of the
+                           pre-defined task option type strings
+    :param choices: optional, specifies that this is one of the choice option types
+    """
     def __init__(self, option_id, name, default, description, pb_option_type,
                  choices=None):
         if not pb_option_type in TaskOptionTypes.ALL():
