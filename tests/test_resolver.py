@@ -60,6 +60,9 @@ class TestResolver(unittest.TestCase):
     ALPHA = _to_id("alpha")
     BETA = _to_id("beta")
     GAMMA = _to_id("gamma")
+    DELTA = _to_id("delta")
+    EPS = _to_id("epsilon")
+    COMMENTS = _to_id("comment")
 
     def test_sanity(self):
         d = get_temp_dir("resolved-tool-contract")
@@ -73,13 +76,19 @@ class TestResolver(unittest.TestCase):
         self.assertEqual(rtc.task.options[self.BETA], 1.234)
         self.assertEqual(rtc.task.options[self.GAMMA], True)
         self.assertEqual(rtc.task.options[self.PLOIDY], "haploid")
+        self.assertEqual(rtc.task.options[self.DELTA], 1)
+        self.assertEqual(rtc.task.options[self.EPS], 0.1)
+        self.assertEqual(rtc.task.options[self.COMMENTS], "asdf")
         # non-defaults
-        tool_options = {self.ALPHA: 15, self.BETA: 2.5, self.GAMMA: False, self.PLOIDY: "diploid"}
+        tool_options = {self.ALPHA: 15, self.BETA: 2.5, self.GAMMA: False, self.PLOIDY: "diploid", self.DELTA: 2, self.EPS: 1.0, self.COMMENTS: "Hello, world!"}
         rtc = resolve_tool_contract(tc, self.INPUT_FILES, d, d, self.MAX_NPROC, tool_options, False)
         self.assertEqual(rtc.task.options[self.ALPHA], 15)
         self.assertEqual(rtc.task.options[self.BETA], 2.5)
         self.assertEqual(rtc.task.options[self.GAMMA], False)
         self.assertEqual(rtc.task.options[self.PLOIDY], "diploid")
+        self.assertEqual(rtc.task.options[self.DELTA], 2)
+        self.assertEqual(rtc.task.options[self.EPS], 1.0)
+        self.assertEqual(rtc.task.options[self.COMMENTS], "Hello, world!")
 
     def test_failure_modes(self):
         d = get_temp_dir("resolved-tool-contract")

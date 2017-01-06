@@ -48,7 +48,9 @@ def _resolve_options(tool_contract, tool_options):
                 TaskOptionTypes.BOOL: bool,
                 TaskOptionTypes.FLOAT: (int, float),
                 TaskOptionTypes.STR: basestring,
-                TaskOptionTypes.CHOICE: basestring}
+                TaskOptionTypes.CHOICE: basestring,
+                TaskOptionTypes.CHOICE_INT: int,
+                TaskOptionTypes.CHOICE_FLOAT: float}
 
     # Get and Validate resolved value.
     # TODO. None support should be removed.

@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "driver": {
         "serialization": "json",
-        "exe": "python -m pbcommand.cli.example.dev_app --resolved-tool-contract ",
+        "exe": "python -m pbcommand.cli.examples.dev_mixed_app --resolved-tool-contract ",
         "env": {}
     },
     "tool_contract_id": "pbcommand.tasks.dev_mixed_app",
@@ -17,6 +17,7 @@
                     "default": 25,
                     "option_id": "pbcommand.task_options.alpha",
                     "choices": null,
+                    "optionTypeId": "pbsmrtpipe.option_types.integer",
                     "type": "integer",
                     "description": "Alpha description"
                 },
@@ -41,6 +42,7 @@
                     "default": 1.234,
                     "option_id": "pbcommand.task_options.beta",
                     "choices": null,
+                    "optionTypeId": "pbsmrtpipe.option_types.float",
                     "type": "number",
                     "description": "Beta description"
                 },
@@ -65,6 +67,7 @@
                     "default": true,
                     "option_id": "pbcommand.task_options.gamma",
                     "choices": null,
+                    "optionTypeId": "pbsmrtpipe.option_types.boolean",
                     "type": "boolean",
                     "description": "Gamma description"
                 },
@@ -92,6 +95,7 @@
                         "haploid",
                         "diploid"
                     ],
+                    "optionTypeId": "pbsmrtpipe.option_types.string",
                     "type": "string",
                     "description": "Genome ploidy"
                 },
@@ -107,6 +111,89 @@
                         "type": "string",
                         "description": "Genome ploidy",
                         "title": "Ploidy"
+                    }
+                }
+            },
+            {
+                "pb_option": {
+                    "name": "Delta",
+                    "default": 1,
+                    "option_id": "pbcommand.task_options.delta",
+                    "choices": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "optionTypeId": "pbsmrtpipe.option_types.choice_int",
+                    "type": "integer",
+                    "description": "An integer choice"
+                },
+                "title": "JSON Schema for pbcommand.task_options.delta",
+                "required": [
+                    "pbcommand.task_options.delta"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.delta": {
+                        "default": 1,
+                        "type": "integer",
+                        "description": "An integer choice",
+                        "title": "Delta"
+                    }
+                }
+            },
+            {
+                "pb_option": {
+                    "name": "Epsilon",
+                    "default": 0.1,
+                    "option_id": "pbcommand.task_options.epsilon",
+                    "choices": [
+                        0.01,
+                        0.1,
+                        1.0
+                    ],
+                    "optionTypeId": "pbsmrtpipe.option_types.choice_float",
+                    "type": "number",
+                    "description": "A float choice"
+                },
+                "title": "JSON Schema for pbcommand.task_options.epsilon",
+                "required": [
+                    "pbcommand.task_options.epsilon"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.epsilon": {
+                        "default": 0.1,
+                        "type": "number",
+                        "description": "A float choice",
+                        "title": "Epsilon"
+                    }
+                }
+            },
+            {
+                "pb_option": {
+                    "name": "Comments",
+                    "default": "asdf",
+                    "option_id": "pbcommand.task_options.comment",
+                    "choices": null,
+                    "optionTypeId": "pbsmrtpipe.option_types.string",
+                    "type": "string",
+                    "description": "A string parameter"
+                },
+                "title": "JSON Schema for pbcommand.task_options.comment",
+                "required": [
+                    "pbcommand.task_options.comment"
+                ],
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "type": "object",
+                "properties": {
+                    "pbcommand.task_options.comment": {
+                        "default": "asdf",
+                        "type": "string",
+                        "description": "A string parameter",
+                        "title": "Comments"
                     }
                 }
             }

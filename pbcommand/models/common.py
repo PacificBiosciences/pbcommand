@@ -80,11 +80,13 @@ class TaskOptionTypes(object):
     BOOL = to_opt_type_ns("boolean")
     STR = to_opt_type_ns("string")
     FLOAT = to_opt_type_ns("float")
-    CHOICE = to_opt_type_ns("choice_str")
+    CHOICE = to_opt_type_ns("choice_string")
+    CHOICE_INT = to_opt_type_ns("choice_int")
+    CHOICE_FLOAT = to_opt_type_ns("choice_float")
 
     @classmethod
     def ALL(cls):
-        return set([cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE])
+        return set([cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE, cls.CHOICE_INT, cls.CHOICE_FLOAT])
 
 
 class SymbolTypes(object):

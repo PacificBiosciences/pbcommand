@@ -82,6 +82,12 @@ class TestParsers(unittest.TestCase):
         p.add_choice_str("pbcommand.task_options.ploidy", "ploidy",
                          choices=["haploid","diploid"], name="Ploidy",
                          description="Choice Option", default="haploid")
+        p.add_choice_int("pbcommand.task_options.delta", "delta",
+                         choices=[1,2,3], name="Delta",
+                         description="Int Choice Option", default=1)
+        p.add_choice_float("pbcommand.task_options.epsilon", "epsilon",
+                           choices=[0.01,0.1,1.0], name="Epsilon",
+                           description="Float Choice Option", default=0.1)
 
         pa = p.arg_parser.parser.parse_args
 
@@ -90,6 +96,8 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(opts.f, 1.2345)
         self.assertTrue(opts.loud)
         self.assertEqual(opts.ploidy, "haploid")
+        self.assertEqual(opts.delta, 1)
+        self.assertEqual(opts.epsilon, 0.1)
 
         opts2 = pa([])
         self.assertFalse(opts2.loud)

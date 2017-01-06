@@ -55,7 +55,9 @@ class JsonSchemaTypes(object):
                 TaskOptionTypes.FLOAT: JsonSchemaTypes.NUM,
                 TaskOptionTypes.BOOL: JsonSchemaTypes.BOOL,
                 TaskOptionTypes.STR: JsonSchemaTypes.STR,
-                TaskOptionTypes.CHOICE: JsonSchemaTypes.STR}.get(t)
+                TaskOptionTypes.CHOICE: JsonSchemaTypes.STR,
+                TaskOptionTypes.CHOICE_INT: JsonSchemaTypes.INT,
+                TaskOptionTypes.CHOICE_FLOAT: JsonSchemaTypes.NUM}.get(t)
 
 
 def _validate_file(label, path):
@@ -126,6 +128,10 @@ def validate_schema(f):
     return w
 
 
+# TODO(mkocher):
+# This might be better as a base class of PacBioOption without "choice", then
+# subclass to add choice field/property. This will enable future types of
+# RangeNumberOption which would add min_value, and max_value for int and float.
 class PacBioOption(object):
     def __init__(self, option_id, name, default, description, pb_option_type,
                  choices=None):
@@ -171,6 +177,9 @@ class PacBioOption(object):
                    JsonSchemaTypes.INT: TaskOptionTypes.INT,
                    JsonSchemaTypes.STR: TaskOptionTypes.STR,
                    JsonSchemaTypes.NUM: TaskOptionTypes.FLOAT}
+        choice_types_d = {JsonSchemaTypes.STR: TaskOptionTypes.CHOICE,
+                          JsonSchemaTypes.INT: TaskOptionTypes.CHOICE_INT,
+                          JsonSchemaTypes.NUM: TaskOptionTypes.CHOICE_FLOAT}
 
         opt_id = opt_jschema_d['pb_option']['option_id']
         name = opt_jschema_d['pb_option']['name']
@@ -180,8 +189,7 @@ class PacBioOption(object):
         jschema_type = opt_jschema_d['pb_option']['type']
         pb_option_type_id = types_d[jschema_type]
         if choices is not None:
-            types_d_ = {JsonSchemaTypes.STR:TaskOptionTypes.CHOICE}
-            pb_option_type_id = types_d_[jschema_type]
+            pb_option_type_id = choice_types_d[jschema_type]
         return PacBioOption(opt_id, name, default, desc, pb_option_type_id,
                             choices)
 
@@ -353,6 +361,38 @@ class PbParserBase(object):
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def add_choice_int(self, option_id, option_str, name, description, default=None):
+        """
+        Add a generic enumerated argument whose type is an integer.
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param choices: allowed values
+        :param name: plain-English name
+        :param description: help string
+        :param default: default value (if None, will use first choice)
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def add_choice_float(self, option_id, option_str, name, description, default=None):
+        """
+        Add a generic enumerated argument whose type is a float.
+
+        :param option_id: fully-qualified option name used in tool contract
+                          layer, of form "pbcommand.task_options.my_option"
+        :param option_str: shorter parameter name, mainly used in Python
+                           argparse layer, but *without* leading dashes
+        :param choices: allowed values
+        :param name: plain-English name
+        :param description: help string
+        :param default: default value (if None, will use first choice)
+        """
+        raise NotImplementedError
+
 _validate_argparse_int = functools.partial(_validate_option_or_cast, int)
 _validate_argparse_float = functools.partial(_validate_option_or_cast, float)
 _validate_argparse_bool = functools.partial(_validate_option_or_cast, bool)
@@ -420,13 +460,26 @@ class PyParser(PbParserBase):
         self.parser.add_argument(opt, action=d[_validate_argparse_bool(not default)],
                                  help=description)
 
-    def add_choice_str(self, option_id, option_str, choices, name, description,
-                       default=None):
+    def _add_choice_base(self, opt_type, option_id, option_str, choices, name,
+                         description, default=None):
         if default is None:
             default = choices[0]
         opt = '--' + option_str
         self.parser.add_argument(opt, action="store", choices=choices,
+                                 type=opt_type,
                                  help=description, default=default)
+
+    def add_choice_str(self, option_id, option_str, choices, name, description,
+                       default=None):
+        return self._add_choice_base(str, option_id, option_str, choices, name, description, default)
+
+    def add_choice_int(self, option_id, option_str, choices, name, description,
+                       default=None):
+        return self._add_choice_base(int, option_id, option_str, choices, name, description, default)
+
+    def add_choice_float(self, option_id, option_str, choices, name, description,
+                         default=None):
+        return self._add_choice_base(float, option_id, option_str, choices, name, description, default)
 
 
 class ToolContractParser(PbParserBase):
@@ -483,6 +536,23 @@ class ToolContractParser(PbParserBase):
         self.options.append(to_option(option_id,
                                       TaskOptionTypes.STR, name, description,
                                       _validate_option(str, default),
+                                      choices))
+    def add_choice_int(self, option_id, option_str, choices, name, description,
+                       default=None):
+        if default is None:
+            default = choices[0]
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.CHOICE_INT, name, description,
+                                      _validate_option(int, default),
+                                      choices))
+
+    def add_choice_float(self, option_id, option_str, choices, name, description,
+                         default=None):
+        if default is None:
+            default = choices[0]
+        self.options.append(to_option(option_id,
+                                      TaskOptionTypes.CHOICE_FLOAT, name, description,
+                                      _validate_option(float, default),
                                       choices))
 
     def to_tool_contract(self):
@@ -624,6 +694,16 @@ class PbParser(PbParserBase):
                        default=None):
         args = option_id, option_str, choices, name, description, default
         self._dispatch("add_choice_str", args, {})
+
+    def add_choice_int(self, option_id, option_str, choices, name, description,
+                       default=None):
+        args = option_id, option_str, choices, name, description, default
+        self._dispatch("add_choice_int", args, {})
+
+    def add_choice_float(self, option_id, option_str, choices, name, description,
+                         default=None):
+        args = option_id, option_str, choices, name, description, default
+        self._dispatch("add_choice_float", args, {})
 
     def to_contract(self):
         return self.tool_contract_parser.to_tool_contract()
