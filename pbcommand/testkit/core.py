@@ -120,7 +120,7 @@ class PbTestApp(unittest.TestCase):
             self.assertTrue(opt in rtc.task.options, "Resolved option {x} not in RTC options.".format(x=opt))
             # this needs to support polymorphic equals (i.e., almostEquals
             if not isinstance(resolved_value, float):
-                emsg = "Resolved option {o} are not equal. Expected {a}, got {b}".format(o=opt, b=rtc.task.options[opt], a=resolved_value)
+                emsg = "Resolved option {o} are not equal. Expected '{a}', got '{b}'".format(o=opt, b=rtc.task.options[opt], a=resolved_value)
                 self.assertEquals(rtc.task.options[opt], resolved_value, emsg)
 
         # Resolved NPROC
