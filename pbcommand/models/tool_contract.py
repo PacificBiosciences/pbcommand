@@ -5,6 +5,7 @@ Author: Michael Kocher
 """
 import abc
 from collections import OrderedDict
+import types
 
 import pbcommand
 
@@ -30,6 +31,18 @@ def _validate_or_raise(value, type_or_types):
         _d = dict(x=value, t=type(value), s=type_or_types)
         raise TypeError("Unsupported type for {x} {t}. Expected types {s}".format(**_d))
     return value
+
+
+def _validate_list_of_or_raise(a_list, t):
+    """Validates a List of items of a specific type"""
+    if not isinstance(a_list, (list, tuple)):
+        raise TypeError("Expected list, got {t}".format(t=type(a_list)))
+
+    for item in a_list:
+        if not isinstance(item, t):
+            raise TypeError("Expected type {t}, Got {x}".format(t=t, x=type(item)))
+
+    return a_list
 
 
 def _is_empty_list(alist):
@@ -151,7 +164,7 @@ class ToolContractTask(object):
 
     TASK_TYPE_ID = TaskTypes.STANDARD
 
-    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resources):
+    def __init__(self, task_id, name, description, version, is_distributed, input_types, output_types, options, nproc, resources):
         """
         Core metadata for a commandline task
 
@@ -159,15 +172,18 @@ class ToolContractTask(object):
         :type task_id: str
         :param name: Display name of your
         :param description: Short description of your tool
-        :param version: semantic style versioning
+        :param version: semantic style version string
         :param is_distributed: If the task will be run locally or not
         :param is_distributed: bool
         :param input_types: list[FileType]
         :param output_types:
-        :param tool_options:
+        :param options: list of PacBioOption instances
         :param nproc:
         :param resources:
-        :return:
+
+
+        :type tool_options: list[PacBioOption]
+
         """
         self.task_id = task_id
         self.name = name
@@ -177,8 +193,7 @@ class ToolContractTask(object):
         self.input_file_types = input_types
         self.output_file_types = output_types
         # This needs to be list
-        # self.options = _validate_or_raise(tool_options, (list, tuple))
-        self.options = tool_options
+        self.options = _validate_or_raise(options, types.ListType)
         self.nproc = nproc
         # List of ResourceTypes
         self.resources = resources
@@ -188,8 +203,7 @@ class ToolContractTask(object):
         return "<{k} id:{i} {n} >".format(**_d)
 
     def to_dict(self):
-        # this is a little hack to get around some sloppyness in the datamodel
-        opts = self.options if self.options else []
+        opts = [x.to_dict() for x in self.options]
 
         _t = dict(tool_contract_id=self.task_id,
                   input_types=[i.to_dict() for i in self.input_file_types],
@@ -236,7 +250,11 @@ class GatherToolContractTask(ToolContractTask):
 
 class ToolContract(object):
 
-    def __init__(self, task, driver):
+    # Calling to_dict will always generate a compliant version with this
+    # spec
+    WRITER_SCHEMA_VERSION = "2.0.0"
+
+    def __init__(self, task, driver, schema_version=WRITER_SCHEMA_VERSION):
         """
 
         :type task: ToolContractTask | ScatterToolContractTask | GatherToolContractTask
@@ -248,6 +266,7 @@ class ToolContract(object):
         """
         self.task = task
         self.driver = driver
+        self.schema_version = schema_version
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, i=self.task.task_id, t=self.task.is_distributed)
@@ -260,7 +279,9 @@ class ToolContract(object):
         _d = dict(version=self.task.version,
                   tool_contract_id=self.task.task_id,
                   driver=self.driver.to_dict(),
-                  tool_contract=_t)
+                  tool_contract=_t,
+                  schema_version=self.WRITER_SCHEMA_VERSION)
+
         return _d
 
 

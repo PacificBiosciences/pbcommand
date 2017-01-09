@@ -6,6 +6,7 @@ from .common import (FileType, FileTypes, TaskOptionTypes,
 from .tool_contract import *
 from .parser import (get_pbparser,
                      get_gather_pbparser,
-                     get_scatter_pbparser, PbParser)
+                     get_scatter_pbparser, PbParser,
+                     PacBioOption)
 
 from .conditions import (ReseqCondition, ReseqConditions)

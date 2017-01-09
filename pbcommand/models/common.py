@@ -76,17 +76,34 @@ class TaskOptionTypes(object):
     """Option types. This should also be used the Report Attributes"""
     # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
     # For example, pacbio.option_types.int32
-    INT = to_opt_type_ns("integer")
-    BOOL = to_opt_type_ns("boolean")
-    STR = to_opt_type_ns("string")
-    FLOAT = to_opt_type_ns("float")
-    CHOICE = to_opt_type_ns("choice_string")
-    CHOICE_INT = to_opt_type_ns("choice_int")
-    CHOICE_FLOAT = to_opt_type_ns("choice_float")
+
+    # Because of the Avro schema restrictions and to keep the keys short
+    # in name, we'll use a dot let format. The legacy format used
+    # pbsmrtpipe.option_types.* as the root namespace
+    INT = "integer"
+    BOOL = "boolean"
+    STR = "string"
+    FLOAT = "float"
+    CHOICE = "choice_string"
+    CHOICE_INT = "choice_integer"
+    CHOICE_FLOAT = "choice_float"
 
     @classmethod
     def ALL(cls):
-        return set([cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE, cls.CHOICE_INT, cls.CHOICE_FLOAT])
+        return {cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE,
+                cls.CHOICE_INT, cls.CHOICE_FLOAT}
+
+    @staticmethod
+    def from_str(sx):
+        # FIXME, Legacy fix, "number" appears to mean "float"?
+        if sx == "number":
+            sx = TaskOptionTypes.FLOAT
+
+        if sx in TaskOptionTypes.ALL():
+            return sx
+        else:
+            _d = dict(x=sx, n=",".join(TaskOptionTypes.ALL()))
+            raise ValueError("Invalid option type '{x}'. Allowed values {n}".format(**_d))
 
 
 class SymbolTypes(object):

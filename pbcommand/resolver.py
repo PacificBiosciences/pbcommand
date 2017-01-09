@@ -54,9 +54,8 @@ def _resolve_options(tool_contract, tool_options):
 
     # Get and Validate resolved value.
     # TODO. None support should be removed.
-    for d in tool_contract.task.options:
+    for option in tool_contract.task.options:
         # This hides whatever underlying JSON grossness remains
-        option = PacBioOption.from_dict(d)
         value = tool_options.get(option.option_id, option.default)
 
         # FIXME should this be a method of PacBioOption?
