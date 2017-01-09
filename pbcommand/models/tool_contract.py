@@ -207,9 +207,9 @@ class ToolContractTask(object):
         opts = [x.to_dict() for x in self.options]
 
         # for debugging, but creates too much chatter for production
-        now = datetime.datetime.now()
-        # now = ""
-        comment = "Created by v{v} {n}".format(v=__version__, n=now)
+        # now = " " + str(datetime.datetime.now())
+        now = ""
+        comment = "Created by pbcommand {v}".format(v=__version__, n=now) + str(now)
 
         _t = dict(tool_contract_id=self.task_id,
                   input_types=[i.to_dict() for i in self.input_file_types],
