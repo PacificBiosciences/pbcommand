@@ -96,7 +96,7 @@ class TaskOptionTypes(object):
 
     @classmethod
     def _raise_value_error(cls, value, allowed, option_type_name):
-        raise ValueError("Incompatible task {o} type id '{s}'. "
+        raise ValueError("Incompatible task {o} option type id '{s}'. "
                          "Allowed values {v}".format(o=option_type_name,
                                                      s=value,
                                                      v=",".join(allowed)))
@@ -722,11 +722,13 @@ class BasePacBioOption(object):
 
     def to_dict(self):
         option_type = TaskOptionTypes.from_str(self.OPTION_TYPE_ID)
+        # the same model is used in the pipeline template, so we break the
+        # snake case in favor of camelcase for the option type id.
         return dict(id=self.option_id,
                     name=self.name,
                     default=self.default,
                     description=self.description,
-                    option_type_id=option_type)
+                    optionTypeId=option_type)
 
 
 class PacBioIntOption(BasePacBioOption):
@@ -736,7 +738,14 @@ class PacBioIntOption(BasePacBioOption):
 
 class PacBioFloatOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.FLOAT
+    # Maybe this should be (int, float) to avoid casting?
     CORE_TYPE = float
+
+    @classmethod
+    def validate_core_type(cls, value):
+        # Allow ints to be converted to floats
+        v = float(value) if isinstance(value, int) else value
+        return _validate_type(v, cls.CORE_TYPE)
 
 
 class PacBioBooleanOption(BasePacBioOption):
@@ -780,12 +789,9 @@ class BaseChoiceType(BasePacBioOption):
         return v
 
     def to_dict(self):
-        return dict(id=self.option_id,
-                    name=self.name,
-                    default=self.default,
-                    description=self.description,
-                    option_type_id=self.OPTION_TYPE_ID,
-                    choices=self.choices)
+        d = super(BaseChoiceType, self).to_dict()
+        d['choices'] = self.choices
+        return d
 
 
 class PacBioIntChoiceOption(BaseChoiceType):

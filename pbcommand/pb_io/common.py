@@ -69,7 +69,7 @@ def _pacbio_choice_option_from_dict(d):
     choices = d['choices']
     default_value = d['default']
     # this will immediately raise
-    option_type_id = TaskOptionTypes.from_choice_str(d['option_type_id'])
+    option_type_id = TaskOptionTypes.from_choice_str(d['optionTypeId'])
 
     opt_id = d['id']
     name = d['name']
@@ -126,6 +126,10 @@ def _pacbio_legacy_option_from_dict(d):
     desc = d['pb_option']['description']
     option_type_id = d['pb_option']['type'].encode('ascii')
 
+    # Hack to support "number"
+    if option_type_id == "number":
+        option_type_id = "float"
+
     return __simple_option_by_type(opt_id, name, default, desc, option_type_id)
 
 
@@ -133,7 +137,7 @@ def _pacbio_option_from_dict(d):
     if "pb_option" in d:
         return _pacbio_legacy_option_from_dict(d)
     else:
-        return __simple_option_by_type(d['id'], d['name'], d['default'], d['description'], d['option_type_id'])
+        return __simple_option_by_type(d['id'], d['name'], d['default'], d['description'], d['optionTypeId'])
 
 
 def pacbio_option_from_dict(d):

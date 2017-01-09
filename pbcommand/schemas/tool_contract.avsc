@@ -133,9 +133,9 @@
                         },
                         {
                           "doc": "PacBio task option type",
-                          "name": "option_type_id",
+                          "name": "optionTypeId",
                           "type": {
-                            "doc": "This needs to be considerably improved and clarified. The option type must be consistent with the value defined. 'number' MUST be removed.",
+                            "doc": "This needs to be considerably improved and clarified. The option type must be consistent with the value defined. The naming is using camelcase because the same data model is used in the pipeline template.",
                             "type": "enum",
                             "name": "PacBioOptionType",
                             "aliases": ["com.pacbio.common.models.contracts.PacBioOptionType"],
