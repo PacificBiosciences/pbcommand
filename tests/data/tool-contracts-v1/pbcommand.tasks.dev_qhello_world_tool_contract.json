@@ -4,9 +4,8 @@
         "exe": "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc  ",
         "serialization": "json"
     },
-    "schema_version": "2.0.0",
     "tool_contract": {
-        "_comment": "Created by v0.5.1",
+        "_comment": "Created by v0.4.9",
         "description": "Quick tool dev_qhello_world pbcommand.tasks.dev_qhello_world",
         "input_types": [
             {
@@ -31,12 +30,27 @@
         "resource_types": [],
         "schema_options": [
             {
-                "choices": null,
-                "default": 1234,
-                "description": "Option alpha description",
-                "id": "pbcommand.task_options.alpha",
-                "name": "Option alpha",
-                "option_type_id": "integer"
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "pb_option": {
+                    "default": 1234,
+                    "description": "Option alpha description",
+                    "name": "Option alpha",
+                    "option_id": "pbcommand.task_options.alpha",
+                    "type": "integer"
+                },
+                "properties": {
+                    "pbcommand.task_options.alpha": {
+                        "default": 1234,
+                        "description": "Option alpha description",
+                        "title": "Option alpha",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "pbcommand.task_options.alpha"
+                ],
+                "title": "JSON Schema for pbcommand.task_options.alpha",
+                "type": "object"
             }
         ],
         "task_type": "pbsmrtpipe.task_types.standard",

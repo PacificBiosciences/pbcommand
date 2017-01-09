@@ -4,8 +4,9 @@
         "exe": "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc  ",
         "serialization": "json"
     },
+    "schema_version": "2.0.0",
     "tool_contract": {
-        "_comment": "Created by v0.4.9",
+        "_comment": "Created by v0.5.1",
         "description": "Dev Task Fastq to Fasta Example",
         "input_types": [
             {
@@ -30,50 +31,20 @@
         "resource_types": [],
         "schema_options": [
             {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "pb_option": {
-                    "default": 1234.0,
-                    "description": "Beta Description",
-                    "name": "Beta Name",
-                    "option_id": "pbcommand.task_options.beta",
-                    "type": "number"
-                },
-                "properties": {
-                    "pbcommand.task_options.beta": {
-                        "default": 1234.0,
-                        "description": "Beta Description",
-                        "title": "Beta Name",
-                        "type": "number"
-                    }
-                },
-                "required": [
-                    "pbcommand.task_options.beta"
-                ],
-                "title": "JSON Schema for pbcommand.task_options.beta",
-                "type": "object"
+                "choices": null,
+                "default": 1234.0,
+                "description": "Beta Description",
+                "id": "pbcommand.task_options.beta",
+                "name": "Beta Name",
+                "option_type_id": "float"
             },
             {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "pb_option": {
-                    "default": true,
-                    "description": "Option gamma description",
-                    "name": "Option gamma",
-                    "option_id": "pbcommand.task_options.gamma",
-                    "type": "boolean"
-                },
-                "properties": {
-                    "pbcommand.task_options.gamma": {
-                        "default": true,
-                        "description": "Option gamma description",
-                        "title": "Option gamma",
-                        "type": "boolean"
-                    }
-                },
-                "required": [
-                    "pbcommand.task_options.gamma"
-                ],
-                "title": "JSON Schema for pbcommand.task_options.gamma",
-                "type": "object"
+                "choices": null,
+                "default": true,
+                "description": "Option gamma description",
+                "id": "pbcommand.task_options.gamma",
+                "name": "Option gamma",
+                "option_type_id": "boolean"
             }
         ],
         "task_type": "pbsmrtpipe.task_types.standard",

@@ -4,8 +4,9 @@
         "exe": "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc  ",
         "serialization": "json"
     },
+    "schema_version": "2.0.0",
     "tool_contract": {
-        "_comment": "Created by v0.4.9",
+        "_comment": "Created by v0.5.1",
         "description": "Quick tool dev_txt_custom_outs pbcommand.tasks.dev_txt_custom_outs",
         "input_types": [
             {

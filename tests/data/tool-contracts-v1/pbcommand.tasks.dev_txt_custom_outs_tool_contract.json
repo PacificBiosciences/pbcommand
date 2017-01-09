@@ -4,10 +4,9 @@
         "exe": "python -m pbcommand.cli.examples.dev_quick_hello_world  run-rtc  ",
         "serialization": "json"
     },
-    "schema_version": "2.0.0",
     "tool_contract": {
-        "_comment": "Created by v0.5.1",
-        "description": "Quick tool dev_txt_hello pbcommand.tasks.dev_txt_hello",
+        "_comment": "Created by v0.4.9",
+        "description": "Quick tool dev_txt_custom_outs pbcommand.tasks.dev_txt_custom_outs",
         "input_types": [
             {
                 "description": "description for PacBio.FileTypes.txt_0",
@@ -16,30 +15,30 @@
                 "title": "<FileType id=PacBio.FileTypes.txt name=file >"
             }
         ],
-        "is_distributed": false,
-        "name": "Tool dev_txt_hello",
-        "nproc": 3,
+        "is_distributed": true,
+        "name": "Custom Txt Task",
+        "nproc": 1,
         "output_types": [
             {
-                "default_name": "file",
-                "description": "description for <FileType id=PacBio.FileTypes.txt name=file >",
+                "default_name": "PacBio.FileTypes.txt_file_0",
+                "description": "File <FileType id=PacBio.FileTypes.txt name=file >",
                 "file_type_id": "PacBio.FileTypes.txt",
-                "id": "Label PacBio.FileTypes.txt_0",
+                "id": "label_PacBio.FileTypes.txt",
                 "title": "<FileType id=PacBio.FileTypes.txt name=file >"
             },
             {
-                "default_name": "file",
-                "description": "description for <FileType id=PacBio.FileTypes.txt name=file >",
+                "default_name": "PacBio.FileTypes.txt_file_1",
+                "description": "File <FileType id=PacBio.FileTypes.txt name=file >",
                 "file_type_id": "PacBio.FileTypes.txt",
-                "id": "Label PacBio.FileTypes.txt_1",
+                "id": "label_PacBio.FileTypes.txt",
                 "title": "<FileType id=PacBio.FileTypes.txt name=file >"
             }
         ],
         "resource_types": [],
         "schema_options": [],
         "task_type": "pbsmrtpipe.task_types.standard",
-        "tool_contract_id": "pbcommand.tasks.dev_txt_hello"
+        "tool_contract_id": "pbcommand.tasks.dev_txt_custom_outs"
     },
-    "tool_contract_id": "pbcommand.tasks.dev_txt_hello",
+    "tool_contract_id": "pbcommand.tasks.dev_txt_custom_outs",
     "version": "0.1.0"
 }
