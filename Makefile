@@ -27,7 +27,9 @@ doc:
 
 build-tool-contracts:
 	python -m pbcommand.cli.examples.dev_app --emit-tool-contract > ./tests/data/tool-contracts/pbcommand.tasks.dev_app_tool_contract.json
+	python -m pbcommand.cli.examples.dev_app --emit-tool-contract > ./tests/data/tool-contracts/dev_example_tool_contract.json
 	python -m pbcommand.cli.examples.dev_txt_app --emit-tool-contract > ./tests/data/tool-contracts/dev_example_dev_txt_app_tool_contract.json
+	python -m pbcommand.cli.examples.dev_mixed_app --emit-tool-contract > ./tests/data/tool-contracts/dev_mixed_app_tool_contract.json
 	python -m pbcommand.cli.examples.dev_gather_fasta_app --emit-tool-contract > ./tests/data/tool-contracts/dev_gather_fasta_app_tool_contract.json
 	python -m pbcommand.cli.examples.dev_scatter_fasta_app --emit-tool-contract > ./tests/data/tool-contracts/dev_scatter_fasta_app_tool_contract.json
 	python -m pbcommand.cli.examples.dev_quick_hello_world emit-tool-contracts -o ./tests/data/tool-contracts
