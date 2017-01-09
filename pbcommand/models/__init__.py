@@ -6,8 +6,7 @@ from .common import (FileType, FileTypes, TaskOptionTypes,
                      PacBioIntOption, PacBioBooleanOption,
                      PacBioStringOption, PacBioFloatOption,
                      PacBioIntChoiceOption,
-                     PacBioFloatChoiceOption, PacBioStringChoiceOption,
-                     pacbio_option_from_dict)
+                     PacBioFloatChoiceOption, PacBioStringChoiceOption)
 from .tool_contract import *
 from .parser import (get_pbparser,
                      get_gather_pbparser,

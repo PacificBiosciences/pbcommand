@@ -12,8 +12,8 @@ from pbcommand.models import (TaskTypes,
                               ScatterToolContractTask,
                               MalformedToolContractError,
                               MalformedResolvedToolContractError,
-                              validate_tool_contract, pacbio_option_from_dict)
-
+                              validate_tool_contract)
+from pbcommand.pb_io.common import pacbio_option_from_dict
 from pbcommand.models.tool_contract import (ToolDriver,
                                             ToolContractTask,
                                             ToolContract,
