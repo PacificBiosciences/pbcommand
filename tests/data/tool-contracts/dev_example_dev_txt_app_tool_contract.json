@@ -17,11 +17,10 @@
         "schema_options": [
             {
                 "option_type_id": "integer",
-                "description": "Max Number of lines to Copy",
-                "name": "Max Lines",
                 "default": 10,
                 "id": "pbcommand.task_options.dev_max_nlines",
-                "choices": null
+                "name": "Max Lines",
+                "description": "Max Number of lines to Copy"
             }
         ],
         "output_types": [
@@ -33,7 +32,7 @@
                 "file_type_id": "PacBio.FileTypes.txt"
             }
         ],
-        "_comment": "Created by v0.5.1",
+        "_comment": "Created by pbcommand 0.5.2",
         "name": "Txt App",
         "input_types": [
             {

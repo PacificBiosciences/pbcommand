@@ -17,11 +17,10 @@
         "schema_options": [
             {
                 "option_type_id": "integer",
-                "description": "Min Sequence Length filter",
-                "name": "Length filter",
                 "default": 25,
                 "id": "pbcommand.task_options.dev_read_length",
-                "choices": null
+                "name": "Length filter",
+                "description": "Min Sequence Length filter"
             }
         ],
         "output_types": [
@@ -33,7 +32,7 @@
                 "file_type_id": "PacBio.FileTypes.Fasta"
             }
         ],
-        "_comment": "Created by v0.5.1",
+        "_comment": "Created by pbcommand 0.5.2",
         "name": "Example Dev App",
         "input_types": [
             {

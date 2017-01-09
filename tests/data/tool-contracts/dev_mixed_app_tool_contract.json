@@ -13,30 +13,27 @@
         "schema_options": [
             {
                 "option_type_id": "integer",
-                "description": "Alpha description",
-                "name": "Alpha",
                 "default": 25,
                 "id": "pbcommand.task_options.alpha",
-                "choices": null
+                "name": "Alpha",
+                "description": "Alpha description"
             },
             {
                 "option_type_id": "float",
-                "description": "Beta description",
-                "name": "Beta",
                 "default": 1.234,
                 "id": "pbcommand.task_options.beta",
-                "choices": null
+                "name": "Beta",
+                "description": "Beta description"
             },
             {
                 "option_type_id": "boolean",
-                "description": "Gamma description",
-                "name": "Gamma",
                 "default": true,
                 "id": "pbcommand.task_options.gamma",
-                "choices": null
+                "name": "Gamma",
+                "description": "Gamma description"
             },
             {
-                "option_type_id": "string",
+                "option_type_id": "choice_string",
                 "description": "Genome ploidy",
                 "name": "Ploidy",
                 "default": "haploid",
@@ -72,11 +69,10 @@
             },
             {
                 "option_type_id": "string",
-                "description": "A string parameter",
-                "name": "Comments",
                 "default": "asdf",
                 "id": "pbcommand.task_options.comment",
-                "choices": null
+                "name": "Comments",
+                "description": "A string parameter"
             }
         ],
         "output_types": [
@@ -88,7 +84,7 @@
                 "file_type_id": "PacBio.FileTypes.JsonReport"
             }
         ],
-        "_comment": "Created by v0.5.1",
+        "_comment": "Created by pbcommand 0.5.2",
         "name": "DevApp",
         "input_types": [
             {

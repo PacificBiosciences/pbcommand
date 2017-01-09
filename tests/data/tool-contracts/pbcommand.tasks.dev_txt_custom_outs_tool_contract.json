@@ -6,7 +6,7 @@
     },
     "schema_version": "2.0.0",
     "tool_contract": {
-        "_comment": "Created by v0.5.1",
+        "_comment": "Created by pbcommand 0.5.2",
         "description": "Quick tool dev_txt_custom_outs pbcommand.tasks.dev_txt_custom_outs",
         "input_types": [
             {

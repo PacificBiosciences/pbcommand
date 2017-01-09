@@ -6,7 +6,7 @@
     },
     "schema_version": "2.0.0",
     "tool_contract": {
-        "_comment": "Created by v0.5.1",
+        "_comment": "Created by pbcommand 0.5.2",
         "description": "Quick tool dev_qhello_world pbcommand.tasks.dev_qhello_world",
         "input_types": [
             {
@@ -31,7 +31,6 @@
         "resource_types": [],
         "schema_options": [
             {
-                "choices": null,
                 "default": 1234,
                 "description": "Option alpha description",
                 "id": "pbcommand.task_options.alpha",
