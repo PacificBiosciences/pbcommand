@@ -12,8 +12,7 @@ from pbcommand.models import (TaskTypes,
                               ScatterToolContractTask,
                               MalformedToolContractError,
                               MalformedResolvedToolContractError,
-                              validate_tool_contract,
-                              PacBioOption)
+                              validate_tool_contract, pacbio_option_from_dict)
 
 from pbcommand.models.tool_contract import (ToolDriver,
                                             ToolContractTask,
@@ -241,7 +240,7 @@ def __core_tool_contract_task_from(d):
     input_types = [_to_in_ft(x) for x in _get("input_types")]
     output_types = [_to_out_ft(x) for x in _get("output_types")]
 
-    tool_options = [PacBioOption.from_dict(opt_d) for opt_d in _get("schema_options")]
+    tool_options = [pacbio_option_from_dict(opt_d) for opt_d in _get("schema_options")]
 
     nproc = _get("nproc")
     resource_types = _get("resource_types")

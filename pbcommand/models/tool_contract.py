@@ -6,6 +6,7 @@ Author: Michael Kocher
 import abc
 from collections import OrderedDict
 import types
+import datetime
 
 import pbcommand
 
@@ -205,6 +206,11 @@ class ToolContractTask(object):
     def to_dict(self):
         opts = [x.to_dict() for x in self.options]
 
+        # for debugging, but creates too much chatter for production
+        now = datetime.datetime.now()
+        # now = ""
+        comment = "Created by v{v} {n}".format(v=__version__, n=now)
+
         _t = dict(tool_contract_id=self.task_id,
                   input_types=[i.to_dict() for i in self.input_file_types],
                   output_types=[i.to_dict() for i in self.output_file_types],
@@ -215,7 +221,7 @@ class ToolContractTask(object):
                   schema_options=opts,
                   nproc=self.nproc,
                   resource_types=self.resources,
-                  _comment="Created by v{v}".format(v=__version__))
+                  _comment=comment)
         return _t
 
 

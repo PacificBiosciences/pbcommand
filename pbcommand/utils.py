@@ -244,11 +244,18 @@ def log_traceback(alog, ex, ex_traceback):
     alog.error(tb_text)
 
 
+def validate_type_or_raise(instance, type_or_types, error_prefix=None):
+    _d = dict(t=instance, x=type(instance), v=instance)
+    e = error_prefix if error_prefix is not None else ""
+    msg = e + "Expected type {t}. Got type {x} for {v}".format(**_d)
+    if not isinstance(instance, type_or_types):
+        raise TypeError(msg)
+    else:
+        return instance
+
+
 def _simple_validate_type(atype, instance):
-    if not isinstance(instance, atype):
-        _d = dict(t=atype, x=type(instance), v=instance)
-        raise TypeError("Expected type {t}. Got type {x} for {v}".format(**_d))
-    return instance
+    return validate_type_or_raise(instance, atype)
 
 _is_argparser_instance = functools.partial(_simple_validate_type, argparse.ArgumentParser)
 
