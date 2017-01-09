@@ -73,7 +73,10 @@ class TaskTypes(object):
 
 
 class TaskOptionTypes(object):
-    """Option types. This should also be used the Report Attributes"""
+    """
+    Named constants for task and pipeline option types, prefixed by
+    "pbsmrtpipe.option_types.".
+    """
     # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
     # For example, pacbio.option_types.int32
     INT = to_opt_type_ns("integer")
