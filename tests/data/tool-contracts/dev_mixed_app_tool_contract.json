@@ -12,63 +12,63 @@
         "description": "Dev app for Testing that supports emitting tool contracts",
         "schema_options": [
             {
-                "option_type_id": "integer",
+                "optionTypeId": "integer",
                 "default": 25,
                 "id": "pbcommand.task_options.alpha",
                 "name": "Alpha",
                 "description": "Alpha description"
             },
             {
-                "option_type_id": "float",
+                "optionTypeId": "float",
                 "default": 1.234,
                 "id": "pbcommand.task_options.beta",
                 "name": "Beta",
                 "description": "Beta description"
             },
             {
-                "option_type_id": "boolean",
+                "optionTypeId": "boolean",
                 "default": true,
                 "id": "pbcommand.task_options.gamma",
                 "name": "Gamma",
                 "description": "Gamma description"
             },
             {
-                "option_type_id": "choice_string",
-                "description": "Genome ploidy",
                 "name": "Ploidy",
                 "default": "haploid",
-                "id": "pbcommand.task_options.ploidy",
                 "choices": [
                     "haploid",
                     "diploid"
-                ]
+                ],
+                "optionTypeId": "choice_string",
+                "id": "pbcommand.task_options.ploidy",
+                "description": "Genome ploidy"
             },
             {
-                "option_type_id": "choice_integer",
-                "description": "An integer choice",
                 "name": "Delta",
                 "default": 1,
-                "id": "pbcommand.task_options.delta",
                 "choices": [
                     1,
                     2,
                     3
-                ]
+                ],
+                "optionTypeId": "choice_integer",
+                "id": "pbcommand.task_options.delta",
+                "description": "An integer choice"
             },
             {
-                "option_type_id": "choice_float",
-                "description": "A float choice",
                 "name": "Epsilon",
                 "default": 0.1,
-                "id": "pbcommand.task_options.epsilon",
                 "choices": [
                     0.01,
                     0.1,
                     1.0
-                ]
+                ],
+                "optionTypeId": "choice_float",
+                "id": "pbcommand.task_options.epsilon",
+                "description": "A float choice"
             },
             {
-                "option_type_id": "string",
+                "optionTypeId": "string",
                 "default": "asdf",
                 "id": "pbcommand.task_options.comment",
                 "name": "Comments",

@@ -16,7 +16,7 @@
         "description": "Dev app for Testing that supports emitting tool contracts",
         "schema_options": [
             {
-                "option_type_id": "integer",
+                "optionTypeId": "integer",
                 "default": 25,
                 "id": "pbcommand.task_options.dev_read_length",
                 "name": "Length filter",

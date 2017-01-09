@@ -35,7 +35,7 @@
                 "description": "Option alpha description",
                 "id": "pbcommand.task_options.alpha",
                 "name": "Option alpha",
-                "option_type_id": "integer"
+                "optionTypeId": "integer"
             }
         ],
         "task_type": "pbsmrtpipe.task_types.standard",

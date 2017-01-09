@@ -35,14 +35,14 @@
                 "description": "Beta Description",
                 "id": "pbcommand.task_options.beta",
                 "name": "Beta Name",
-                "option_type_id": "float"
+                "optionTypeId": "float"
             },
             {
                 "default": true,
                 "description": "Option gamma description",
                 "id": "pbcommand.task_options.gamma",
                 "name": "Option gamma",
-                "option_type_id": "boolean"
+                "optionTypeId": "boolean"
             }
         ],
         "task_type": "pbsmrtpipe.task_types.standard",

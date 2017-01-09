@@ -12,7 +12,7 @@
         "description": "Scatter a single fasta file to create chunk.json file",
         "schema_options": [
             {
-                "option_type_id": "integer",
+                "optionTypeId": "integer",
                 "default": 10,
                 "id": "pbcommand.task_options.dev_scatter_fa_nchunks",
                 "name": "Number of chunks",

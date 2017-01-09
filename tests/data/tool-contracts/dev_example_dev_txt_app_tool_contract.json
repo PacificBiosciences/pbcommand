@@ -16,7 +16,7 @@
         "description": "Dev app for Testing that supports emitting tool contracts",
         "schema_options": [
             {
-                "option_type_id": "integer",
+                "optionTypeId": "integer",
                 "default": 10,
                 "id": "pbcommand.task_options.dev_max_nlines",
                 "name": "Max Lines",
