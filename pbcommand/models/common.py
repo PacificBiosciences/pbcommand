@@ -73,7 +73,7 @@ class TaskTypes(object):
 
 
 class TaskOptionTypes(object):
-    """Option types. This should also be used the Report Attributes"""
+    """Core Task Option type id type"""
     # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
     # For example, pacbio.option_types.int32
 
