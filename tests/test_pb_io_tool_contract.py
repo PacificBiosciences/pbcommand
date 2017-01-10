@@ -1,8 +1,7 @@
-import os
 import unittest
 import logging
 
-from base_utils import get_data_file, HAS_PBCORE, pbcore_skip_msg, get_temp_file, get_temp_dir
+from base_utils import get_temp_file, get_temp_dir
 from base_utils import get_tool_contract, get_resolved_tool_contract
 
 from pbcommand.models import (ToolContract,

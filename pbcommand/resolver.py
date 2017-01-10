@@ -6,8 +6,7 @@ import os
 import uuid
 
 from pbcommand.models.common import (SymbolTypes, REGISTERED_FILE_TYPES,
-                                     ResourceTypes, TaskOptionTypes)
-from pbcommand.models.parser import PacBioOption
+                                     ResourceTypes)
 from pbcommand.models.tool_contract import (ResolvedToolContract,
                                             ToolContract,
                                             ResolvedToolContractTask,
@@ -41,37 +40,33 @@ def _resolve_max_nchunks(nchunks_or_symbol, max_nchunks):
 
 
 def _resolve_options(tool_contract, tool_options):
-    resolved_options = {}
+    """ Resolve Task Options from
 
-    # These probably exist somewhere else, feel free to replace:
-    type_map = {TaskOptionTypes.INT: int,
-                TaskOptionTypes.BOOL: bool,
-                TaskOptionTypes.FLOAT: (int, float),
-                TaskOptionTypes.STR: basestring,
-                TaskOptionTypes.CHOICE: basestring,
-                TaskOptionTypes.CHOICE_INT: int,
-                TaskOptionTypes.CHOICE_FLOAT: float}
+    :type tool_contract: ToolContract
+    :type tool_options: dict
+
+    :rtype: dict
+    """
+    resolved_options = {}
 
     # Get and Validate resolved value.
     # TODO. None support should be removed.
-    for d in tool_contract.task.options:
+    for option in tool_contract.task.options:
         # This hides whatever underlying JSON grossness remains
-        option = PacBioOption.from_dict(d)
         value = tool_options.get(option.option_id, option.default)
 
-        # FIXME should this be a method of PacBioOption?
-        if not isinstance(value, type_map[option.pb_option_type]):
+        # Wrap in a try to communicate error messages with reasonable context
+        try:
+            # This expects the PacBioOption subclass to implement the
+            # necessary validating function
+            validated_option = option.validate_option(value)
+            resolved_options[option.option_id] = validated_option
+        except (KeyError, ValueError, IndexError, TypeError) as e:
             raise ToolContractError("Incompatible option types for {o}. "
-                                    "Supplied {i}. Expected {t}".format(
+                                    "Supplied {i}. Expected pacbio opt type '{t}' {e}".format(
                                         o=option.option_id,
                                         i=type(value),
-                                        t=option.pb_option_type))
-        elif option.choices is not None:
-            if not value in option.choices:
-                raise ToolContractError("Inappropriate value for {o}. "
-                                        "Supplied {i}.  Choices are {c}".format(
-                                        o=option.option_id, i=value, c=", ".join(option.choices)))
-        resolved_options[option.option_id] = value
+                                        t=option.OPTION_TYPE_ID, e=str(e)))
 
     return resolved_options
 
@@ -140,6 +135,7 @@ def _resolve_output_files(output_file_types, root_output_dir):
 
 
 def _resolve_core(tool_contract, input_files, root_output_dir, max_nproc, tool_options, tmp_dir=None):
+    """ tool_options are dict{id:value} of values to override defaults """
 
     if len(input_files) != len(tool_contract.task.input_file_types):
         _d = dict(i=input_files, t=tool_contract.task.input_file_types)

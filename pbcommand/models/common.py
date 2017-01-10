@@ -73,23 +73,71 @@ class TaskTypes(object):
 
 
 class TaskOptionTypes(object):
-    """
-    Named constants for task and pipeline option types, prefixed by
-    "pbsmrtpipe.option_types.".
-    """
+    """Core Task Option type id type"""
     # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
     # For example, pacbio.option_types.int32
-    INT = to_opt_type_ns("integer")
-    BOOL = to_opt_type_ns("boolean")
-    STR = to_opt_type_ns("string")
-    FLOAT = to_opt_type_ns("float")
-    CHOICE = to_opt_type_ns("choice_string")
-    CHOICE_INT = to_opt_type_ns("choice_int")
-    CHOICE_FLOAT = to_opt_type_ns("choice_float")
+
+    # Because of the Avro schema restrictions and to keep the keys short
+    # in name, we'll use a dot let format. The legacy format used
+    # pbsmrtpipe.option_types.* as the root namespace
+    INT = "integer"
+    BOOL = "boolean"
+    STR = "string"
+    FLOAT = "float"
+    # Choice type Options
+    CHOICE_STR = "choice_string"
+    CHOICE_INT = "choice_integer"
+    CHOICE_FLOAT = "choice_float"
 
     @classmethod
     def ALL(cls):
-        return set([cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE, cls.CHOICE_INT, cls.CHOICE_FLOAT])
+        return {cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE_STR,
+                cls.CHOICE_INT, cls.CHOICE_FLOAT}
+
+    @classmethod
+    def _raise_value_error(cls, value, allowed, option_type_name):
+        raise ValueError("Incompatible task {o} option type id '{s}'. "
+                         "Allowed values {v}".format(o=option_type_name,
+                                                     s=value,
+                                                     v=",".join(allowed)))
+
+    @classmethod
+    def ALL_SIMPLE(cls):
+        return {cls.STR, cls.BOOL, cls.INT, cls.FLOAT}
+
+    @classmethod
+    def from_simple_str(cls, sx):
+        if sx in cls.ALL_SIMPLE():
+            return sx
+        else:
+            cls._raise_value_error(sx, cls.ALL_SIMPLE(), "simple")
+
+    @classmethod
+    def ALL_CHOICES(cls):
+        return {cls.CHOICE_INT, cls.CHOICE_FLOAT, cls.CHOICE_STR}
+
+    @classmethod
+    def is_choice(cls, sx):
+        return sx in cls.ALL_CHOICES()
+
+    @classmethod
+    def from_choice_str(cls, sx):
+        if sx in cls.ALL_CHOICES():
+            return sx
+        else:
+            cls._raise_value_error(sx, cls.ALL_CHOICES(), "choice")
+
+    @classmethod
+    def from_str(cls, sx):
+        """ Convert and raise if not a valid str value"""
+        # FIXME, Legacy fix, "number" appears to mean "float"?
+        if sx == "number":
+            sx = TaskOptionTypes.FLOAT
+
+        if sx in TaskOptionTypes.ALL():
+            return sx
+        else:
+            cls._raise_value_error(sx, cls.ALL(), "")
 
 
 class SymbolTypes(object):
@@ -604,3 +652,158 @@ def write_dict_to_json(d, file_name, permission="w"):
         s = json.dumps(d, indent=4, sort_keys=True,
                        separators=(',', ': '))
         f.write(s)
+
+
+RX_TASK_ID = re.compile(r'^([A-z0-9_]*)\.tasks\.([A-z0-9_]*)$')
+RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_]*)\.task_options\.([A-z0-9_\.]*)')
+
+
+def _validate_id(prog, idtype, tid):
+    if prog.match(tid):
+        return tid
+    else:
+        raise ValueError("Invalid format {t}: '{i}' {p}".format(t=idtype, i=tid, p=repr(prog.pattern)))
+
+validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
+validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
+                                            'task option id')
+
+
+def _validate_type(instance, type_or_types):
+    if isinstance(instance, type_or_types):
+        return instance
+    else:
+        raise TypeError("Invalid option type: '{a}' provided, '{e}' "
+                        "expected".format(a=instance, e=type_or_types))
+
+
+class BasePacBioOption(object):
+    # This is an abstract class. This really blurring the abstract with
+    # implementation which makes the interface unclear.
+
+    # This MUST be a validate TaskOptionTypes.* value.
+    OPTION_TYPE_ID = "UNKNOWN"
+    # this is the base
+    CORE_TYPE = basestring
+
+    def validate_option(self, value):
+        """Core method used externally (e.g., resolvers) to validate option
+
+        The default implementation will only validate that the "core" type
+        is consistent with definition.
+
+        Subclasses should override this to leverage internal state (e.g, self.choices)
+        """
+        return _validate_type(value, self.CORE_TYPE)
+
+    @classmethod
+    def validate_core_type(cls, value):
+        # this a a simple initialization validation of the default value
+        return _validate_type(value, cls.CORE_TYPE)
+
+    def __init__(self, option_id, name, default, description):
+        self.option_id = validate_task_option_id(option_id)
+        self.name = name
+        self.default = self.validate_core_type(default)
+        self.description = description
+
+        # make sure subclasses have overwritten the OPTION_TYPE_ID.
+        # this will raise
+        if self.OPTION_TYPE_ID not in TaskOptionTypes.ALL():
+            raise ValueError("Subclasses of {c} must override OPTION_TYPE_ID to have a consistent value with TaskOptionTypes.*")
+
+    def __repr__(self):
+        _d = dict(i=self.option_id,
+                  n=self.name,
+                  v=self.default,
+                  k=self.__class__.__name__,
+                  t=self.OPTION_TYPE_ID)
+        return "<{k} {i} name: {n} default: {v} type:{t} >".format(**_d)
+
+    def to_dict(self):
+        option_type = TaskOptionTypes.from_str(self.OPTION_TYPE_ID)
+        # the same model is used in the pipeline template, so we break the
+        # snake case in favor of camelcase for the option type id.
+        return dict(id=self.option_id,
+                    name=self.name,
+                    default=self.default,
+                    description=self.description,
+                    optionTypeId=option_type)
+
+
+class PacBioIntOption(BasePacBioOption):
+    OPTION_TYPE_ID = TaskOptionTypes.INT
+    CORE_TYPE = int
+
+
+class PacBioFloatOption(BasePacBioOption):
+    OPTION_TYPE_ID = TaskOptionTypes.FLOAT
+    # Maybe this should be (int, float) to avoid casting?
+    CORE_TYPE = float
+
+    @classmethod
+    def validate_core_type(cls, value):
+        # Allow ints to be converted to floats
+        v = float(value) if isinstance(value, int) else value
+        return _validate_type(v, cls.CORE_TYPE)
+
+
+class PacBioBooleanOption(BasePacBioOption):
+    OPTION_TYPE_ID = TaskOptionTypes.BOOL
+    CORE_TYPE = bool
+
+
+class PacBioStringOption(BasePacBioOption):
+    OPTION_TYPE_ID = TaskOptionTypes.STR
+    CORE_TYPE = basestring
+
+
+def _validate_choices_with_value(choices, value):
+    head = choices[0]
+    if type(head) != type(value):
+        raise TypeError("Incompatible choice and default value. Got type {t} ({s}) and choice type {x} ({y})".format(t=type(head), x=type(value), s=value, y=head))
+    if value not in choices:
+        raise ValueError("Default value {x} not in supplied choices {c}".format(x=value, c=choices))
+
+    return choices
+
+
+class BaseChoiceType(BasePacBioOption):
+
+    # Note, this is only the core type of the default value.
+    CORE_TYPE = basestring
+
+    # This really should be Abstract
+    def __init__(self, option_id, name, default, description, choices):
+        super(BaseChoiceType, self).__init__(option_id, name, default, description)
+        self.choices = _validate_choices_with_value(choices, default)
+
+    @classmethod
+    def validator(cls, x):
+        return _validate_type(x, cls.CORE_TYPE)
+
+    def validate_option(self, value):
+        v = _validate_type(value, self.CORE_TYPE)
+        v = _validate_type(value, self.CORE_TYPE)
+        _ = _validate_choices_with_value(self.choices, value)
+        return v
+
+    def to_dict(self):
+        d = super(BaseChoiceType, self).to_dict()
+        d['choices'] = self.choices
+        return d
+
+
+class PacBioIntChoiceOption(BaseChoiceType):
+    CORE_TYPE = int
+    OPTION_TYPE_ID = TaskOptionTypes.CHOICE_INT
+
+
+class PacBioStringChoiceOption(BaseChoiceType):
+    CORE_TYPE = basestring
+    OPTION_TYPE_ID = TaskOptionTypes.CHOICE_STR
+
+
+class PacBioFloatChoiceOption(BaseChoiceType):
+    CORE_TYPE = float
+    OPTION_TYPE_ID = TaskOptionTypes.CHOICE_FLOAT

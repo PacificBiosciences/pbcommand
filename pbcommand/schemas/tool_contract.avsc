@@ -8,6 +8,11 @@
       "name": "version",
       "type": "string"
     },
+     {
+      "doc": "Schema Version of the ToolContract",
+      "name": "schema_version",
+      "type": ["string", "null"]
+    },
     {
       "_comment": "(this is duplicated in the Task?)",
       "doc": "Fully qualified id of the tool contract (in the legacy model this is also the task type id)",
@@ -100,14 +105,7 @@
               "items": {
                 "type": "record",
                 "name": "PacBioOptions",
-                "fields": [
-                  {
-                    "name": "pb_option",
-                    "type": {
-                      "type": "record",
-                      "name": "PacBioOption",
-                      "doc": "Task Option model",
-                      "fields": [
+               "fields": [
                         {
                           "doc": "Default value for the task option. Every task *must* have default value",
                           "name": "default",
@@ -120,7 +118,7 @@
                         },
                         {
                           "doc": "Globally unique id of the form {namespace}.task_options.{key}. Example (pbtacos.task_options.max_records)",
-                          "name": "option_id",
+                          "name": "id",
                           "type": "string"
                         },
                         {
@@ -135,9 +133,9 @@
                         },
                         {
                           "doc": "PacBio task option type",
-                          "name": "type",
+                          "name": "optionTypeId",
                           "type": {
-                            "doc": "This needs to be considerably improved and clarified. The option type must be consistent with the value defined. 'number' MUST be removed.",
+                            "doc": "This needs to be considerably improved and clarified. The option type must be consistent with the value defined. The naming is using camelcase because the same data model is used in the pipeline template.",
                             "type": "enum",
                             "name": "PacBioOptionType",
                             "aliases": ["com.pacbio.common.models.contracts.PacBioOptionType"],
@@ -146,14 +144,13 @@
                               "boolean",
                               "string",
                               "float",
-                              "number"
+                              "choice_float",
+                              "choice_string",
+                              "choice_integer"
                             ]
                           }
                         }
                       ]
-                    }
-                  }
-                ]
               }
             }
           },

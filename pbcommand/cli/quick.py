@@ -11,9 +11,12 @@ import pbcommand
 from .core import get_default_argparser_with_base_opts
 from pbcommand.common_options import add_base_options, add_common_options
 
-from pbcommand.models import (ToolContractTask, ToolContract, TaskOptionTypes,
-                              InputFileType, OutputFileType, FileType)
-from pbcommand.models.parser import to_option
+from pbcommand.models import (ToolContractTask, ToolContract,
+                              InputFileType, OutputFileType, FileType,
+                              PacBioIntChoiceOption, PacBioStringOption,
+                              PacBioFloatOption, PacBioBooleanOption,
+                              PacBioIntOption,
+                              PacBioStringChoiceOption, PacBioFloatChoiceOption)
 from pbcommand.models.tool_contract import ToolDriver
 from pbcommand.pb_io import (load_resolved_tool_contract_from,
                              write_tool_contract)
@@ -53,36 +56,55 @@ def _file_type_to_output_file_type(file_type, index):
                           file_type.default_name)
 
 
-def __convert_to_option(jtype, namespace, key, value, name=None, description=None, choices=None):
-    """Convert to Option dict
+def __convert_to_choice_option(option_id, default_value_or_choices, name, description, choices=None):
+    """Enable some looseness in the inputs
 
-    This really should have been a concrete type, at least a namedtuple
+    if the default_value is provided by a list or tuple, assume the default value is the first
+    value.
+
+    Else, assume the choices and default value was provided
+
     """
-    opt_id = ".".join([namespace, 'task_options', key])
-    name = "Option {n}".format(n=key) if name is None else name
-    desc = "Option {n} description".format(n=key) if description is None else description
-    opt = to_option(opt_id, jtype, name, desc, value, choices)
+    # FIXME, this method is somewhat duplicated with the from dict serialization IO layer
+
+    def _is_list(x):
+        return isinstance(x, (tuple, list))
+
+    if _is_list(default_value_or_choices):
+        value = default_value_or_choices[0]
+        r_choices = default_value_or_choices
+    else:
+        value = default_value_or_choices
+        r_choices = choices
+
+    if isinstance(value, basestring):
+        opt = PacBioStringChoiceOption(option_id, name, value, description, r_choices)
+    elif isinstance(value, int):
+        opt = PacBioIntChoiceOption(option_id, name, value, description, r_choices)
+    elif isinstance(value, float):
+        opt = PacBioFloatChoiceOption(option_id, name, value, description, r_choices)
+    else:
+        raise TypeError("Invalid choice type {t} of default:{d} and choices: {c}")
+
     return opt
 
 
 def _convert_to_option(namespace, key, value, name=None, description=None, choices=None):
-    if isinstance(value, tuple):
-        if isinstance(value[0], basestring):
-            opt = __convert_to_option(TaskOptionTypes.CHOICE, namespace, key, value[0], name=name, description=description, choices=value)
-        elif isinstance(value[0], int):
-            opt = __convert_to_option(TaskOptionTypes.CHOICE_INT, namespace, key, value[0], name=name, description=description, choices=value)
-        elif isinstance(value[0], float):
-            opt = __convert_to_option(TaskOptionTypes.CHOICE_FLOAT, namespace, key, value[0], name=name, description=description, choices=value)
-        else:
-            raise TypeError("Can't auto-infer choice type for {t}".format(t=type(value[0])))
+
+    opt_id = ".".join([namespace, 'task_options', key])
+    r_name = "Option {n}".format(n=key) if name is None else name
+    r_desc = "Option {n} description".format(n=key) if description is None else description
+
+    if isinstance(value, (tuple, list)) or isinstance(choices, (tuple, list)):
+        opt = __convert_to_choice_option(opt_id, value, r_name, r_desc, choices=choices)
     elif isinstance(value, basestring):
-        opt = __convert_to_option(TaskOptionTypes.STR, namespace, key, value, name=name, description=description)
+        opt = PacBioStringOption(opt_id, r_name, value, r_desc)
     elif isinstance(value, bool):
-        opt = __convert_to_option(TaskOptionTypes.BOOL, namespace, key, value, name=name, description=description)
+        opt = PacBioBooleanOption(opt_id, r_name, value, r_desc)
     elif isinstance(value, int):
-        opt = __convert_to_option(TaskOptionTypes.INT, namespace, key, value, name=name, description=description)
+        opt = PacBioIntOption(opt_id, r_name, value, r_desc)
     elif isinstance(value, float):
-        opt = __convert_to_option(TaskOptionTypes.FLOAT, namespace, key, value, name=name, description=description)
+        opt = PacBioFloatOption(opt_id, r_name, value, r_desc)
     else:
         raise TypeError("Unsupported option {k} type. {t} ".format(k=key, t=type(value)))
 

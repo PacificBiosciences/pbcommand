@@ -5,197 +5,74 @@
         "exe": "python -m pbcommand.cli.examples.dev_mixed_app --resolved-tool-contract ",
         "env": {}
     },
-    "tool_contract_id": "pbcommand.tasks.dev_mixed_app",
+    "schema_version": "2.0.0",
     "tool_contract": {
         "task_type": "pbsmrtpipe.task_types.standard",
         "resource_types": [],
         "description": "Dev app for Testing that supports emitting tool contracts",
         "schema_options": [
             {
-                "pb_option": {
-                    "name": "Alpha",
-                    "default": 25,
-                    "option_id": "pbcommand.task_options.alpha",
-                    "choices": null,
-                    "optionTypeId": "pbsmrtpipe.option_types.integer",
-                    "type": "integer",
-                    "description": "Alpha description"
-                },
-                "title": "JSON Schema for pbcommand.task_options.alpha",
-                "required": [
-                    "pbcommand.task_options.alpha"
-                ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.alpha": {
-                        "default": 25,
-                        "type": "integer",
-                        "description": "Alpha description",
-                        "title": "Alpha"
-                    }
-                }
+                "optionTypeId": "integer",
+                "default": 25,
+                "id": "pbcommand.task_options.alpha",
+                "name": "Alpha",
+                "description": "Alpha description"
             },
             {
-                "pb_option": {
-                    "name": "Beta",
-                    "default": 1.234,
-                    "option_id": "pbcommand.task_options.beta",
-                    "choices": null,
-                    "optionTypeId": "pbsmrtpipe.option_types.float",
-                    "type": "number",
-                    "description": "Beta description"
-                },
-                "title": "JSON Schema for pbcommand.task_options.beta",
-                "required": [
-                    "pbcommand.task_options.beta"
-                ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.beta": {
-                        "default": 1.234,
-                        "type": "number",
-                        "description": "Beta description",
-                        "title": "Beta"
-                    }
-                }
+                "optionTypeId": "float",
+                "default": 1.234,
+                "id": "pbcommand.task_options.beta",
+                "name": "Beta",
+                "description": "Beta description"
             },
             {
-                "pb_option": {
-                    "name": "Gamma",
-                    "default": true,
-                    "option_id": "pbcommand.task_options.gamma",
-                    "choices": null,
-                    "optionTypeId": "pbsmrtpipe.option_types.boolean",
-                    "type": "boolean",
-                    "description": "Gamma description"
-                },
-                "title": "JSON Schema for pbcommand.task_options.gamma",
-                "required": [
-                    "pbcommand.task_options.gamma"
-                ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.gamma": {
-                        "default": true,
-                        "type": "boolean",
-                        "description": "Gamma description",
-                        "title": "Gamma"
-                    }
-                }
+                "optionTypeId": "boolean",
+                "default": true,
+                "id": "pbcommand.task_options.gamma",
+                "name": "Gamma",
+                "description": "Gamma description"
             },
             {
-                "pb_option": {
-                    "name": "Ploidy",
-                    "default": "haploid",
-                    "option_id": "pbcommand.task_options.ploidy",
-                    "choices": [
-                        "haploid",
-                        "diploid"
-                    ],
-                    "optionTypeId": "pbsmrtpipe.option_types.string",
-                    "type": "string",
-                    "description": "Genome ploidy"
-                },
-                "title": "JSON Schema for pbcommand.task_options.ploidy",
-                "required": [
-                    "pbcommand.task_options.ploidy"
+                "name": "Ploidy",
+                "default": "haploid",
+                "choices": [
+                    "haploid",
+                    "diploid"
                 ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.ploidy": {
-                        "default": "haploid",
-                        "type": "string",
-                        "description": "Genome ploidy",
-                        "title": "Ploidy"
-                    }
-                }
+                "optionTypeId": "choice_string",
+                "id": "pbcommand.task_options.ploidy",
+                "description": "Genome ploidy"
             },
             {
-                "pb_option": {
-                    "name": "Delta",
-                    "default": 1,
-                    "option_id": "pbcommand.task_options.delta",
-                    "choices": [
-                        1,
-                        2,
-                        3
-                    ],
-                    "optionTypeId": "pbsmrtpipe.option_types.choice_int",
-                    "type": "integer",
-                    "description": "An integer choice"
-                },
-                "title": "JSON Schema for pbcommand.task_options.delta",
-                "required": [
-                    "pbcommand.task_options.delta"
+                "name": "Delta",
+                "default": 1,
+                "choices": [
+                    1,
+                    2,
+                    3
                 ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.delta": {
-                        "default": 1,
-                        "type": "integer",
-                        "description": "An integer choice",
-                        "title": "Delta"
-                    }
-                }
+                "optionTypeId": "choice_integer",
+                "id": "pbcommand.task_options.delta",
+                "description": "An integer choice"
             },
             {
-                "pb_option": {
-                    "name": "Epsilon",
-                    "default": 0.1,
-                    "option_id": "pbcommand.task_options.epsilon",
-                    "choices": [
-                        0.01,
-                        0.1,
-                        1.0
-                    ],
-                    "optionTypeId": "pbsmrtpipe.option_types.choice_float",
-                    "type": "number",
-                    "description": "A float choice"
-                },
-                "title": "JSON Schema for pbcommand.task_options.epsilon",
-                "required": [
-                    "pbcommand.task_options.epsilon"
+                "name": "Epsilon",
+                "default": 0.1,
+                "choices": [
+                    0.01,
+                    0.1,
+                    1.0
                 ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.epsilon": {
-                        "default": 0.1,
-                        "type": "number",
-                        "description": "A float choice",
-                        "title": "Epsilon"
-                    }
-                }
+                "optionTypeId": "choice_float",
+                "id": "pbcommand.task_options.epsilon",
+                "description": "A float choice"
             },
             {
-                "pb_option": {
-                    "name": "Comments",
-                    "default": "asdf",
-                    "option_id": "pbcommand.task_options.comment",
-                    "choices": null,
-                    "optionTypeId": "pbsmrtpipe.option_types.string",
-                    "type": "string",
-                    "description": "A string parameter"
-                },
-                "title": "JSON Schema for pbcommand.task_options.comment",
-                "required": [
-                    "pbcommand.task_options.comment"
-                ],
-                "$schema": "http://json-schema.org/draft-04/schema#",
-                "type": "object",
-                "properties": {
-                    "pbcommand.task_options.comment": {
-                        "default": "asdf",
-                        "type": "string",
-                        "description": "A string parameter",
-                        "title": "Comments"
-                    }
-                }
+                "optionTypeId": "string",
+                "default": "asdf",
+                "id": "pbcommand.task_options.comment",
+                "name": "Comments",
+                "description": "A string parameter"
             }
         ],
         "output_types": [
@@ -207,7 +84,7 @@
                 "file_type_id": "PacBio.FileTypes.JsonReport"
             }
         ],
-        "_comment": "Created by v0.5.0",
+        "_comment": "Created by pbcommand 0.5.2",
         "name": "DevApp",
         "input_types": [
             {
@@ -220,5 +97,6 @@
         "nproc": 2,
         "is_distributed": false,
         "tool_contract_id": "pbcommand.tasks.dev_mixed_app"
-    }
+    },
+    "tool_contract_id": "pbcommand.tasks.dev_mixed_app"
 }

@@ -13,7 +13,7 @@ from pbcommand.models import (TaskTypes,
                               MalformedToolContractError,
                               MalformedResolvedToolContractError,
                               validate_tool_contract)
-
+from pbcommand.pb_io.common import pacbio_option_from_dict
 from pbcommand.models.tool_contract import (ToolDriver,
                                             ToolContractTask,
                                             ToolContract,
@@ -200,12 +200,17 @@ def load_resolved_tool_contract_from(path_or_d):
 
 @_json_path_or_d
 def __core_tool_contract_task_from(d):
-    def _to_a(x):
-        return x.encode('ascii', 'ignore')
+
+    if Constants.TOOL not in d:
+        raise MalformedResolvedToolContractError("Unable to find root key {k}. Keys {a}".format(k=Constants.TOOL, a=d.keys()))
+
+    def _to_a(x_):
+        return x_.encode('ascii', 'ignore')
 
     def _get(x_):
+        # Get a Subkey within
         if x_ not in d[Constants.TOOL]:
-            raise MalformedToolContractError("Unable to find key '{x}'".format(x=x_))
+            raise MalformedToolContractError("Unable to find subkey '{x}' within key '{i}'".format(x=x_, i=Constants.TOOL))
         return d[Constants.TOOL][x_]
 
     def _get_or(x_, default):
@@ -234,7 +239,9 @@ def __core_tool_contract_task_from(d):
 
     input_types = [_to_in_ft(x) for x in _get("input_types")]
     output_types = [_to_out_ft(x) for x in _get("output_types")]
-    tool_options = _get("schema_options")
+
+    tool_options = [pacbio_option_from_dict(opt_d) for opt_d in _get("schema_options")]
+
     nproc = _get("nproc")
     resource_types = _get("resource_types")
     return task_id, display_name, description, version, is_distributed, input_types, output_types, tool_options, nproc, resource_types
@@ -243,7 +250,8 @@ def __core_tool_contract_task_from(d):
 def __to_tc_from_d(d):
     def _wrapper(task):
         driver = __driver_from_d(d)
-        tc = ToolContract(task, driver)
+        schema_version = d.get("schema_version", "UNKNOWN")
+        tc = ToolContract(task, driver, schema_version)
         return tc
     return _wrapper
 
@@ -288,6 +296,12 @@ def _gather_tool_contract_from(path_or_d):
 @_json_path_or_d
 def tool_contract_from_d(d):
     """Load tool contract from dict"""
+
+    if Constants.TOOL not in d:
+        raise KeyError("Tool Contract must have {k}".format(k=Constants.TOOL))
+
+    if Constants.TOOL_ID not in d[Constants.TOOL]:
+        raise KeyError("Tool Contract must have {k}.{v}".format(k=Constants.TOOL, v=Constants.TOOL_ID))
 
     task_type = d[Constants.TOOL][Constants.TOOL_TYPE]
 

@@ -3,7 +3,6 @@ tox
 # Putting these here for RTD
 sphinx-argparse
 sphinx-bootstrap-theme
-jsonschema
 avro
 requests
 iso8601
