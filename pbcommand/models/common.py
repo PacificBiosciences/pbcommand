@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import types
 import warnings
 import functools
 import datetime
@@ -215,6 +216,15 @@ class FileType(object):
     __metaclass__ = _RegisteredFileType
 
     def __init__(self, file_type_id, base_name, ext, mime_type):
+        """
+        Core File Type data model
+
+        :param file_type_id: unique file string
+        :param base_name: default base name of the file (without extension)
+        :param ext: file extension
+        :param mime_type:  file mimetype
+        :return:
+        """
         self.file_type_id = file_type_id
         self.base_name = base_name
         self.ext = ext
@@ -225,6 +235,7 @@ class FileType(object):
 
     @property
     def default_name(self):
+        """ Default name of file alias for base_name"""
         return self.base_name # ".".join([self.base_name, self.ext])
 
     def __eq__(self, other):
@@ -593,6 +604,14 @@ class DataStoreViewRule(object):
     """
     def __init__(self, source_id, file_type_id, is_hidden, name="",
                  description=""):
+        """
+        :param source_id: Unique source id of the datastore file
+        :param file_type_id: File Type id of the datastore file
+        :param is_hidden: Mark the file has hidden
+        :param name: Display name of the file
+        :param description: Description of the file
+        """
+
         # for generating rules compositionally in Python, it's easier to just
         # pass the FileType object directly
         if isinstance(file_type_id, FileType):
@@ -669,22 +688,26 @@ validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
                                             'task option id')
 
 
-def _validate_type(instance, type_or_types):
-    if isinstance(instance, type_or_types):
-        return instance
-    else:
-        raise TypeError("Invalid option type: '{a}' provided, '{e}' "
-                        "expected".format(a=instance, e=type_or_types))
-
-
 class BasePacBioOption(object):
     # This is an abstract class. This really blurring the abstract with
     # implementation which makes the interface unclear.
 
     # This MUST be a validate TaskOptionTypes.* value.
     OPTION_TYPE_ID = "UNKNOWN"
-    # this is the base
-    CORE_TYPE = basestring
+
+    @classmethod
+    def validate_core_type(cls, value):
+        """
+        Every Option has a "core" type that needs to validated in the
+        constructor. The function should return the value
+
+        Subclasses should implement
+
+        :param value: Option value
+        :return: validated value
+        """
+
+        raise NotImplementedError
 
     def validate_option(self, value):
         """Core method used externally (e.g., resolvers) to validate option
@@ -694,23 +717,38 @@ class BasePacBioOption(object):
 
         Subclasses should override this to leverage internal state (e.g, self.choices)
         """
-        return _validate_type(value, self.CORE_TYPE)
-
-    @classmethod
-    def validate_core_type(cls, value):
-        # this a a simple initialization validation of the default value
-        return _validate_type(value, cls.CORE_TYPE)
+        return self.validate_core_type(value)
 
     def __init__(self, option_id, name, default, description):
+        """
+        Core constructor for the PacBio Task Option.
+
+        :param option_id: PacBio Task Option type id. Must adhere to the [A-z0-9_].
+        :param name: Display name of the Task Option
+        :param default: Default value
+        :param description: Description of the Task Option
+
+        :type option_id: str
+        :type name: str
+        :type description: str
+        """
         self.option_id = validate_task_option_id(option_id)
         self.name = name
-        self.default = self.validate_core_type(default)
+        self._default = self.validate_core_type(default)
         self.description = description
 
         # make sure subclasses have overwritten the OPTION_TYPE_ID.
         # this will raise
         if self.OPTION_TYPE_ID not in TaskOptionTypes.ALL():
-            raise ValueError("Subclasses of {c} must override OPTION_TYPE_ID to have a consistent value with TaskOptionTypes.*")
+            msg = "InValid Task Option type id {t} Subclasses of {c} must " \
+                  "override OPTION_TYPE_ID to have a consistent value with " \
+                  "TaskOptionTypes.*".format(t=self.OPTION_TYPE_ID, c=self.__class__.__name__)
+            raise ValueError(msg)
+
+    @property
+    def default(self):
+        """Returns the default value for the option"""
+        return self._default
 
     def __repr__(self):
         _d = dict(i=self.option_id,
@@ -731,61 +769,120 @@ class BasePacBioOption(object):
                     optionTypeId=option_type)
 
 
+def _type_error_msg(value, expected_type):
+    return "{v} Expected {t}, got {x}".format(v=value, t=expected_type, x=type(value))
+
+
+def _strict_validate_int_or_raise(value):
+
+    def _to_msg(type_):
+        return _type_error_msg(value, type_)
+
+    if isinstance(value, types.BooleanType):
+        raise TypeError(_to_msg(types.BooleanType))
+    elif isinstance(value, types.FloatType):
+        raise TypeError(_to_msg(types.FloatType))
+    elif isinstance(value, types.StringType):
+        raise TypeError(_to_msg(types.StringType))
+    else:
+        return int(value)
+
+
+def _strict_validate_bool_or_raise(value):
+    if isinstance(value, types.BooleanType):
+        return value
+    raise TypeError(_type_error_msg(value, types.BooleanType))
+
+
+def _strict_validate_float_or_raise(value):
+
+    def _to_msg(type_):
+        return _type_error_msg(value, type_)
+
+    if isinstance(value, types.BooleanType):
+        raise TypeError(_to_msg(types.BooleanType))
+    elif isinstance(value, types.StringType):
+        raise TypeError(_to_msg(types.StringType))
+    else:
+        return float(value)
+
+
+def _strict_validate_string_or_raise(value):
+    # Not supporting unicode in any way
+    if isinstance(value, str):
+        return value
+    raise TypeError(_type_error_msg(value, str))
+
+
 class PacBioIntOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.INT
-    CORE_TYPE = int
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_int_or_raise(value)
 
 
 class PacBioFloatOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.FLOAT
-    # Maybe this should be (int, float) to avoid casting?
-    CORE_TYPE = float
 
     @classmethod
     def validate_core_type(cls, value):
-        # Allow ints to be converted to floats
-        v = float(value) if isinstance(value, int) else value
-        return _validate_type(v, cls.CORE_TYPE)
+        return _strict_validate_float_or_raise(value)
 
 
 class PacBioBooleanOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.BOOL
-    CORE_TYPE = bool
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_bool_or_raise(value)
 
 
 class PacBioStringOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.STR
-    CORE_TYPE = basestring
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_string_or_raise(value)
 
 
-def _validate_choices_with_value(choices, value):
-    head = choices[0]
-    if type(head) != type(value):
-        raise TypeError("Incompatible choice and default value. Got type {t} ({s}) and choice type {x} ({y})".format(t=type(head), x=type(value), s=value, y=head))
-    if value not in choices:
-        raise ValueError("Default value {x} not in supplied choices {c}".format(x=value, c=choices))
+def _strict_validate_default_and_choices(core_type_validator_func):
+    """
 
-    return choices
+    :param core_type_validator_func: Function (value) => value or raises TypeError
+
+    Returns a func of (value, choices) => value, choices or raises TypeError
+    or Value Error.
+    """
+    def wrap(value, choices):
+        for choice in choices:
+            core_type_validator_func(choice)
+        v = core_type_validator_func(value)
+        if v not in choices:
+            raise ValueError("Default value {v} is not in allowed choices {c}".format(v=value, c=choices))
+        return v, choices
+    return wrap
+
+_strict_validate_int_choices = _strict_validate_default_and_choices(_strict_validate_int_or_raise)
+_strict_validate_str_choices = _strict_validate_default_and_choices(_strict_validate_string_or_raise)
+_strict_validate_bool_choices = _strict_validate_default_and_choices(_strict_validate_bool_or_raise)
+_strict_validate_float_choices = _strict_validate_default_and_choices(_strict_validate_float_or_raise)
 
 
 class BaseChoiceType(BasePacBioOption):
 
-    # Note, this is only the core type of the default value.
-    CORE_TYPE = basestring
-
     # This really should be Abstract
     def __init__(self, option_id, name, default, description, choices):
         super(BaseChoiceType, self).__init__(option_id, name, default, description)
-        self.choices = _validate_choices_with_value(choices, default)
+        _, validated_choices = self.validate_core_type_with_choices(default, choices)
+        self.choices = validated_choices
 
     @classmethod
-    def validator(cls, x):
-        return _validate_type(x, cls.CORE_TYPE)
+    def validate_core_type_with_choices(cls, value, choices):
+        raise NotImplementedError
 
     def validate_option(self, value):
-        v = _validate_type(value, self.CORE_TYPE)
-        v = _validate_type(value, self.CORE_TYPE)
-        _ = _validate_choices_with_value(self.choices, value)
+        v, _ = self.validate_core_type_with_choices(value, self.choices)
         return v
 
     def to_dict(self):
@@ -795,15 +892,36 @@ class BaseChoiceType(BasePacBioOption):
 
 
 class PacBioIntChoiceOption(BaseChoiceType):
-    CORE_TYPE = int
     OPTION_TYPE_ID = TaskOptionTypes.CHOICE_INT
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_int_or_raise(value)
+
+    @classmethod
+    def validate_core_type_with_choices(cls, value, choices):
+        return _strict_validate_int_choices(value, choices)
 
 
 class PacBioStringChoiceOption(BaseChoiceType):
-    CORE_TYPE = basestring
     OPTION_TYPE_ID = TaskOptionTypes.CHOICE_STR
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_string_or_raise(value)
+
+    @classmethod
+    def validate_core_type_with_choices(cls, value, choices):
+        return _strict_validate_str_choices(value, choices)
 
 
 class PacBioFloatChoiceOption(BaseChoiceType):
-    CORE_TYPE = float
     OPTION_TYPE_ID = TaskOptionTypes.CHOICE_FLOAT
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_float_or_raise(value)
+
+    @classmethod
+    def validate_core_type_with_choices(cls, value, choices):
+        return _strict_validate_float_choices(value, choices)

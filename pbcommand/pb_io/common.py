@@ -81,12 +81,12 @@ def _pacbio_choice_option_from_dict(d):
 
     k = klass_map[option_type_id]
 
-    opt = k(opt_id, name, default_value, desc, choices)
+    # Sanitize Unicode hack
+    if k is PacBioStringChoiceOption:
+        default_value = default_value.encode('ascii', 'ignore')
+        choices = [i.encode('ascii', 'ignore') for i in choices]
 
-    # This requires a hack for the unicode to ascii for string option type.
-    if isinstance(opt, PacBioStringChoiceOption):
-        opt.default = opt.default.encode('ascii', 'ignore')
-        opt.choices = [i.encode('ascii', 'ignore') for i in opt.choices]
+    opt = k(opt_id, name, default_value, desc, choices)
 
     return opt
 
@@ -101,12 +101,13 @@ def __simple_option_by_type(option_id, name, default, description, option_type_i
                  TaskOptionTypes.BOOL: PacBioBooleanOption}
 
     k = klass_map[option_type]
-    opt = k(option_id, name, default, description)
 
     # This requires a hack for the unicode to ascii for string option type.
-    if isinstance(opt, PacBioStringOption):
-        opt.default = opt.default.encode('ascii', 'ignore')
+    if k is PacBioStringOption:
+        # sanitize unicode
+        default = default.encode('ascii', 'ignore')
 
+    opt = k(option_id, name, default, description)
     return opt
 
 
