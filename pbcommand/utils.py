@@ -19,6 +19,7 @@ log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
 
 
 class Constants(object):
+    """Log Level format strings"""
     LOG_FMT_ONLY_MSG = '%(message)s'
     LOG_FMT_ERR = '%(message)s'
     LOG_FMT_LVL = '[%(levelname)s] %(message)s'
@@ -142,7 +143,7 @@ def _get_console_and_file_logging_config_dict(console_level, console_formatter, 
          'root': {'handlers': handlers.keys(), 'level': logging.DEBUG}
          }
 
-    #print pprint.pformat(d)
+    # print pprint.pformat(d)
     return d
 
 
@@ -175,13 +176,13 @@ def setup_log(alog,
               str_formatter=Constants.LOG_FMT_FULL):
     """Core Util to setup log handler
 
-    THIS NEEDS TO BE DEPRECATED
-
     :param alog: a log instance
     :param level: (int) Level of logging debug
     :param file_name: (str, None) if None, stdout is used, str write to file
     :param log_filter: (LogFilter, None)
     :param str_formatter: (str) log formatting str
+
+    .. warning:: THIS NEEDS TO BE DEPRECATED
     """
     setup_logger(file_name, level, formatter=str_formatter)
 
@@ -229,13 +230,15 @@ def log_traceback(alog, ex, ex_traceback):
 
     Example Usage (assuming you have a log instance in your scope)
 
-    try:
-        1 / 0
-    except Exception as e:
-        msg = "{i} failed validation. {e}".format(i=item, e=e)
-        log.error(msg)
-        _, _, ex_traceback = sys.exc_info()
-        log_traceback(log, e, ex_traceback)
+    :Example:
+
+    >>> try:
+    >>>    1 / 0
+    >>> except Exception as e:
+    >>>    msg = "{i} failed validation. {e}".format(i=item, e=e)
+    >>>    log.error(msg)
+    >>>    _, _, ex_traceback = sys.exc_info()
+    >>>    log_traceback(log, e, ex_traceback)
 
     """
 
@@ -274,11 +277,15 @@ def compose(*funcs):
 
     [f, g, h] will be f(g(h(x)))
 
-    fx = compose(f, g, h)
+    :Example:
 
-    or
-
-    fx = compose(*[f, g, h])
+    >>> f = lambda x: x * x
+    >>> g = lambda x: x + 1
+    >>> h = lambda x: x * 2
+    >>> funcs = [f, g, h]
+    >>> fgh = compose(*funcs)
+    >>> fgh(3) # 49
+    >>> compose(f, g, h)(3)
 
     """
     if not funcs:
@@ -299,9 +306,12 @@ def compose(*funcs):
 
 
 def which(exe_str):
-    """walk the exe_str in PATH to get current exe_str.
+    """walk the current PATH for exe_str to get the absolute path of the exe
 
-    If path is found, the full path is returned. Else it returns None.
+    :param exe_str: Executable name
+
+    :rtype: str | None
+    :returns Absolute path to the executable or None if the exe is not found
     """
     paths = os.environ.get('PATH', None)
     resolved_exe = None
@@ -324,6 +334,7 @@ def which(exe_str):
 
 
 def which_or_raise(cmd):
+    """Find exe in path or raise ExternalCommandNotFoundError"""
     resolved_cmd = which(cmd)
     if resolved_cmd is None:
         raise ExternalCommandNotFoundError("Unable to find required cmd '{c}'".format(c=cmd))
@@ -432,10 +443,12 @@ def ignored(*exceptions):
 
 def get_dataset_metadata(path):
     """
-    Returns DataSetMeta data or raises ValueError, KeyError
+    Returns DataSetMeta data or raises ValueError if dataset XML is missing
+    the required UniqueId and MetaType values.
 
-    :param path:
-    :return:
+    :param path: Path to DataSet XML
+    :raises: ValueError
+    :return: DataSetMetaData
     """
     uuid = mt = None
     for event, element in ET.iterparse(path, events=("start",)):
@@ -450,10 +463,11 @@ def get_dataset_metadata(path):
 
 def get_dataset_metadata_or_none(path):
     """
-    Returns DataSetMeta data, else None
+    Returns DataSetMeta data, else None if the file doesn't exist or a
+    processing of the XML raises.
 
-    :param path:
-    :return:
+    :param path: Path to DataSet XML
+    :return: DataSetMetaData or None
     """
     try:
         return get_dataset_metadata(path)
@@ -462,12 +476,19 @@ def get_dataset_metadata_or_none(path):
 
 
 def is_dataset(path):
-    """peek into the XML to get the MetaType"""
+    """peek into the XML to get the MetaType and verify that it's a valid dataset
+
+    :param path: Path to DataSet XML
+    """
     return get_dataset_metadata_or_none(path) is not None
 
 
 def walker(root_dir, file_filter_func):
-    """Filter files F(path) -> bool"""
+    """
+    Walk the file sytem and filter by the supplied filter function.
+
+    Filter function F(path) -> bool
+    """
     for root, dnames, fnames in os.walk(root_dir):
         for fname in fnames:
             path = os.path.join(root, fname)

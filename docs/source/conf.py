@@ -59,7 +59,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pbcommand'
-copyright = u'2015-2016, Michael Kocher'
+copyright = u'2015-2017, Michael Kocher'
 author = u'Michael Kocher'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -297,3 +297,5 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+autoclass_content = 'both'

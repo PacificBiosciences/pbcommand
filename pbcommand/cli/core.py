@@ -192,11 +192,11 @@ def pacbio_args_or_contract_runner(argv,
 
     :param args_runner_func: func(args) => int signature
 
-    :param contract_tool_runner_func: func(tool_contract_instance) should be
-    the signature
+    :param contract_tool_runner_func: func(tool_contract_instance) should be the signature
 
     :param alog: a python log instance
     :param setup_log_func: func(log_instance) => void signature
+
     :return: int return code
     :rtype: int
     """

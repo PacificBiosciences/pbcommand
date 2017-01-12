@@ -92,6 +92,7 @@ class TaskOptionTypes(object):
 
     @classmethod
     def ALL(cls):
+        """Return a set of all Task Option Types"""
         return {cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE_STR,
                 cls.CHOICE_INT, cls.CHOICE_FLOAT}
 
@@ -104,10 +105,15 @@ class TaskOptionTypes(object):
 
     @classmethod
     def ALL_SIMPLE(cls):
+        """Returns a set of 'simple' task option types (e.g., boolean, string, int, float)"""
         return {cls.STR, cls.BOOL, cls.INT, cls.FLOAT}
 
     @classmethod
     def from_simple_str(cls, sx):
+        """Validates a string is a validate task option type id or raise ValueError
+
+        :raises ValueError
+        """
         if sx in cls.ALL_SIMPLE():
             return sx
         else:
@@ -115,6 +121,7 @@ class TaskOptionTypes(object):
 
     @classmethod
     def ALL_CHOICES(cls):
+        """Returns a set of choice task option types"""
         return {cls.CHOICE_INT, cls.CHOICE_FLOAT, cls.CHOICE_STR}
 
     @classmethod
@@ -123,6 +130,7 @@ class TaskOptionTypes(object):
 
     @classmethod
     def from_choice_str(cls, sx):
+        """Validates and returns a task choice option type or raises ValueError"""
         if sx in cls.ALL_CHOICES():
             return sx
         else:
@@ -130,7 +138,10 @@ class TaskOptionTypes(object):
 
     @classmethod
     def from_str(cls, sx):
-        """ Convert and raise if not a valid str value"""
+        """Validates and returns a valid type option type id or raises ValueError,
+
+        :note: For legacy reasons, "number" will be mapped to "float"
+        """
         # FIXME, Legacy fix, "number" appears to mean "float"?
         if sx == "number":
             sx = TaskOptionTypes.FLOAT
@@ -142,9 +153,10 @@ class TaskOptionTypes(object):
 
 
 class SymbolTypes(object):
-
-    """*Symbols* that are understood during resolving, such as max number of
-    processors, Max Chunks"""
+    """
+    *Symbols* that are understood during resolving, such as max number of
+    processors, Max Chunks. Used when defining a Tool Contract
+    """
     MAX_NPROC = '$max_nproc'
     MAX_NCHUNKS = '$max_nchunks'
     TASK_TYPE = '$task_type'
@@ -156,15 +168,17 @@ class SymbolTypes(object):
 
 
 class ResourceTypes(object):
-
-    """Resources such as tmp dirs and files, log files"""
+    """
+    Resources such as tmp dirs and files, log files. Used when defining
+    a Tool Contract
+    """
     TMP_DIR = '$tmpdir'
     TMP_FILE = '$tmpfile'
     LOG_FILE = '$logfile'
     # tasks can write output to this directory
     OUTPUT_DIR = '$outputdir'
     # Not sure this is a good idea
-    #TASK_DIR = '$taskdir'
+    # TASK_DIR = '$taskdir'
 
     @classmethod
     def ALL(cls):
@@ -262,6 +276,7 @@ class DataSetFileType(FileType):
 
 
 class MimeTypes(object):
+    """Supported Mime types"""
     JSON = 'application/json'
     TXT = 'text/plain'
     CSV = 'text/csv'
@@ -419,6 +434,18 @@ class DataStoreFile(object):
 
     def __init__(self, uuid, source_id, type_id, path, is_chunked=False,
                  name="", description=""):
+        """
+
+        :param uuid: UUID of the datstore file
+        :param source_id: source id of the DataStore file
+        :param type_id: File Type id of
+        :param path: Absolute path to the datastore file
+        :param is_chunked: is the datastore file a "chunked" file from a scatter/chunking task
+        :param name: Display name of datastore file
+        :param description: Description of the datastore file
+
+        """
+
         # adding this for consistency. In the scala code, the unique id must be
         # a uuid format
         self.uuid = uuid
@@ -480,6 +507,8 @@ class DataStore(object):
 
     def __init__(self, ds_files, created_at=None):
         """
+        :param ds_files: list of datastore file instances
+        :param created_at: Date the datastore was created. if None, will use the current datetime
 
         :type ds_files: list[DataStoreFile]
         """
@@ -514,11 +543,13 @@ class DataStore(object):
 
     @staticmethod
     def load_from_d(d):
+        """Load DataStore from a dict"""
         ds_files = [DataStoreFile.from_dict(x) for x in d['files']]
         return DataStore(ds_files)
 
     @staticmethod
     def load_from_json(path):
+        """Load DataStore from a JSON file"""
         with open(path, 'r') as reader:
             d = json.loads(reader.read())
         return DataStore.load_from_d(d)
@@ -723,7 +754,7 @@ class BasePacBioOption(object):
         """
         Core constructor for the PacBio Task Option.
 
-        :param option_id: PacBio Task Option type id. Must adhere to the [A-z0-9_].
+        :param option_id: PacBio Task Option type id. Must adhere to the A-z0-9_
         :param name: Display name of the Task Option
         :param default: Default value
         :param description: Description of the Task Option
