@@ -15,6 +15,7 @@ Contents:
    advanced_task_types
    services
    report_model
+   api
 
 
 Indices and tables:
