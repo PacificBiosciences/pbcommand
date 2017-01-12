@@ -45,7 +45,7 @@
     {
       "id": "pbsmrtpipe.task_options.b",
       "value": 1,
-      "optionTypeId": "choice_int"
+      "optionTypeId": "choice_integer"
     },
     {
       "id": "pbsmrtpipe.task_options.c",
