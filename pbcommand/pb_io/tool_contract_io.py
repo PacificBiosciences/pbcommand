@@ -325,11 +325,21 @@ def load_tool_contract_from(path_or_d):
 # XXX this could probably be more robust
 @_json_path_or_d
 def load_pipeline_presets_from(d):
-    """Load pipeline presets from dict"""
+    """
+    Load pipeline presets from dictionary.  This expects a schema where the
+    options are arrays of type (id,value,optionTypeId), but it will also accept
+    a shorthand where the options are dictionaries.
+    """
     validate_presets(d)
+    options = d['options']
+    if isinstance(options, list):
+        options = {o['id']:o['value'] for o in options}
+    taskOptions = d['taskOptions']
+    if isinstance(taskOptions, list):
+        taskOptions = {o['id']:o['value'] for o in taskOptions}
     presets = PipelinePreset(
-        options=d['options'],
-        task_options=d['taskOptions'],
+        options=options,
+        task_options=taskOptions,
         pipeline_id=d['pipelineId'],
         preset_id=d['presetId'],
         name=d['name'],
