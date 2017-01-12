@@ -2,8 +2,6 @@
   "_comment": "Resolved Pipeline Template Preset JSON format (with types)",
   "pipelineId": "pbsmrtpipe.pipelines.dev_a",
   "presetId": "pbsmrtpipe.pipeline_preset.settings_01",
-  "name": "Pipeline Template Preset Name",
-  "description": "Description of preset is required",
   "options": [
     {
       "id": "pbsmrtpipe.options.max_nchunks",

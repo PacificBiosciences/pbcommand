@@ -16,13 +16,14 @@
     },
     {
       "name": "name",
-      "type": "string",
+      "type": ["string", "null"],
       "doc": "Plain-English name of the task option as it will appear in UI"
     },
     {
       "name": "description",
-      "type": "string",
-      "doc": "More detailed description of the task option as it will appear in UI"
+      "type": ["string", "null"],
+      "doc": "More detailed description of the task option as it will appear in UI",  
+      "default": null
     },
     {
       "name": "options",

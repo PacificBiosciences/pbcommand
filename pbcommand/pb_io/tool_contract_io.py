@@ -342,8 +342,8 @@ def load_pipeline_presets_from(d):
         task_options=taskOptions,
         pipeline_id=d['pipelineId'],
         preset_id=d['presetId'],
-        name=d['name'],
-        description=d['description'])
+        name=d.get('name', None),
+        description=d.get('description', None))
     return presets
 
 
