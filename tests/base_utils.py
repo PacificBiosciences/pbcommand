@@ -31,3 +31,7 @@ def get_tool_contract_v1(name):
 
 def get_resolved_tool_contract(name):
     return os.path.join(DATA_DIR_RTC, name)
+
+
+def get_pipeline_preset(name):
+    return os.path.join(DATA_DIR_PRESETS, name)

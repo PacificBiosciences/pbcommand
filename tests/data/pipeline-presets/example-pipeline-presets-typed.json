@@ -1,0 +1,54 @@
+{
+  "_comment": "Resolved Pipeline Template Preset JSON format (with types)",
+  "pipelineId": "pbsmrtpipe.pipelines.dev_a",
+  "presetId": "pbsmrtpipe.pipeline_preset.settings_01",
+  "options": [
+    {
+      "id": "pbsmrtpipe.options.max_nchunks",
+      "value": 10,
+      "optionTypeId": "integer"
+    },
+    {
+      "id": "pbsmrtpipe.options.chunk_mode",
+      "value": true,
+      "optionTypeId": "boolean"
+    }
+  ],
+  "taskOptions": [
+    {
+      "id": "pbsmrtpipe.task_options.alpha",
+      "value": "Hello world",
+      "optionTypeId": "string"
+    },
+    {
+      "id": "pbsmrtpipe.task_options.beta",
+      "value": false,
+      "optionTypeId": "boolean"
+    },
+    {
+      "id": "pbsmrtpipe.task_options.gamma",
+      "value":987654,
+      "optionTypeId": "integer"
+    },
+    {
+      "id": "pbsmrtpipe.task_options.delta",
+      "value": 3.14,
+      "optionTypeId": "float"
+    },
+    {
+      "id": "pbsmrtpipe.task_options.a",
+      "value": "C",
+      "optionTypeId": "choice_string"
+    },
+    {
+      "id": "pbsmrtpipe.task_options.b",
+      "value": 1,
+      "optionTypeId": "choice_integer"
+    },
+    {
+      "id": "pbsmrtpipe.task_options.c",
+      "value": 0.01,
+      "optionTypeId": "choice_float"
+    }
+  ]
+}

@@ -16,28 +16,67 @@
     },
     {
       "name": "name",
-      "type": "string",
+      "type": ["string", "null"],
       "doc": "Plain-English name of the task option as it will appear in UI"
     },
     {
       "name": "description",
-      "type": "string",
-      "doc": "More detailed description of the task option as it will appear in UI"
+      "type": ["string", "null"],
+      "doc": "More detailed description of the task option as it will appear in UI",  
+      "default": null
     },
     {
-      "doc": "Workflow level options. See the pbsmrtpipe docs for details",
       "name": "options",
       "type": {
-        "type": "map",
-        "values": ["long", "boolean", "string", "int", "double"]
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "WorkflowOption",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "doc": "Workflow option ID"
+            },
+            {
+              "name": "value",
+              "type": ["long", "boolean", "string", "int", "double"],
+              "doc": "Value"
+            },
+            {
+              "name": "optionTypeId",
+              "type": "string",
+              "doc": "Option type ID e.g. integer or string"
+            }
+          ]
+        }
       }
     },
     {
-      "doc": "Task level options. Please see the pipeline of interest to get a list of available task options using `pbsmrtpipe show-template-details <my-pipeline-id>`",
       "name": "taskOptions",
       "type": {
-        "type": "map",
-        "values": ["long", "boolean", "string", "int", "double"]
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "TaskOption",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "doc": "Task option ID"
+            },
+            {
+              "name": "value",
+              "type": ["long", "boolean", "string", "int", "double"],
+              "doc": "Value"
+            },
+            {
+              "name": "optionTypeId",
+              "type": "string",
+              "doc": "Option type ID e.g. integer or string"
+            }
+          ]
+        }
       }
     }
   ]

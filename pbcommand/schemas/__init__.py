@@ -27,6 +27,7 @@ RTC_SCHEMA = _load_schema("resolved_tool_contract", "resolved_tool_contract.avsc
 PBREPORT_SCHEMA = _load_schema("pbreport", "pbreport.avsc")
 TC_SCHEMA = _load_schema("tool_contract", "tool_contract.avsc")
 PRESET_SCHEMA = _load_schema("pipeline_presets", "pipeline_presets.avsc")
+PRESET_SCHEMA2 = _load_schema("pipeline_presets_simple", "pipeline_presets_simple.avsc")
 DS_VIEW_SCHEMA = _load_schema("datastore_view_rules", "datastore_view_rules.avsc")
 REPORT_SPEC_SCHEMA = _load_schema("report_spec", "report_spec.avsc")
 
@@ -50,6 +51,12 @@ validate_tc = functools.partial(_validate, TC_SCHEMA, "Tool Contract Model")
 validate_presets = functools.partial(_validate, PRESET_SCHEMA, "Pipeline Presets Model")
 validate_datastore_view_rules = functools.partial(_validate, DS_VIEW_SCHEMA, "Pipeline DataStore View Rules")
 validate_report_spec = functools.partial(_validate, REPORT_SPEC_SCHEMA, "Report Specification Model")
+
+def validate_presets(d):
+    if not isinstance(d.get("options"), dict):
+        return _validate(PRESET_SCHEMA, "Pipeline Presets Model", d)
+    else:
+        return _validate(PRESET_SCHEMA2, "Pipeline Presets Model (Simplified)", d)
 
 is_valid_rtc = functools.partial(_is_valid, RTC_SCHEMA)
 is_valid_report = functools.partial(_is_valid, PBREPORT_SCHEMA)

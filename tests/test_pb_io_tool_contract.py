@@ -2,13 +2,14 @@ import unittest
 import logging
 
 from base_utils import get_temp_file, get_temp_dir
-from base_utils import get_tool_contract, get_resolved_tool_contract
+from base_utils import get_tool_contract, get_resolved_tool_contract, get_pipeline_preset
 
 from pbcommand.models import (ToolContract,
                               ResolvedToolContract,
                               MalformedToolContractError)
 
 from pbcommand.pb_io.tool_contract_io import (load_tool_contract_from,
+                                              load_pipeline_presets_from,
                                               load_resolved_tool_contract_from,
                                               write_resolved_tool_contract_avro)
 
@@ -49,3 +50,17 @@ class TestWriteResolvedToolContractAvro(unittest.TestCase):
         d = get_temp_dir("rtc-app")
         f = get_temp_file("-resolved-tool-contract.avro", d)
         write_resolved_tool_contract_avro(rtc, f)
+
+
+class TestLoadPipelinePresets(unittest.TestCase):
+    def test_full_schema(self):
+        file_name = "example-pipeline-presets-typed.json"
+        p = load_pipeline_presets_from(get_pipeline_preset(file_name))
+        self.assertEqual(len(p.options), 2)
+        self.assertEqual(len(p.task_options), 7)
+
+    def test_shorthand_options(self):
+        file_name = "example-pipeline-presets.json"
+        p = load_pipeline_presets_from(get_pipeline_preset(file_name))
+        self.assertEqual(len(p.options), 2)
+        self.assertEqual(len(p.task_options), 4)
