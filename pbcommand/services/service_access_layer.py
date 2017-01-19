@@ -24,6 +24,8 @@ from .models import (SMRTServiceBaseError,
 from .utils import to_ascii, to_sal_summary
 
 log = logging.getLogger(__name__)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 #log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
 
 
