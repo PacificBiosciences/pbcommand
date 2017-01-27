@@ -17,7 +17,7 @@ clean:
 	find . -name "*.err" | xargs rm -f;\
 	find . -name "*.log" | xargs rm -f;\
 	rm -rf dist;\
-	rm -rf docs/_build
+	rm -rf docs/build
 
 test:
 	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py
