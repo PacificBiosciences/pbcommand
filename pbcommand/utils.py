@@ -232,10 +232,11 @@ def log_traceback(alog, ex, ex_traceback):
 
     :Example:
 
+    >>> value = 0
     >>> try:
-    >>>    1 / 0
+    >>>    1 / value
     >>> except Exception as e:
-    >>>    msg = "{i} failed validation. {e}".format(i=item, e=e)
+    >>>    msg = "{i} failed validation. {e}".format(i=value, e=e)
     >>>    log.error(msg)
     >>>    _, _, ex_traceback = sys.exc_info()
     >>>    log_traceback(log, e, ex_traceback)
@@ -494,3 +495,8 @@ def walker(root_dir, file_filter_func):
             path = os.path.join(root, fname)
             if file_filter_func(path):
                 yield path
+
+
+def to_ascii(s):
+    # This is not awesome
+    return s.encode('ascii', 'ignore')
