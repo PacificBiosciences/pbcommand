@@ -2,11 +2,8 @@
 from collections import defaultdict
 
 from .models import ServiceJob, JobStates, JobTypes
-
-
-def to_ascii(s):
-    # This is not awesome
-    return s.encode('ascii', 'ignore')
+# for backward compatibility
+from pbcommand.utils import to_ascii
 
 
 def _jobs_by_state_gen(sal, job_states):
@@ -95,7 +92,10 @@ def to_all_datasets_summary(sal, sep="****"):
 
 
 def to_sal_summary(sal):
-    """:type sal: ServiceAccessLayer"""
+    """
+    :type sal: ServiceAccessLayer
+    :rtype: str
+    """
 
     status = sal.get_status()
     outs = []

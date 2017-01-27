@@ -7,9 +7,9 @@ import iso8601
 
 from requests.exceptions import RequestException
 
+from pbcommand.utils import to_ascii
 
-def to_ascii(s):
-    return s.encode('ascii', 'ignore')
+__all__ = ['ServiceJob', 'ServiceEntryPoint', 'JobEntryPoint', 'JobStates', 'JobTypes']
 
 
 # This are mirrored from the BaseSMRTServer
@@ -39,15 +39,96 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
                                     "Secondary Analysis Pbsmrtpipe Job logger")
 
 
-class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type created_at settings')):
+class ServiceJob(object):
+    def __init__(self, ix, job_uuid, name, state, path, job_type, created_at,
+                 settings, is_active=True, smrtlink_version=None,
+                 created_by=None, updated_at=None, error_message=None):
+        """
+
+        :param ix: Job Integer Id
+        :param job_uuid: Globally unique Job UUID
+        :param name:  Display name of job
+        :param state:  Job State
+        :param path: Absolute Path to the job directory
+        :param job_type:  Job Type
+        :param created_at: when the job was created at
+        :param settings: dict of job specific settings
+        :param is_active:  If the Job is active (only active jobs are displayed in the SL UI)
+        :param smrtlink_version: SMRT Link Version (if known)
+        :param created_by: User that created the job
+        :param updated_at: when the last update of the job occurred
+        :param error_message: Error message if the job has failed
+
+        :type ix: int
+        :type job_uuid: str
+        :type name: str
+        :type state: str
+        :type job_type: str
+        :type created_at: DateTime
+        :type updated_at: DateTime | None
+        :type settings: dict
+        :type is_active: bool
+        :type smrtlink_version: str | None
+        :type created_by: str | None
+        :type error_message: str | None
+        """
+        self.id = int(ix)
+        # validation
+        _ = uuid.UUID(job_uuid)
+        self.uuid = job_uuid
+        self.name = name
+        self.state = state
+        self.path = path
+        self.job_type = job_type
+        self.created_at = created_at
+        self.settings = settings
+        self.is_active = is_active
+        self.smrtlink_version = smrtlink_version
+        self.created_by = created_by
+        # Is this Option[T] or T?
+        self.updated_at = updated_at
+        self.error_message = error_message
+
+    def __repr__(self):
+        # truncate the name to avoid having a useless repr
+        max_length = 15
+        if len(self.name) >= max_length:
+            name = self.name[:max_length] + "..."
+        else:
+            name = self.name
+
+        created_by = "Unknown" if self.created_by is None else self.created_by
+
+        ix = str(self.id).rjust(5)
+        state = self.state.rjust(11)
+        # simpler format
+        created_at = self.created_at.strftime("%m-%d-%Y %I:%M.%S")
+        _d = dict(k=self.__class__.__name__,
+                  i=ix,
+                  n=name,
+                  c=created_at,
+                  u=self.uuid,
+                  s=state, b=created_by)
+
+        return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} >".format(**_d)
 
     @staticmethod
     def from_d(d):
+        """Convert from Service JSON response to `ServiceJob` instance"""
+
         def sx(x):
             return d[x]
 
+        def s_or(x, default=None):
+            return d.get(x, default)
+
+        # Convert to string key value to ascii
         def se(x):
-            return sx(x).encode('ascii', 'ignore')
+            return to_ascii(sx(x))
+
+        def se_or(x, default=None):
+            v = s_or(x, default=default)
+            return v if v is None else to_ascii(v)
 
         def to_t(x):
             return iso8601.parse_date(se(x))
@@ -56,10 +137,35 @@ class ServiceJob(namedtuple("ServiceJob", 'id uuid name state path job_type crea
             # the "jsonSettings" are a string for some stupid reason
             return json.loads(sx(x))
 
-        return ServiceJob(sx('id'), sx('uuid'), se('name'), se('state'),
-                          se('path'), se('jobTypeId'), to_t('createdAt'), to_d('jsonSettings'))
+        def to_opt_datetime(k):
+            x = s_or(k)
+            return iso8601.parse_date(x) if x is not None else None
+
+        ix = int(sx('id'))
+        job_uuid = sx('uuid')
+        name = se('name')
+        state = se('state')
+        path = se('path')
+        job_type = se('jobTypeId')
+        created_at = to_t('createdAt')
+        updated_at = to_opt_datetime('updatedAt')
+
+        smrtlink_version = se_or("smrtlinkVersion")
+        error_message = se_or("errorMessage")
+        created_by = se_or("createdBy")
+        is_active = d.get('isActive', True)
+        settings = to_d('jsonSettings')
+
+        return ServiceJob(ix, job_uuid, name, state, path, job_type,
+                          created_at,
+                          settings, is_active=is_active,
+                          smrtlink_version=smrtlink_version,
+                          created_by=created_by,
+                          updated_at=updated_at,
+                          error_message=error_message)
 
     def was_successful(self):
+        """ :rtype: bool """
         return self.state == JobStates.SUCCESSFUL
 
 
@@ -85,6 +191,7 @@ class SMRTServiceBaseError(Exception):
 
     @staticmethod
     def from_d(d):
+        """Convert from SMRT Link Service Error JSON response to `SMRTServiceBaseError` instance"""
         return SMRTServiceBaseError(d['httpCode'], d['errorType'], d['message'])
 
 
@@ -113,13 +220,17 @@ class ServiceEntryPoint(object):
 
     @property
     def resource(self):
+        """Backwards compatible with path_or_uri"""
         return self._resource
 
     def __repr__(self):
-        return "<{k} {e} {d} {r} >".format(k=self.__class__.__name__, e=self.entry_id, r=self._resource, d=self.dataset_type)
+        _d = dict(k=self.__class__.__name__, e=self.entry_id,
+                  r=self._resource, d=self.dataset_type)
+        return "<{k} {e} {d} {r} >".format(**_d)
 
     @staticmethod
     def from_d(d):
+        """Convert from Service JSON response to `ServiceEntryPoint` instance"""
         i = _to_resource_id(d['datasetId'])
         return ServiceEntryPoint(to_ascii(d['entryId']), to_ascii(d['fileTypeId']), i)
 
@@ -133,10 +244,12 @@ class JobEntryPoint(namedtuple("JobEntryPoint", "job_id dataset_uuid dataset_met
     """ Returned from the Services /job/1234/entry-points """
     @staticmethod
     def from_d(d):
+        """Convert from Service JSON response to `JobEntryPoint` instance"""
         return JobEntryPoint(d['jobId'], d['datasetUUID'], d['datasetType'])
 
 
 class JobStates(object):
+    """Allowed SMRT Link Service Job states"""
     CREATED = "CREATED"
     SUBMITTED = "SUBMITTED"
     RUNNING = "RUNNING"
@@ -150,6 +263,7 @@ class JobStates(object):
 
 
 class JobTypes(object):
+    """SMRT Link Analysis JOb Types"""
     IMPORT_DS = "import-dataset"
     IMPORT_DSTORE = "import-datastore"
     MERGE_DS = "merge-datasets"
@@ -159,6 +273,7 @@ class JobTypes(object):
 
     @classmethod
     def ALL(cls):
+        """ALL allowed SL Analysis Job Types"""
         return (cls.IMPORT_DS, cls.IMPORT_DSTORE, cls.MERGE_DS,
                 cls.PB_PIPE, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
 

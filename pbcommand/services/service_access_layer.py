@@ -6,6 +6,7 @@ import json
 import logging
 import pprint
 import time
+import datetime
 
 import requests
 from requests import RequestException
@@ -14,43 +15,52 @@ from pbcommand.models import (FileTypes,
                               DataSetFileType,
                               DataStore,
                               DataStoreFile)
-from pbcommand.utils import get_dataset_metadata
+from pbcommand.utils import get_dataset_metadata, to_ascii
 
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,
-                     LogLevels, ServiceEntryPoint,
                      ServiceResourceTypes, ServiceJob, JobEntryPoint)
 
-from .utils import to_ascii, to_sal_summary
+from .utils import to_sal_summary
 
 log = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-#log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
+# log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
+
+# Everything else is considered a non-public
+__all__ = ['ServiceAccessLayer']
 
 
 class Constants(object):
     HEADERS = {'Content-type': 'application/json'}
 
 
-def _post_requests(headers):
+def __jsonable_request(request_method, headers):
     def wrapper(url, d_):
         data = json.dumps(d_)
-        return requests.post(url, data=data, headers=headers)
-
+        return request_method(url, data=data, headers=headers)
     return wrapper
+
+
+def _post_requests(headers):
+    return __jsonable_request(requests.post, headers)
+
+
+def _put_requests(headers):
+    return __jsonable_request(requests.put, headers)
 
 
 def _get_requests(headers):
     def wrapper(url):
         return requests.get(url, headers=headers)
-
     return wrapper
 
 # These are exposed publicly as a utility, but shouldn't be used in any API
 # call. The _process_* are the entry points for API calls to make sure an
 # errors are handled correctly.
 rqpost = _post_requests(Constants.HEADERS)
+rqput = _put_requests(Constants.HEADERS)
 rqget = _get_requests(Constants.HEADERS)
 
 
@@ -95,7 +105,9 @@ def _process_rget_with_transform(func, ignore_errors=False):
 def _process_rget_with_jobs_transform(total_url, ignore_errors=False):
     # defining an internal method, because this used in several places
     jobs_d = _process_rget(total_url, ignore_errors=ignore_errors)
-    return [ServiceJob.from_d(job_d) for job_d in jobs_d]
+    # Sort by Id desc so newer jobs show up first
+    jobs = [ServiceJob.from_d(job_d) for job_d in jobs_d]
+    return sorted(jobs, key=lambda x: x.id, reverse=True)
 
 
 def _process_rget_or_none(func, ignore_errors=False):
@@ -121,17 +133,22 @@ def _process_rget_with_job_transform_or_none(total_url):
     return _process_rget_or_none(ServiceJob.from_d)(total_url)
 
 
-def _process_rpost(total_url, payload_d):
-    r = rqpost(total_url, payload_d)
-    _parse_base_service_error(r)
-    # FIXME This should be strict to only return a 201
-    if r.status_code not in (200, 201):
-        log.error("Failed ({s} to call {u}".format(u=total_url, s=r.status_code))
-        log.error("payload")
-        log.error("\n" + pprint.pformat(payload_d))
-    r.raise_for_status()
-    j = r.json()
-    return j
+def __process_creatable_to_json(f):
+    def wrapper(total_url, payload_d):
+        r = f(total_url, payload_d)
+        _parse_base_service_error(r)
+        # FIXME This should be strict to only return a 201
+        if r.status_code not in (200, 201, 202, 204):
+            log.error("Failed ({s} to call {u}".format(u=total_url, s=r.status_code))
+            log.error("payload")
+            log.error("\n" + pprint.pformat(payload_d))
+        r.raise_for_status()
+        j = r.json()
+        return j
+    return wrapper
+
+_process_rpost = __process_creatable_to_json(rqpost)
+_process_rput = __process_creatable_to_json(rqput)
 
 
 def _process_rpost_with_transform(func):
@@ -304,7 +321,10 @@ def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_fun
 
 
 class ServiceAccessLayer(object):
-    """General Access Layer for interfacing with the job types on Secondary SMRT Server"""
+    """
+    General Client Access Layer for interfacing with the job types on
+    SMRT Link Analysis Services
+    """
 
     ROOT_JM = "/secondary-analysis/job-manager"
     ROOT_JOBS = ROOT_JM + "/jobs"
@@ -315,6 +335,13 @@ class ServiceAccessLayer(object):
     JOB_DEFAULT_TIMEOUT = 60 * 30
 
     def __init__(self, base_url, port, debug=False, sleep_time=2):
+        """
+
+        :param base_url: base url of the SL Server (e.g, smrtlink-alpha, or http://smrtlink-alpha)
+        :param port: port of the SL server
+        :param debug: set improved debugging output on Services request failures
+        :param sleep_time: sleep time (in seconds) between polling for job status
+        """
         self.base_url = _to_host(base_url)
         self.port = port
         # This will display verbose details with respect to the failed request
@@ -332,10 +359,19 @@ class ServiceAccessLayer(object):
         return "<{k} {u} >".format(k=self.__class__.__name__, u=self.uri)
 
     def to_summary(self):
+        """
+        Returns a summary of System status, DataSets, and Jobs in the system
+
+        :rtype: str
+        """
         return to_sal_summary(self)
 
     def get_status(self):
-        """Get status of the server"""
+        """Get status of the server
+
+        :rtype: dict
+        """
+        # This should be converted to a concrete typed object
         return _process_rget(_to_url(self.uri, "/status"))
 
     def get_job_by_type_and_id(self, job_type, job_id):
@@ -359,15 +395,19 @@ class ServiceAccessLayer(object):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
 
     def get_analysis_jobs(self):
+        """:rtype: list[ServiceJob]"""
         return self._get_jobs_by_job_type(JobTypes.PB_PIPE)
 
     def get_import_dataset_jobs(self):
+        """:rtype: list[ServiceJob]"""
         return self._get_jobs_by_job_type(JobTypes.IMPORT_DS)
 
     def get_merge_dataset_jobs(self):
+        """:rtype: list[ServiceJob]"""
         return self._get_jobs_by_job_type(JobTypes.MERGE_DS)
 
     def get_fasta_convert_jobs(self):
+        """:rtype: list[ServiceJob]"""
         self._get_jobs_by_job_type(JobTypes.CONVERT_FASTA)
 
     def get_analysis_job_by_id(self, job_id):
@@ -625,19 +665,38 @@ class ServiceAccessLayer(object):
                                           sleep_time=self._sleep_time)
 
 
+def __run_and_ignore_errors(f, warn_message):
+    """
+    Black hole ignoring exceptions from a func with no-args and
+    logging the error has a warning.
+    """
+    try:
+        return f()
+    except Exception as e:
+        log.warn(warn_message + " {e}".format(e=e))
+
+
+def _run_func(f, warn_message, ignore_errors=True):
+    if ignore_errors:
+        return __run_and_ignore_errors(f, warn_message)
+    else:
+        return f()
+
+
 def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True):
     """Log the status of a pbsmrtpipe to SMRT Server"""
+    # Keeping this as public to avoid breaking pbsmrtpipe. The
+    # new public interface should be the JobServiceClient
 
     # Need to clarify the model here. Trying to pass the most minimal
     # data necessary to pbsmrtpipe.
     _d = dict(message=message, level=level, sourceId=source_id)
-    if ignore_errors:
-        try:
-            return _process_rpost(total_url, _d)
-        except Exception as e:
-            log.warn("Failed Request to {u} data: {d}. {e}".format(u=total_url, d=_d, e=e))
-    else:
+    warn_message = "Failed Request to {u} data: {d}".format(u=total_url, d=_d)
+
+    def f():
         return _process_rpost(total_url, _d)
+
+    return _run_func(f, warn_message, ignore_errors=ignore_errors)
 
 
 def add_datastore_file(total_url, datastore_file, ignore_errors=True):
@@ -645,11 +704,179 @@ def add_datastore_file(total_url, datastore_file, ignore_errors=True):
 
     :type datastore_file: DataStoreFile
     """
+    # Keeping this as public to avoid breaking pbsmrtpipe. The
+    # new public interface should be the JobServiceClient
     _d = datastore_file.to_dict()
-    if ignore_errors:
-        try:
-            return _process_rpost(total_url, _d)
-        except Exception as e:
-            log.warn("Failed Request to {u} data: {d}. {e}".format(u=total_url, d=_d, e=e))
-    else:
+    warn_message = "Failed Request to {u} data: {d}.".format(u=total_url, d=_d)
+
+    def f():
         return _process_rpost(total_url, _d)
+
+    return _run_func(f, warn_message, ignore_errors=ignore_errors)
+
+
+def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True):
+    """
+    :type create_job_task_record: CreateJobTaskRecord
+    """
+    warn_message = "Unable to create Task {c}".format(c=repr(create_job_task_record))
+
+    def f():
+        return _process_rpost(job_tasks_url, create_job_task_record.to_dict())
+
+    return _run_func(f, warn_message, ignore_errors)
+
+
+def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True):
+    """
+    :type update_job_task_record: UpdateJobTaskRecord
+    """
+    warn_message = "Unable to update Task {c}".format(c=repr(update_job_task_record))
+
+    def f():
+        return _process_rput(task_url, update_job_task_record.to_dict())
+
+    return _run_func(f, warn_message, ignore_errors)
+
+
+class CreateJobTaskRecord(object):
+    def __init__(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
+        self.task_uuid = task_uuid
+        self.task_id = task_id
+        self.task_type_id = task_type_id
+        self.name = name
+        # this must be consistent with the EngineJob states in the scala code
+        self.state = state
+        self.created_at = datetime.datetime.utcnow() if created_at is None else created_at
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__,
+                  u=self.task_uuid,
+                  i=self.task_id,
+                  n=self.name,
+                  s=self.state)
+        return "<{k} uuid:{u} ix:{i} state:{s} name:{n} >".format(**_d)
+
+    def to_dict(self):
+        return dict(uuid=self.task_uuid,
+                    taskId=self.task_id,
+                    taskTypeId=self.task_type_id,
+                    name=self.name,
+                    state=self.state,
+                    createdAt=self.created_at.isoformat())
+
+
+class UpdateJobTaskRecord(object):
+    def __init__(self, task_uuid, state, message, error_message=None):
+        """:type error_message: str | None"""
+        self.task_uuid = task_uuid
+        self.state = state
+        self.message = message
+        # detailed error message
+        self.error_message = error_message
+
+    @staticmethod
+    def from_error(task_uuid, state, message, error_message):
+        # require an detailed error message
+        return UpdateJobTaskRecord(task_uuid, state,
+                                   message,
+                                   error_message=error_message)
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__,
+                  i=self.task_uuid,
+                  s=self.state)
+        return "<{k} i:{i} state:{s} >".format(**_d)
+
+    def to_dict(self):
+        return dict(uuid=self.task_uuid,
+                    state=self.state,
+                    message=self.message,
+                    errorMessage=self.error_message)
+
+
+class JobServiceClient(object):
+    # Keeping this class private. It should only be used from pbsmrtpipe
+    def __init__(self, job_root_url):
+        """
+
+        :param job_root_url: Full Root URL to the job
+        :type job_root_url: str
+
+        This hides the root location of the URL and hides
+        the job id (as an int or uuid)
+
+        The Url has the form:
+
+        http://localhost:8888/secondary-analysis/job-manager/jobs/pbsmrtpipe/1234
+
+        or
+
+        http://localhost:8888/secondary-analysis/job-manager/jobs/pbsmrtpipe/5d562c74-e452-11e6-8b96-3c15c2cc8f88
+        """
+        self.job_root_url = job_root_url
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__, u=self.job_root_url)
+        return "<{k} Job URL:{u} >".format(**_d)
+
+    def to_url(self, segment):
+        return "{i}/{s}".format(i=self.job_root_url, s=segment)
+
+    @property
+    def log_url(self):
+        return self.to_url("log")
+
+    @property
+    def datastore_url(self):
+        return self.to_url("datastore")
+
+    @property
+    def tasks_url(self):
+        return self.to_url("tasks")
+
+    def get_task_url(self, task_uuid):
+        """
+        :param task_uuid: Task UUID
+        :return:
+        """
+        return self.to_url("tasks/{}".format(task_uuid))
+
+    def log_workflow_progress(self, message, level, source_id, ignore_errors=True):
+        return log_pbsmrtpipe_progress(self.log_url, message, level, source_id, ignore_errors=ignore_errors)
+
+    def add_datastore_file(self, datastore_file, ignore_errors=True):
+        return add_datastore_file(self.datastore_url, datastore_file, ignore_errors=ignore_errors)
+
+    def create_task(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
+        """
+
+        :param task_uuid: Globally unique task id
+        :param task_id: Unique within respect to the job
+        :param task_type_id: ToolContract or task id (e.g., pbcommand.tasks.alpha)
+        :param name: Display name of task
+        :param created_at: time task was created at (will be set if current time if None)
+        """
+        r = CreateJobTaskRecord(task_uuid, task_id, task_type_id,
+                                name, state, created_at=created_at)
+
+        return _create_job_task(self.tasks_url, r)
+
+    def update_task_status(self, task_uuid, state, message, error_message=None):
+
+        task_url = self.get_task_url(task_uuid)
+
+        u = UpdateJobTaskRecord(task_uuid, state, message, error_message=error_message)
+
+        return _update_job_task_state(task_url, u)
+
+    def update_task_to_failed(self, task_uuid, message, detailed_error_message):
+        task_url = self.get_task_url(task_uuid)
+        state = "FAILED"
+
+        u = UpdateJobTaskRecord(task_uuid,
+                                state,
+                                message,
+                                error_message=detailed_error_message)
+
+        return _update_job_task_state(task_url, u)
