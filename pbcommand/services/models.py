@@ -89,6 +89,12 @@ class ServiceJob(object):
         self.updated_at = updated_at
         self.error_message = error_message
 
+        if self.updated_at is not None:
+            dt = self.updated_at - self.created_at
+            self.run_time_sec = dt.total_seconds()
+        else:
+            self.run_time_sec = None
+
     def __repr__(self):
         # truncate the name to avoid having a useless repr
         max_length = 15
@@ -103,14 +109,28 @@ class ServiceJob(object):
         state = self.state.rjust(11)
         # simpler format
         created_at = self.created_at.strftime("%m-%d-%Y %I:%M.%S")
+
+        # this should really use humanize. But this would take forever
+        # to get into the nightly build
+        def _format_dt(n_seconds):
+            if n_seconds >= 60:
+                # for most cases, you don't really don't
+                # care about the seconds
+                return "{m} min ".format(m=int(n_seconds / 60))
+            else:
+                return "{s:.2f} sec".format(s=n_seconds)
+
+        run_time = "NA" if self.run_time_sec is None else _format_dt(self.run_time_sec)
+
         _d = dict(k=self.__class__.__name__,
                   i=ix,
                   n=name,
                   c=created_at,
                   u=self.uuid,
-                  s=state, b=created_by)
+                  s=state, b=created_by,
+                  r=run_time)
 
-        return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} >".format(**_d)
+        return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} runtime: {r} >".format(**_d)
 
     @staticmethod
     def from_d(d):
