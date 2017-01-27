@@ -7,6 +7,7 @@ import logging
 import pprint
 import time
 import datetime
+import pytz
 
 import requests
 from requests import RequestException
@@ -19,7 +20,8 @@ from pbcommand.utils import get_dataset_metadata, to_ascii
 
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,
-                     ServiceResourceTypes, ServiceJob, JobEntryPoint)
+                     ServiceResourceTypes, ServiceJob, JobEntryPoint,
+                     JobTask)
 
 from .utils import to_sal_summary
 
@@ -158,6 +160,13 @@ def _process_rpost_with_transform(func):
     return wrapper
 
 
+def _process_rput_with_transform(func):
+    def wrapper(total_url, payload_d):
+        j = _process_rput(total_url, payload_d)
+        return func(j)
+    return wrapper
+
+
 def _to_url(base, ext):
     return "".join([base, ext])
 
@@ -165,6 +174,10 @@ def _to_url(base, ext):
 def _null_func(x):
     # Pass thorough func
     return x
+
+
+def _transform_job_tasks(j):
+    return [JobTask.from_d(d) for d in j]
 
 
 def _import_dataset_by_type(dataset_type_or_id):
@@ -318,6 +331,12 @@ def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_fun
             all_report_attributes[x['id']] = x['value']
 
     return all_report_attributes
+
+
+def _to_relative_tasks_url(job_type):
+    def wrapper(job_id_or_uuid):
+        return "/".join([ServiceAccessLayer.ROOT_JOBS, job_type, str(job_id_or_uuid), "tasks"])
+    return wrapper
 
 
 class ServiceAccessLayer(object):
@@ -664,6 +683,16 @@ class ServiceAccessLayer(object):
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
                                           sleep_time=self._sleep_time)
 
+    def get_analysis_job_tasks(self, job_id_or_uuid):
+        """Get all the Task associated with a Job by UUID or Int Id"""
+        job_url = self._to_url(_to_relative_tasks_url(JobTypes.PB_PIPE)(job_id_or_uuid))
+        return _process_rget_with_transform(_transform_job_tasks)(job_url)
+
+    def get_import_job_tasks(self, job_id_or_uuid):
+        # this is more for testing purposes
+        job_url = self._to_url(_to_relative_tasks_url(JobTypes.IMPORT_DS)(job_id_or_uuid))
+        return _process_rget_with_transform(_transform_job_tasks)(job_url)
+
 
 def __run_and_ignore_errors(f, warn_message):
     """
@@ -718,11 +747,12 @@ def add_datastore_file(total_url, datastore_file, ignore_errors=True):
 def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True):
     """
     :type create_job_task_record: CreateJobTaskRecord
+    :rtype: JobTask
     """
     warn_message = "Unable to create Task {c}".format(c=repr(create_job_task_record))
 
     def f():
-        return _process_rpost(job_tasks_url, create_job_task_record.to_dict())
+        return _process_rpost_with_transform(JobTask.from_d)(job_tasks_url, create_job_task_record.to_dict())
 
     return _run_func(f, warn_message, ignore_errors)
 
@@ -730,11 +760,12 @@ def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True):
 def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True):
     """
     :type update_job_task_record: UpdateJobTaskRecord
+    :rtype: JobTask
     """
     warn_message = "Unable to update Task {c}".format(c=repr(update_job_task_record))
 
     def f():
-        return _process_rput(task_url, update_job_task_record.to_dict())
+        return _process_rput_with_transform(JobTask.from_d)(task_url, update_job_task_record.to_dict())
 
     return _run_func(f, warn_message, ignore_errors)
 
@@ -747,7 +778,11 @@ class CreateJobTaskRecord(object):
         self.name = name
         # this must be consistent with the EngineJob states in the scala code
         self.state = state
-        self.created_at = datetime.datetime.utcnow() if created_at is None else created_at
+        # Note, the created_at timestamp must have the form
+        # 2016-02-18T23:24:46.569Z
+        # or
+        # 2016-02-18T15:24:46.569-08:00
+        self.created_at = datetime.datetime.now(pytz.utc) if created_at is None else created_at
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
@@ -772,7 +807,7 @@ class UpdateJobTaskRecord(object):
         self.task_uuid = task_uuid
         self.state = state
         self.message = message
-        # detailed error message
+        # detailed error message (e.g., terse stack trace)
         self.error_message = error_message
 
     @staticmethod
@@ -789,19 +824,29 @@ class UpdateJobTaskRecord(object):
         return "<{k} i:{i} state:{s} >".format(**_d)
 
     def to_dict(self):
-        return dict(uuid=self.task_uuid,
-                    state=self.state,
-                    message=self.message,
-                    errorMessage=self.error_message)
+        _d = dict(uuid=self.task_uuid,
+                  state=self.state,
+                  message=self.message)
+
+        # spray API is a little odd here. it will complain about
+        # Expected String as JsString, but got null
+        # even though the model is Option[String]
+        if self.error_message is not None:
+            _d['errorMessage'] = self.error_message
+
+        return _d
 
 
 class JobServiceClient(object):
     # Keeping this class private. It should only be used from pbsmrtpipe
-    def __init__(self, job_root_url):
+    def __init__(self, job_root_url, ignore_errors=False):
         """
 
         :param job_root_url: Full Root URL to the job
         :type job_root_url: str
+
+        :param ignore_errors: Only log errors, don't not raise if a request fails. This is intended to be used in a fire-and-forget usecase
+        :type ignore_errors: bool
 
         This hides the root location of the URL and hides
         the job id (as an int or uuid)
@@ -815,6 +860,7 @@ class JobServiceClient(object):
         http://localhost:8888/secondary-analysis/job-manager/jobs/pbsmrtpipe/5d562c74-e452-11e6-8b96-3c15c2cc8f88
         """
         self.job_root_url = job_root_url
+        self.ignore_errors = ignore_errors
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, u=self.job_root_url)
@@ -840,7 +886,7 @@ class JobServiceClient(object):
         :param task_uuid: Task UUID
         :return:
         """
-        return self.to_url("tasks/{}".format(task_uuid))
+        return self.to_url("tasks/{t}".format(t=task_uuid))
 
     def log_workflow_progress(self, message, level, source_id, ignore_errors=True):
         return log_pbsmrtpipe_progress(self.log_url, message, level, source_id, ignore_errors=ignore_errors)
@@ -848,7 +894,7 @@ class JobServiceClient(object):
     def add_datastore_file(self, datastore_file, ignore_errors=True):
         return add_datastore_file(self.datastore_url, datastore_file, ignore_errors=ignore_errors)
 
-    def create_task(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
+    def create_task(self, task_uuid, task_id, task_type_id, name, created_at=None):
         """
 
         :param task_uuid: Globally unique task id
@@ -858,7 +904,7 @@ class JobServiceClient(object):
         :param created_at: time task was created at (will be set if current time if None)
         """
         r = CreateJobTaskRecord(task_uuid, task_id, task_type_id,
-                                name, state, created_at=created_at)
+                                name, JobStates.CREATED, created_at=created_at)
 
         return _create_job_task(self.tasks_url, r)
 
@@ -868,11 +914,11 @@ class JobServiceClient(object):
 
         u = UpdateJobTaskRecord(task_uuid, state, message, error_message=error_message)
 
-        return _update_job_task_state(task_url, u)
+        return _update_job_task_state(task_url, u, ignore_errors=self.ignore_errors)
 
     def update_task_to_failed(self, task_uuid, message, detailed_error_message):
         task_url = self.get_task_url(task_uuid)
-        state = "FAILED"
+        state = JobStates.FAILED
 
         u = UpdateJobTaskRecord(task_uuid,
                                 state,

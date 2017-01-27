@@ -219,6 +219,15 @@ class SMRTServiceBaseError(Exception):
 JobResult = namedtuple("JobResult", "job run_time errors")
 
 
+class JobTask(namedtuple("JobTask", "task_uuid job_id task_id task_type name state created_at updated_at error_message")):
+
+    @staticmethod
+    def from_d(d):
+        return JobTask(d['uuid'], d['jobId'], d['taskId'], d['taskTypeId'],
+                       d['name'], d['state'], d['createdAt'],
+                       d['updatedAt'], d.get('errorMessage'))
+
+
 def _to_resource_id(x):
     if isinstance(x, int):
         return x
