@@ -18,6 +18,7 @@ clean:
 	find . -name "*.log" | xargs rm -f;\
 	rm -rf dist;\
 	rm -rf docs/build
+	rm FileTypes.h
 
 test:
 	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py
@@ -50,3 +51,6 @@ extract-readme-snippets:
 build-avro-schema-docs:
 	# this requires nodejs + https://github.com/ept/avrodoc
 	avrodoc pbcommand/schemas/*.avsc > index.html
+
+cpp-header:
+	python extras/make_cpp_file_types_header.py FileTypes.h
