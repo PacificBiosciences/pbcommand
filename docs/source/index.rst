@@ -16,6 +16,7 @@ Contents:
    services
    report_model
    api
+   cookbook_services
 
 
 Indices and tables:

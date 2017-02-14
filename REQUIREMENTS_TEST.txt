@@ -3,6 +3,8 @@ tox
 # Putting these here for RTD
 sphinx-argparse
 sphinx-bootstrap-theme
+# for ipython notebooks in sphinx docs
+nbsphinx
 avro
 requests
 iso8601
