@@ -3,6 +3,9 @@ tox
 # Putting these here for RTD
 sphinx-argparse
 sphinx-bootstrap-theme
+# I think this is a bug in jypter. 
+# for somereason this required for nbsphinx
+jupyter_client
 # for ipython notebooks in sphinx docs
 nbsphinx
 avro
