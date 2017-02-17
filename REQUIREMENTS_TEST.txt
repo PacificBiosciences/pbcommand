@@ -4,6 +4,8 @@ tox
 sphinx-argparse
 sphinx-bootstrap-theme
 # for ipython notebooks in sphinx docs
+# this required for
+jupyter_client
 nbsphinx
 avro
 requests
