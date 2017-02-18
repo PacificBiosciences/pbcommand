@@ -3,6 +3,11 @@ tox
 # Putting these here for RTD
 sphinx-argparse
 sphinx-bootstrap-theme
+# I think this is a bug in jupyter client
+# for some reason jupyter_client.manager is called
+# which generates an ImportError
+# maybe related https://github.com/jupyter/nbconvert/issues/495
+jupyter_client
 # for ipython notebooks in sphinx docs
 nbsphinx
 avro
