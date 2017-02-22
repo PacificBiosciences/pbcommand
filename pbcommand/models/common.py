@@ -522,6 +522,9 @@ class DataStore(object):
 
     def add(self, ds_file):
         if isinstance(ds_file, DataStoreFile):
+            if ds_file.uuid in self.files:
+                log.warn("UUID {u} in file {s} already present in datastore (source: {f})".format(
+                         u=ds_file.uuid, s=ds_file.file_id, f=self.files[ds_file.uuid].file_id))
             self.files[ds_file.uuid] = ds_file
             self.updated_at = datetime.datetime.now()
         else:
