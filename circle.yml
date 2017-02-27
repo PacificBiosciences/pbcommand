@@ -4,6 +4,8 @@ machine:
 
 dependencies:
   pre:
+    - pip install packaging
+    - pip install appdirs
     - pip install six
     - pip install --upgrade setuptools
     - pip install -r REQUIREMENTS.txt
