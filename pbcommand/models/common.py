@@ -338,7 +338,7 @@ class FileTypes(object):
     GFF = FileType(to_file_ns('gff'), "file", "gff", MimeTypes.TXT)
     BIGWIG = FileType(to_file_ns('bigwig'), "annotations", "bw", MimeTypes.BINARY)
     CSV = FileType(to_file_ns('csv'), "file", "csv", MimeTypes.CSV)
-    XML = FileType(to_file_ns('html'), "file", "xml", MimeTypes.XML)
+    XML = FileType(to_file_ns('xml'), "file", "xml", MimeTypes.XML)
     HTML = FileType(to_file_ns('html'), "file", "html", MimeTypes.HTML)
     # Generic Json File
     JSON = FileType(to_file_ns("json"), "file", "json", MimeTypes.JSON)
