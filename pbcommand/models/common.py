@@ -382,6 +382,9 @@ class FileTypes(object):
     # This is duplicated from the old pre-DS era models. see BAMBAI
     I_BAI = FileType(to_index_ns("BamIndex"), "file", "bam.bai", MimeTypes.BINARY)
 
+    # NGMLR indices
+    I_NGMLR = FileType(to_index_ns("NgmlrIndex"), "file", ".ngm", MimeTypes.BINARY)
+
     # Fasta type files
     FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
     # No ':' or '"' in the id
