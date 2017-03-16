@@ -383,7 +383,8 @@ class FileTypes(object):
     I_BAI = FileType(to_index_ns("BamIndex"), "file", "bam.bai", MimeTypes.BINARY)
 
     # NGMLR indices
-    I_NGMLR = FileType(to_index_ns("NgmlrIndex"), "file", ".ngm", MimeTypes.BINARY)
+    I_NGMLR_ENC = FileType(to_index_ns("NgmlrRefEncoded"), "file", ".ngm", MimeTypes.BINARY)
+    I_NGMLR_TAB = FileType(to_index_ns("NgmlrRefTable"), "file", ".ngm", MimeTypes.BINARY)
 
     # Fasta type files
     FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
