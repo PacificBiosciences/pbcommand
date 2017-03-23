@@ -7,4 +7,4 @@ pip install -r REQUIREMENTS.txt
 pip install -r REQUIREMENTS_TEST.txt
 pip install nose
 python setup.py install
-nosetests -s --verbose --with-xunit --xunit-file=nosetests.xml --logging-config log_nose.cfg tests/test_*.py
+nosetests -s --verbose --with-xunit --xunit-file=nosetests.xml --with-coverage --cover-xml --cover-xml-file=coverage.xml --logging-config log_nose.cfg tests/test_*.py
