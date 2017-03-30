@@ -48,7 +48,7 @@ def validate_or(f1, f2, error_msg):
     return wrapper
 
 
-def validate_report(report_file_name):
+def validate_report_file(report_file_name):
     """
     Raise ValueError if report contains path seps
     """
@@ -72,6 +72,19 @@ def validate_fofn(fofn):
         return os.path.abspath(fofn)
     else:
         raise IOError("Unable to find {f}".format(f=fofn))
+
+
+def validate_nonempty_file(resource):
+    try:
+        resource_path = validate_file(resource)
+    except IOError as e:
+        raise e
+    try:
+        with open(resource_path) as handle:
+            l = [handle.next() for i in range(2)]
+    except StopIteration:
+        raise IOError("{f} appears to be empty".format(f=resource))
+    return resource_path
 
 
 def fofn_to_files(fofn):
@@ -104,26 +117,26 @@ def validate_report(file_name):
         e.append("Report {i} is missing a title".format(i=r.id))
     for t in r.tables:
         if t.title is None:
-            e.append("Table {r.t} is missing a title".format(r=r.id, t=t.id))
+            e.append("Table {r}.{t} is missing a title".format(r=r.id, t=t.id))
         for col in t.columns:
             if col.header is None:
-                e.append("Column {r.t.c} is missing a header".format(
+                e.append("Column {r}.{t}.{c} is missing a header".format(
                          r=r.id, t=t.id, c=col.id))
         lengths = set([len(col.values) for col in t.columns])
         if len(lengths) != 1:
-            e.append("Inconsistent column sizes in table {r.t}: {s}".format(
+            e.append("Inconsistent column sizes in table {r}.{t}: {s}".format(
                      r=r.id, t=t.id, s=",".join(
                      [str(x) for x in sorted(list(lengths))])))
     for pg in r.plotGroups:
         if pg.title is None:
-            e.append("Plot group {r.g} is missing a title".format(
+            e.append("Plot group {r}.{g} is missing a title".format(
                      r=r.id, g=pg.id))
         for plot in pg.plots:
             #if plot.caption is None:
             #    raise ValueError("Plot {r.g.p} is missing a caption".format(
             #                     r=r.id, g=pg.id, p=plot.id))
             if plot.image is None:
-                e.append("Plot {r.g.p} does not have an image".format(
+                e.append("Plot {r}.{g}.{p} does not have an image".format(
                          r=r.id, g=pg.id, p=plot.id))
             img_path = os.path.join(base_path, plot.image)
             if not os.path.exists(img_path):
