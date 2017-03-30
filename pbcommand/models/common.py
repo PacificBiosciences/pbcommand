@@ -280,6 +280,7 @@ class MimeTypes(object):
     JSON = 'application/json'
     TXT = 'text/plain'
     CSV = 'text/csv'
+    HTML = 'text/html'
     XML = 'application/xml'
     BINARY = 'application/octet-stream'
     PICKLE = 'application/python-pickle'
@@ -337,7 +338,8 @@ class FileTypes(object):
     GFF = FileType(to_file_ns('gff'), "file", "gff", MimeTypes.TXT)
     BIGWIG = FileType(to_file_ns('bigwig'), "annotations", "bw", MimeTypes.BINARY)
     CSV = FileType(to_file_ns('csv'), "file", "csv", MimeTypes.CSV)
-    XML = FileType(to_file_ns('xml'), "file", "xml", 'application/xml')
+    XML = FileType(to_file_ns('xml'), "file", "xml", MimeTypes.XML)
+    HTML = FileType(to_file_ns('html'), "file", "html", MimeTypes.HTML)
     # Generic Json File
     JSON = FileType(to_file_ns("json"), "file", "json", MimeTypes.JSON)
     # Generic H5 File
@@ -379,6 +381,10 @@ class FileTypes(object):
     I_PBI = FileType(to_index_ns("PacBioIndex"), "file", "pbi", MimeTypes.BINARY)
     # This is duplicated from the old pre-DS era models. see BAMBAI
     I_BAI = FileType(to_index_ns("BamIndex"), "file", "bam.bai", MimeTypes.BINARY)
+
+    # NGMLR indices
+    I_NGMLR_ENC = FileType(to_index_ns("NgmlrRefEncoded"), "file", ".ngm", MimeTypes.BINARY)
+    I_NGMLR_TAB = FileType(to_index_ns("NgmlrRefTable"), "file", ".ngm", MimeTypes.BINARY)
 
     # Fasta type files
     FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
