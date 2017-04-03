@@ -50,23 +50,19 @@ class TestValidators(unittest.TestCase):
         f = tempfile.NamedTemporaryFile(suffix="empty").name
         validate_nonempty_file(f)
 
+    @nose.tools.raises(IOError)
     def test_validate_output_dir(self):
         """
         Test: Raise IOError if output does not exist
         """
         try:
-            # we know this gets made
             validate_output_dir(op.dirname(__file__))
-            try:
-                validate_output_dir('/whatev')
-                self.fail('Did not validate dir')
-            except IOError:
-                pass
         except:
             log.error(traceback.format_exc())
-            raise
+            raise Exception("Directory validation failed")
+        validate_output_dir('/whatev')
 
-    @nose.tools.raises(IOError)
+    @nose.tools.raises(ValueError)
     def test_validate_report_file(self):
         """
         Test: Raise ValueError if report has path sep
@@ -74,14 +70,10 @@ class TestValidators(unittest.TestCase):
         try:
             # we know this gets made
             validate_report_file('foo')
-            try:
-                validate_report_file('/foo')
-                self.fail('No path separators allowed')
-            except ValueError:
-                pass
         except:
             log.error(traceback.format_exc())
-            raise
+            raise Exception("Filename validation failed")
+        validate_report_file('/foo')
 
     def test_validate_report(self):
         rpt = _to_report("test_report.json")
