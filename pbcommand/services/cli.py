@@ -100,9 +100,7 @@ def add_max_items_option(default, desc="Max items to return"):
 
 def validate_xml_file_or_dir(path):
     px = os.path.abspath(os.path.expanduser(path))
-    if os.path.isdir(px):
-        return px
-    elif os.path.isfile(px) and _is_xml(px):
+    if os.path.isdir(px) or (os.path.isfile(px) and _is_xml(px)):
         return px
     else:
         raise argparse.ArgumentTypeError("Expected dir or file '{p}'".format(p=path))
@@ -113,20 +111,6 @@ validate_int_or_uuid = validate_or(int, uuid.UUID, "Expected Int or UUID")
 
 def _get_size_mb(path):
     return os.stat(path).st_size / 1024.0 / 1024.0
-
-
-def validate_file_and_size(max_size_mb):
-    def _wrapper(path):
-        p = validate_file(path)
-        sx = _get_size_mb(path)
-        if sx > max_size_mb:
-            raise argparse.ArgumentTypeError("Fasta file is too large {s:.2f} MB > {m:.2f} MB. Create a ReferenceSet using {e}, then import using `pbservice import-dataset /path/to/referenceset.xml` ".format(e=Constants.FASTA_TO_REFERENCE, s=sx, m=Constants.MAX_FASTA_FILE_MB))
-        else:
-            return p
-    return _wrapper
-
-
-validate_max_fasta_file_size = validate_file_and_size(Constants.MAX_FASTA_FILE_MB)
 
 
 def add_block_option(p):
@@ -257,7 +241,7 @@ def args_runner_import_datasets(args):
 
 def add_import_fasta_opts(p):
     px = p.add_argument
-    px('fasta_path', type=validate_max_fasta_file_size, help="Path to Fasta File")
+    px('fasta_path', type=validate_file, help="Path to Fasta File")
     px('--name', required=True, type=str, help="Name of ReferenceSet")
     px('--organism', required=True, type=str, help="Organism")
     px('--ploidy', required=True, type=str, help="Ploidy")
