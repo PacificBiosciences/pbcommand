@@ -348,6 +348,7 @@ class FileTypes(object):
     PICKLE = FileType(to_file_ns("pickle"), "file", "pickle", MimeTypes.PICKLE)
     # GZIPped archive
     GZIP = FileType(to_file_ns("gzip"), "file", "gz", MimeTypes.GZIP)
+    TGZ = FileType(to_file_ns("tgz"), "file", "tar.gz", MimeTypes.GZIP)
     ZIP = FileType(to_file_ns("zip"), "file", "zip", MimeTypes.ZIP)
 
     # ******************* NEW SA3 File Types ********************
