@@ -28,7 +28,7 @@ def _example_main(input_files, output_files, **kwargs):
 
 
 @registry("dev_qhello_world", "0.2.1", FileTypes.FASTA, FileTypes.FASTA, nproc=1, options=dict(alpha=1234))
-def run_rtc(rtc):
+def run_quick_hello_world_rtc(rtc):
     log.debug("Dev Quick Hello World Example. Fasta -> Fasta with option alpha=1234")
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], nproc=rtc.task.nproc)
 
@@ -36,19 +36,19 @@ def run_rtc(rtc):
 @registry("dev_fastq2fasta", "0.1.0", FileTypes.FASTQ, FileTypes.FASTA,
           options=dict(beta=QuickOpt(1234.0, "Beta Name", "Beta Description"), gamma=True),
           name="Fastq to Fasta", description="Dev Task Fastq to Fasta Example")
-def run_rtc(rtc):
+def run_dev_fastq_to_fasta_rtc(rtc):
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0])
 
 
 @registry("dev_txt_hello", "0.1.0", FileTypes.TXT, (FileTypes.TXT, FileTypes.TXT), nproc=3, is_distributed=False)
-def run_rtc(rtc):
+def run_dev_txt_hello_rtc(rtc):
     return _example_main(rtc.task.input_files, rtc.task.output_files)
 
 
 @registry("dev_test_options", "0.1.0", FileTypes.TXT, FileTypes.TXT,
           nproc=1,
           options=dict(alpha=1234, beta=5.4321, gamma=True, ploidy=("haploid", "diploid"), delta=(1,2,3), epsilon=(0.01,0.1,1.0)))
-def run_rtc(rtc):
+def run_dev_test_options_rtc(rtc):
     log.debug("Dev Quick Hello World Example with various option types")
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], options=rtc.task.options)
 
@@ -65,7 +65,7 @@ def _to_outputs(file_types):
 
 
 @registry("dev_txt_custom_outs", "0.1.0", FileTypes.TXT, _to_outputs((FileTypes.TXT, FileTypes.TXT)), name="Custom Txt Task")
-def run_rtc(rtc):
+def run_dev_txt_custom_outs_rtc(rtc):
     """Test for using OutputFileTypes as outputs
 
     Output types can be specified as FileType, or OutputFileType instances
