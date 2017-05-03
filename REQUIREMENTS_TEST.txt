@@ -1,6 +1,8 @@
 nose
 coverage
 tox
+autopep8
+pylint
 # Putting these here for RTD
 sphinx-argparse
 sphinx-bootstrap-theme
