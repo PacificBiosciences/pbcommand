@@ -22,6 +22,7 @@ import traceback
 import shutil
 import os
 import sys
+import errno
 
 import pbcommand
 
@@ -168,6 +169,15 @@ class TemporaryResourcesManager(object):
 
     def __enter__(self):
         for resource in self.resolved_tool_contract.task.resources:
+            if resource.type_id == ResourceTypes.TMP_DIR or resource.type_id == ResourceType.TMP_FILE:
+                try:
+                    dirname=os.path.dirname(os.path.realpath(resource.path))
+                    os.makedirs(dirname)
+                except Exception as e:
+                    if e.errno == errno.EEXIST and os.path.isdir(dirname):
+                        pass
+                    else:
+                        raise
             if resource.type_id == ResourceTypes.TMP_DIR:
                 os.makedirs(resource.path)
 
