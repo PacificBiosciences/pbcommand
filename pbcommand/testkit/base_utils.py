@@ -24,3 +24,13 @@ def get_temp_file(suffix, dir_):
 def get_temp_dir(suffix=""):
     """This will make subdir in the root tmp dir"""
     return tempfile.mkdtemp(dir=None, suffix=suffix)
+
+
+def pb_requirements(*reqs):
+    """
+    Method decorator for specifying linked JIRA issues.
+    """
+    def decorator(test_item):
+        test_item.__pb_requirements__ = list(reqs)
+        return test_item
+    return decorator

@@ -48,9 +48,9 @@ validate_rtc = functools.partial(_validate, RTC_SCHEMA, "Resolved Tool Contract 
 validate_pbreport = functools.partial(_validate, PBREPORT_SCHEMA, "Report Model")
 validate_report = validate_pbreport
 validate_tc = functools.partial(_validate, TC_SCHEMA, "Tool Contract Model")
-validate_presets = functools.partial(_validate, PRESET_SCHEMA, "Pipeline Presets Model")
 validate_datastore_view_rules = functools.partial(_validate, DS_VIEW_SCHEMA, "Pipeline DataStore View Rules")
 validate_report_spec = functools.partial(_validate, REPORT_SPEC_SCHEMA, "Report Specification Model")
+
 
 def validate_presets(d):
     if not isinstance(d.get("options"), dict):

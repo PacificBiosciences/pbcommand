@@ -207,7 +207,7 @@ class SMRTServiceBaseError(Exception):
         self.error_type = error_type
         self.msg = message
         message = "Http code={h} msg={m} type={t}".format(h=http_code, m=message, t=error_type)
-        super(Exception, self).__init__(message)
+        super(SMRTServiceBaseError, self).__init__(message)
 
     @staticmethod
     def from_d(d):

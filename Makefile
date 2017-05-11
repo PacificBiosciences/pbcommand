@@ -22,6 +22,7 @@ clean:
 
 test:
 	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py
+	pylint --errors-only pbcommand
 
 doc:
 	cd docs && make html

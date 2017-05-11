@@ -55,7 +55,10 @@ def _get_decoder():
     if _HAS_NUMPY:
         class NumpyJsonEncoder(json.JSONEncoder):
 
-            def default(self, obj):
+            # This appears to be an issue with pylint that generates a
+            # false positive related to how python defines the base class
+            # https://github.com/PyCQA/pylint/issues/414
+            def default(self, obj):  # pylint: disable=E0202
                 if isinstance(obj, np.core.numerictypes.floating):
                     return float(obj)
                 if isinstance(obj, np.core.numerictypes.integer):
