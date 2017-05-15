@@ -171,9 +171,13 @@ class TemporaryResourcesManager(object):
         for resource in self.resolved_tool_contract.task.resources:
             if resource.type_id == ResourceTypes.TMP_DIR or resource.type_id == ResourceTypes.TMP_FILE:
                 try:
-                    dirname=os.path.dirname(os.path.realpath(resource.path))
+                    dirname = os.path.dirname(os.path.realpath(resource.path))
                     os.makedirs(dirname)
-                except Exception as e:
+                except EnvironmentError as e:
+                    # IOError, OSError subclass Environment and add errno
+                    # Note, dirname is not strictly defined here. If there's an
+                    # Env exception caught from the right hand this will raise NameError
+                    # and will still fail, but with a different exception type.
                     if e.errno == errno.EEXIST and os.path.isdir(dirname):
                         pass
                     else:
