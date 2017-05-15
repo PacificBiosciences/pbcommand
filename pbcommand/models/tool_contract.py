@@ -68,7 +68,7 @@ def validate_tool_contract(tc):
         if oft.default_name.endswith(file_type.ext):
             raise ValueError(
                 "File {i} default name already has extension: {n}".format(
-                i=oft.label, n=oft.default_name))
+                    i=oft.label, n=oft.default_name))
     return tc
 
 
@@ -416,7 +416,7 @@ class PipelinePreset(object):
         self.description = description
 
     def __repr__(self):
-        _d = dict(k=self.__class__.__name__) #self.to_dict()
+        _d = dict(k=self.__class__.__name__)  # self.to_dict()
         return "<{k} >".format(**_d)
 
     def to_dict(self):

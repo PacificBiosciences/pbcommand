@@ -333,10 +333,10 @@ def load_pipeline_presets_from(d):
     validate_presets(d)
     options = d['options']
     if isinstance(options, list):
-        options = {o['id']:o['value'] for o in options}
+        options = {o['id']: o['value'] for o in options}
     taskOptions = d['taskOptions']
     if isinstance(taskOptions, list):
-        taskOptions = {o['id']:o['value'] for o in taskOptions}
+        taskOptions = {o['id']: o['value'] for o in taskOptions}
     presets = PipelinePreset(
         options=options,
         task_options=taskOptions,

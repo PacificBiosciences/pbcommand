@@ -400,11 +400,11 @@ class Table(BaseReportElement):
             if c.values:
                 n = max(max(len(str(v)) for v in c.values), len(this_header))
             else:
-                n=len(this_header)
+                n = len(this_header)
             max_lengths[c] = n
             headers.append(this_header)
 
-        header="".join([h.ljust(max_lengths[c] + pad)
+        header = "".join([h.ljust(max_lengths[c] + pad)
                           for h in headers])
 
         outs = list()
@@ -844,12 +844,15 @@ class Report(BaseReportElement):
 # SPECIFICATION MODELS
 
 FS_RE = "{([GMkp]{0,1})(:)([,]{0,1})([\.]{0,1})([0-9]*)([dfg]{1})}(.*)$"
+
+
 def validate_format(format_str):
     m = re.match(FS_RE, format_str)
     if m is None:
-         raise ValueError("Format string '{s}' is uninterpretable".format(
-                          s=format_str))
+        raise ValueError("Format string '{s}' is uninterpretable".format(
+                         s=format_str))
     return m
+
 
 def format_metric(format_str, value):
     """
@@ -887,9 +890,10 @@ DATA_TYPES = {
     "int": int,
     "long": int,
     "float": float,
-    "string": basestring, # this is hacky too
+    "string": basestring,  # this is hacky too
     "boolean": bool
 }
+
 
 class AttributeSpec(object):
 
@@ -1009,7 +1013,6 @@ class PlotGroupSpec(object):
                              d["description"], d['legend'],
                              [PlotSpec.from_dict(p) for p in d['plots']])
 
-
     def get_plot_spec(self, id_):
         return self._plot_dict.get(id_, None)
 
@@ -1112,7 +1115,7 @@ class ReportSpec(object):
         if len(errors) > 0:
             raise ValueError(
                 "Report {i} failed validation against spec:\n{e}".format(
-                i=self.id, e="\n".join(errors)))
+                    i=self.id, e="\n".join(errors)))
         return rpt
 
     def is_valid_report(self, rpt):
@@ -1156,5 +1159,5 @@ class ReportSpec(object):
                     if force or plot.caption in [None, ""]:
                         plot._caption = plot_spec.caption
                 else:
-                    pass #warnings.warn("Can't find spec for {i}".format(i=plot.id))
+                    pass  # warnings.warn("Can't find spec for {i}".format(i=plot.id))
         return rpt

@@ -41,6 +41,7 @@ def _handler_stream_d(stream, level_str, formatter_id):
          'stream': stream}
     return d
 
+
 _handler_stdout_stream_d = functools.partial(_handler_stream_d, "ext://sys.stdout")
 _handler_stderr_stream_d = functools.partial(_handler_stream_d, "ext://sys.stderr")
 
@@ -260,6 +261,7 @@ def validate_type_or_raise(instance, type_or_types, error_prefix=None):
 
 def _simple_validate_type(atype, instance):
     return validate_type_or_raise(instance, atype)
+
 
 _is_argparser_instance = functools.partial(_simple_validate_type, argparse.ArgumentParser)
 

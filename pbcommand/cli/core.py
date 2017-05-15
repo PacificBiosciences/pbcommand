@@ -223,9 +223,9 @@ def pacbio_args_or_contract_runner(argv,
     # --resolved-cool-contract (while still respecting verbosity flags).
     if any(a.startswith(RESOLVED_TOOL_CONTRACT_OPTION) for a in argv):
         p_tmp = get_default_argparser(version=parser.version,
-            description=parser.description)
+                                      description=parser.description)
         add_resolved_tool_contract_option(add_base_options(p_tmp,
-            default_level="NOTSET"))
+                                                           default_level="NOTSET"))
         args_tmp = p_tmp.parse_args(argv)
         resolved_tool_contract = load_resolved_tool_contract_from(
             args_tmp.resolved_tool_contract)
@@ -235,7 +235,7 @@ def pacbio_args_or_contract_runner(argv,
         # this takes advantage of the fact that argparse allows us to use
         # NOTSET as the default level even though it's not one of the choices.
         log_level = get_parsed_args_log_level(args_tmp,
-            default_level=logging.NOTSET)
+                                              default_level=logging.NOTSET)
         if log_level == logging.NOTSET:
             log_level = resolved_tool_contract.task.log_level
         with TemporaryResourcesManager(resolved_tool_contract) as tmp_mgr:
