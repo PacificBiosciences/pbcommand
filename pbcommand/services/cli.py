@@ -58,6 +58,7 @@ def _list_dict_printer(list_d):
     for i in list_d:
         print i
 
+
 try:
     # keep this to keep backward compatible
     from tabulate import tabulate
@@ -199,9 +200,9 @@ def import_local_dataset(sal, path):
                     try:
                         _ = rr[-1]
                     except Exception as e:
-                        log.exception("Import failed because the underlying "+
-                                      "data appear to be corrupted.  Run "+
-                                      "'pbvalidate' on the dataset for more "+
+                        log.exception("Import failed because the underlying " +
+                                      "data appear to be corrupted.  Run " +
+                                      "'pbvalidate' on the dataset for more " +
                                       "thorough checking.")
                         return 1
             else:

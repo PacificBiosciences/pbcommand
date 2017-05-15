@@ -224,6 +224,7 @@ class PbParserBase(object):
         """
         raise NotImplementedError
 
+
 _validate_argparse_int = functools.partial(_validate_option_or_cast, int)
 _validate_argparse_float = functools.partial(_validate_option_or_cast, float)
 _validate_argparse_bool = functools.partial(_validate_option_or_cast, bool)
@@ -235,10 +236,10 @@ class PyParser(PbParserBase):
 
     def __init__(self, tool_id, version, name, description, subcomponents=()):
         super(PyParser, self).__init__(tool_id, version, name, description)
-        self.parser = argparse.ArgumentParser(#version=version,
-                                              description=description,
-                                              formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                              add_help=True)
+        self.parser = argparse.ArgumentParser(  # version=version,
+            description=description,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            add_help=True)
         self.parser.version = version
         self.parser.add_argument('--version',
                                  action="version",
@@ -462,7 +463,7 @@ class PbParser(PbParserBase):
         self.arg_parser = arg_parser
         # add options, so it will show up via --help
         add_base_options_with_emit_tool_contract(self.arg_parser.parser,
-            default_level=kwds.get("default_level", "INFO"))
+                                                 default_level=kwds.get("default_level", "INFO"))
 
         # a list of other parsers that adhere to the PbParserBase interface
         # can be used.

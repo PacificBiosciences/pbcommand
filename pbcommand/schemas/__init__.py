@@ -23,6 +23,7 @@ def _load_schema(idx, name):
     SCHEMA_REGISTRY[idx] = schema
     return schema
 
+
 RTC_SCHEMA = _load_schema("resolved_tool_contract", "resolved_tool_contract.avsc")
 PBREPORT_SCHEMA = _load_schema("pbreport", "pbreport.avsc")
 TC_SCHEMA = _load_schema("tool_contract", "tool_contract.avsc")
@@ -57,6 +58,7 @@ def validate_presets(d):
         return _validate(PRESET_SCHEMA, "Pipeline Presets Model", d)
     else:
         return _validate(PRESET_SCHEMA2, "Pipeline Presets Model (Simplified)", d)
+
 
 is_valid_rtc = functools.partial(_is_valid, RTC_SCHEMA)
 is_valid_report = functools.partial(_is_valid, PBREPORT_SCHEMA)

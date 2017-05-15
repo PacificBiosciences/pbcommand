@@ -56,7 +56,7 @@ def add_rtc_options(p):
     p.add_float("pbcommand.task_options.beta", "beta", 1.234, "Beta", "Beta description")
     p.add_boolean("pbcommand.task_options.gamma", "gamma", True, "Gamma", "Gamma description")
     p.add_choice_str("pbcommand.task_options.ploidy", "ploidy", ["haploid", "diploid"], "Ploidy", "Genome ploidy", "haploid")
-    p.add_choice_int("pbcommand.task_options.delta", "delta", [1,2,3], "Delta", "An integer choice", default=1)
+    p.add_choice_int("pbcommand.task_options.delta", "delta", [1, 2, 3], "Delta", "An integer choice", default=1)
     p.add_choice_float("pbcommand.task_options.epsilon", "epsilon", [0.01, 0.1, 1.0], "Epsilon", "A float choice", default=0.1)
     p.add_str("pbcommand.task_options.comment", "comment", "asdf", "Comments", "A string parameter")
     return p

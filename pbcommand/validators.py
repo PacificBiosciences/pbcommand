@@ -6,7 +6,7 @@ from pbcommand.utils import nfs_exists_check
 from pbcommand.pb_io import load_report_from_json
 
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler()) # squash annoying no Handler msg
+log.addHandler(logging.NullHandler())  # squash annoying no Handler msg
 
 
 def trigger_nfs_refresh(ff):
@@ -126,7 +126,7 @@ def validate_report(file_name):
         if len(lengths) != 1:
             e.append("Inconsistent column sizes in table {r}.{t}: {s}".format(
                      r=r.id, t=t.id, s=",".join(
-                     [str(x) for x in sorted(list(lengths))])))
+                         [str(x) for x in sorted(list(lengths))])))
     for pg in r.plotGroups:
         if pg.title is None:
             e.append("Plot group {r}.{g} is missing a title".format(
