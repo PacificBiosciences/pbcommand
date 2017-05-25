@@ -47,7 +47,7 @@ def run_dev_txt_hello_rtc(rtc):
 
 @registry("dev_test_options", "0.1.0", FileTypes.TXT, FileTypes.TXT,
           nproc=1,
-          options=dict(alpha=1234, beta=5.4321, gamma=True, ploidy=("haploid", "diploid"), delta=(1,2,3), epsilon=(0.01,0.1,1.0)))
+          options=dict(alpha=1234, beta=5.4321, gamma=True, ploidy=("haploid", "diploid"), delta=(1, 2, 3), epsilon=(0.01, 0.1, 1.0)))
 def run_dev_test_options_rtc(rtc):
     log.debug("Dev Quick Hello World Example with various option types")
     return _example_main(rtc.task.input_files[0], rtc.task.output_files[0], options=rtc.task.options)

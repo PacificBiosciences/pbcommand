@@ -53,6 +53,7 @@ class PacBioNamespaces(object):
 def __to_type(prefix, name):
     return ".".join([prefix, name])
 
+
 to_constant_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_CONSTANTS_PREFIX)
 to_file_ns = functools.partial(__to_type, PacBioNamespaces.NEW_PBSMRTPIPE_FILE_PREFIX)
 to_ds_ns = functools.partial(__to_type, PacBioNamespaces.DATASET_FILE_PREFIX)
@@ -250,7 +251,7 @@ class FileType(object):
     @property
     def default_name(self):
         """ Default name of file alias for base_name"""
-        return self.base_name # ".".join([self.base_name, self.ext])
+        return self.base_name  # ".".join([self.base_name, self.ext])
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -643,6 +644,7 @@ class DataStoreViewRule(object):
     """
     Rule specifying if and how the UI should display a datastore file.
     """
+
     def __init__(self, source_id, file_type_id, is_hidden, name="",
                  description=""):
         """
@@ -723,6 +725,7 @@ def _validate_id(prog, idtype, tid):
         return tid
     else:
         raise ValueError("Invalid format {t}: '{i}' {p}".format(t=idtype, i=tid, p=repr(prog.pattern)))
+
 
 validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
 validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
@@ -903,6 +906,7 @@ def _strict_validate_default_and_choices(core_type_validator_func):
             raise ValueError("Default value {v} is not in allowed choices {c}".format(v=value, c=choices))
         return v, choices
     return wrap
+
 
 _strict_validate_int_choices = _strict_validate_default_and_choices(_strict_validate_int_or_raise)
 _strict_validate_str_choices = _strict_validate_default_and_choices(_strict_validate_string_or_raise)

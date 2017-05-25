@@ -39,6 +39,7 @@ def __gather_fastx(fastx_reader, fastx_writer, fastx_files, output_file):
     log.info("Completed gathering {n} files (with {x} records) to {f}".format(n=len(fastx_files), f=output_file, x=n))
     return 0
 
+
 gather_fasta = functools.partial(__gather_fastx, FastaReader, FastaWriter)
 
 

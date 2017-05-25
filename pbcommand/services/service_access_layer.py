@@ -58,6 +58,7 @@ def _get_requests(headers):
         return requests.get(url, headers=headers)
     return wrapper
 
+
 # These are exposed publicly as a utility, but shouldn't be used in any API
 # call. The _process_* are the entry points for API calls to make sure an
 # errors are handled correctly.
@@ -148,6 +149,7 @@ def __process_creatable_to_json(f):
         j = r.json()
         return j
     return wrapper
+
 
 _process_rpost = __process_creatable_to_json(rqpost)
 _process_rput = __process_creatable_to_json(rqput)
@@ -253,6 +255,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=600, sleep_time=2):
                 raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
 
     return job_result
+
 
 # Make this consistent somehow. Maybe defined 'shortname' in the core model?
 # Martin is doing this for the XML file names
@@ -539,10 +542,10 @@ class ServiceAccessLayer(object):
 
             uuids = {ds['uuid'] for ds in datasets}
             if dataset_meta_type.uuid not in uuids:
-                raise JobExeError(("Dataset {u} was imported but does not "+
-                                    "appear in the dataset list; this may "+
-                                    "indicate XML schema errors.").format(
-                                    u=dataset_meta_type.uuid))
+                raise JobExeError(("Dataset {u} was imported but does not " +
+                                   "appear in the dataset list; this may " +
+                                   "indicate XML schema errors.").format(
+                    u=dataset_meta_type.uuid))
 
         result = self.get_dataset_by_uuid(dataset_meta_type.uuid,
                                           ignore_errors=True)
@@ -553,10 +556,10 @@ class ServiceAccessLayer(object):
             # validation 1: attempt to retrieve dataset info
             result_new = self.get_dataset_by_uuid(dataset_meta_type.uuid)
             if result_new is None:
-                raise JobExeError(("Dataset {u} was imported but could "+
-                                   "not be retrieved; this may indicate "+
+                raise JobExeError(("Dataset {u} was imported but could " +
+                                   "not be retrieved; this may indicate " +
                                    "XML schema errors.").format(
-                                   u=dataset_meta_type.uuid))
+                    u=dataset_meta_type.uuid))
             # validation 2: make sure it shows up in the listing
             _verify_dataset_in_list()
             return job_result

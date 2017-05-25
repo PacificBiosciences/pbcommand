@@ -88,8 +88,8 @@ class PbTestApp(unittest.TestCase):
                 self.assertTrue(True, pbcore_skip_msg("Skipping running e2e for {d}".format(d=self.DRIVER_EMIT)))
                 return
 
-        output_dir = get_temp_dir(suffix="rtc-test")
-        tmp_dir = get_temp_dir(suffix="rtc-temp")
+        output_dir = get_temp_dir(suffix="-rtc-test")
+        tmp_dir = get_temp_dir(suffix="-rtc-temp")
 
         log.debug("Driver {e}".format(e=self.DRIVER_EMIT))
         log.debug("input files {i}".format(i=self.INPUT_FILES))
@@ -98,7 +98,7 @@ class PbTestApp(unittest.TestCase):
         output_tc = get_temp_file("-{n}-tool_contract.json".format(n=self.__class__.__name__), output_dir)
         emit_tc_exe = "{e} > {o}".format(e=self.DRIVER_EMIT, o=output_tc)
         rcode = subprocess.call([emit_tc_exe], shell=True)
-        self.assertEquals(rcode, 0, "Emitting tool contract failed for '{e}'".format(e=emit_tc_exe))
+        self.assertEquals(rcode, 0, "Emitting tool contract failed (exit-code {r}) for '{e}'".format(e=emit_tc_exe, r=rcode))
 
         # sanity marshall-unmashalling
         log.debug("Loading tool-contract from {p}".format(p=output_tc))
@@ -131,10 +131,14 @@ class PbTestApp(unittest.TestCase):
 
         exe = "{d} {p}".format(p=output_json_rtc, d=self.DRIVER_RESOLVE)
         log.info("Running exe '{e}'".format(e=exe))
-        with tempfile.TemporaryFile() as stdout:
-            rcode = subprocess.call([exe], shell=True,
-                                    stdout=stdout)
-            self.assertEquals(rcode, 0, "Running from resolved tool contract failed from {x}".format(x=exe))
+
+        # Define to help debugging when a task fails.
+        stdout_f = os.path.join(output_dir, "stdout")
+        stderr_f = os.path.join(output_dir, "stderr")
+
+        with open(stdout_f, 'w') as stdout, open(stderr_f, 'w') as stderr:
+            rcode = subprocess.call([exe], shell=True, stdout=stdout, stderr=stderr)
+            self.assertEquals(rcode, 0, "Running from resolved tool contract failed (exit-code {r}) from {x}\nSee stderr in {s}".format(x=exe, r=rcode, s=stderr_f))
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
 
         self._test_outputs_exists(rtc)
