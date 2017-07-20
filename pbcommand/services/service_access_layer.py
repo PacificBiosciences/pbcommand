@@ -910,7 +910,7 @@ class JobServiceClient(object):
         return add_datastore_file(self.datastore_url, datastore_file, ignore_errors=ignore_errors)
 
     def update_datastore_file(self, uuid, file_size=None, path=None, set_is_active=True, ignore_errors=True):
-        return _update_datastore_file(self.datastore_url, uuid, file_size, path, set_is_active, ignore_errors)
+        return _update_datastore_file(self.datastore_url, uuid, path, file_size, set_is_active, ignore_errors)
 
     def create_task(self, task_uuid, task_id, task_type_id, name, created_at=None):
         """
