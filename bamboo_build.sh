@@ -19,6 +19,7 @@ $PIP install --user \
   $NX3PBASEURL/pythonpkgs/pysam-0.9.1.4-cp27-cp27mu-linux_x86_64.whl \
   $NX3PBASEURL/pythonpkgs/avro-1.7.7-cp27-none-any.whl
 
+$PIP install --user --upgrade pylint
 $PIP install --user -r  REQUIREMENTS.txt
 $PIP install --user -r  REQUIREMENTS_TEST.txt
 $PIP install --user -e ./
