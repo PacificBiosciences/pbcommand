@@ -778,8 +778,10 @@ def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
     warn_message = "Unable to update datastore file {u}".format(u=uuid)
     total_url = "{b}/{u}".format(b=datastore_url, u=uuid)
     d = {"fileSize": file_size, "path": path, "isActive": set_is_active}
+
     def f():
         return _process_rput(total_url, d)
+
     return _run_func(f, warn_message, ignore_errors)
 
 
@@ -907,7 +909,7 @@ class JobServiceClient(object):
     def add_datastore_file(self, datastore_file, ignore_errors=True):
         return add_datastore_file(self.datastore_url, datastore_file, ignore_errors=ignore_errors)
 
-    def update_datastore_file(self, uuid, file_size=None, path=None, set_is_active=True, ignore_errors=True) :
+    def update_datastore_file(self, uuid, file_size=None, path=None, set_is_active=True, ignore_errors=True):
         return _update_datastore_file(self.datastore_url, uuid, file_size, path, set_is_active, ignore_errors)
 
     def create_task(self, task_uuid, task_id, task_type_id, name, created_at=None):
