@@ -531,7 +531,7 @@ class Table(BaseReportElement):
             if len(column.values) != len(self.columns[0].values):
                 raise ValueError("Column lengths differ ({i} versus {j}".format(
                                  i=len(column.values),
-                                 j=len(table.columns[0].values)))
+                                 j=len(self.columns[0].values)))
         for i in range(len(self.columns[0].values)):
             rows.append(sep.join([str(c.values[i]) for c in self.columns]))
         return "\n".join(rows)
