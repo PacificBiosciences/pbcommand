@@ -526,7 +526,7 @@ class Table(BaseReportElement):
     def as_csv(self, sep=','):
         if len(self.columns) == 0:
             return ""
-        rows = [ sep.join([c.header for c in self.columns]) ]
+        rows = [sep.join([c.header for c in self.columns])]
         for column in self.columns:
             if len(column.values) != len(self.columns[0].values):
                 raise ValueError("Column lengths differ ({i} versus {j}".format(
