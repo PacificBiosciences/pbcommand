@@ -523,6 +523,19 @@ class Table(BaseReportElement):
         columns = [columns[col.id] for col in tables[0].columns]
         return Table(table_id, table_title, columns=columns)
 
+    def as_csv(self, sep=','):
+        if len(self.columns) == 0:
+            return ""
+        rows = [ sep.join([c.header for c in self.columns]) ]
+        for column in self.columns:
+            if len(column.values) != len(self.columns[0].values):
+                raise ValueError("Column lengths differ ({i} versus {j}".format(
+                                 i=len(column.values),
+                                 j=len(table.columns[0].values)))
+        for i in range(len(self.columns[0].values)):
+            rows.append(sep.join([str(c.values[i]) for c in self.columns]))
+        return "\n".join(rows)
+
 
 class Column(BaseReportElement):
 
