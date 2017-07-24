@@ -6,6 +6,7 @@ Author: Johann Miller and Michael Kocher
 
 from collections import defaultdict, OrderedDict
 import warnings
+import csv
 import abc
 import logging
 import json
@@ -523,18 +524,19 @@ class Table(BaseReportElement):
         columns = [columns[col.id] for col in tables[0].columns]
         return Table(table_id, table_title, columns=columns)
 
-    def as_csv(self, sep=','):
+    def to_csv(self, file_name, delimiter=','):
         if len(self.columns) == 0:
             return ""
-        rows = [sep.join([c.header for c in self.columns])]
         for column in self.columns:
             if len(column.values) != len(self.columns[0].values):
                 raise ValueError("Column lengths differ ({i} versus {j}".format(
                                  i=len(column.values),
                                  j=len(self.columns[0].values)))
-        for i in range(len(self.columns[0].values)):
-            rows.append(sep.join([str(c.values[i]) for c in self.columns]))
-        return "\n".join(rows)
+        with open(file_name, "wb") as csv_out:
+            writer = csv.writer(csv_out, delimiter=delimiter, lineterminator="\n")
+            writer.writerow([c.header for c in self.columns])
+            for i in range(len(self.columns[0].values)):
+                writer.writerow([str(c.values[i]) for c in self.columns])
 
 
 class Column(BaseReportElement):

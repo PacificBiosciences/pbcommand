@@ -1,5 +1,6 @@
 import logging
 import unittest
+import tempfile
 
 from pbcommand.models.report import Table, Column, PbReportError
 
@@ -74,9 +75,11 @@ class TestBasicTable(unittest.TestCase):
         self.assertTrue(isinstance(self.table.to_dict(), dict))
         log.info(self.table.to_dict())
 
-    def test_as_csv(self):
-        csv = self.table.as_csv()
-        self.assertEqual(csv, "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3")
+    def test_to_csv(self):
+        f = tempfile.NamedTemporaryFile(suffix=".csv").name
+        self.table.to_csv(f)
+        with open(f) as csv_out:
+            self.assertEqual(csv_out.read(), "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n")
 
 
 class TestTable(unittest.TestCase):
