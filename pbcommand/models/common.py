@@ -308,6 +308,7 @@ class FileTypes(object):
     # is written to disk the file type id's might be translated to
     # the DataSet style file type ids.
     REPORT = FileType(to_file_ns('JsonReport'), "report", "json", MimeTypes.JSON)
+    DATASTORE = FileType(to_file_ns("Datastore"), "datastore", "json", MimeTypes.JSON)
 
     # this will go away soon in favor of using a more type based model to
     # distinguish between scatter and gather file types
