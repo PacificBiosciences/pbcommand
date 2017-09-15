@@ -2,9 +2,11 @@ import unittest
 import tempfile
 import logging
 import uuid
+import json
 import copy
+import os.path
 
-from pbcommand.models import FileTypes, DataStoreFile
+from pbcommand.models import FileTypes, DataStore, DataStoreFile
 
 log = logging.getLogger(__name__)
 
@@ -32,3 +34,16 @@ class TestDataStore(unittest.TestCase):
         ds2 = DataStoreFile.from_dict(ds.to_dict())
         for attr in ["uuid", "file_type_id", "file_id", "path", "is_chunked", "name", "description"]:
             self.assertEqual(getattr(ds2, attr), getattr(ds, attr))
+
+    def test_datastore_paths(self):
+        tmpfile = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        base_dir = os.path.dirname(tmpfile)
+        tmp_ds = os.path.join(base_dir, "datastore.json")
+        dsf = DataStoreFile(str(uuid.uuid4()), "pbcommand.tasks.dev_task", FileTypes.DS_SUBREADS.file_type_id, os.path.basename(tmpfile), False, "Subreads", "Subread DataSet XML")
+        ds = DataStore([dsf])
+        ds.write_json(tmp_ds)
+        with open(tmp_ds) as json_in:
+            d = json.loads(json_in.read())
+            self.assertFalse(os.path.isabs(d['files'][0]['path']))
+        ds = DataStore.load_from_json(tmp_ds)
+        self.assertEqual(ds.files.values()[0].path, tmpfile)
