@@ -439,6 +439,13 @@ def _get_timestamp_or_now(path, func):
         return datetime.datetime.now()
 
 
+def _get_file_path(path, base_path=None):
+    if base_path is None or os.path.isabs(path):
+        return path
+    else:
+        return os.path.join(base_path, path)
+
+
 class DataStoreFile(object):
 
     def __init__(self, uuid, source_id, type_id, path, is_chunked=False,
@@ -493,7 +500,7 @@ class DataStoreFile(object):
                     description=self.description)
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d, base_path=None):
         # FIXME. This isn't quite right.
         to_a = lambda x: x.encode('ascii', 'ignore')
         to_k = lambda x: to_a(d[x])
@@ -501,7 +508,7 @@ class DataStoreFile(object):
         return DataStoreFile(to_k('uniqueId'),
                              to_k('sourceId'),
                              to_k('fileTypeId'),
-                             to_k('path'),
+                             _get_file_path(to_k('path'), base_path),
                              is_chunked=is_chunked,
                              name=to_a(d.get("name", "")),
                              description=to_a(d.get("description", "")))
@@ -554,17 +561,18 @@ class DataStore(object):
         write_dict_to_json(self.to_dict(), file_name, "w+")
 
     @staticmethod
-    def load_from_d(d):
+    def load_from_d(d, base_path=None):
         """Load DataStore from a dict"""
-        ds_files = [DataStoreFile.from_dict(x) for x in d['files']]
+        ds_files = [DataStoreFile.from_dict(x, base_path) for x in d['files']]
         return DataStore(ds_files)
 
     @staticmethod
     def load_from_json(path):
         """Load DataStore from a JSON file"""
+        base_path = os.path.dirname(os.path.abspath(path))
         with open(path, 'r') as reader:
             d = json.loads(reader.read())
-        return DataStore.load_from_d(d)
+        return DataStore.load_from_d(d, base_path)
 
 
 def _is_chunk_key(k):
