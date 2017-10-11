@@ -18,7 +18,7 @@ clean:
 	find . -name "*.log" | xargs rm -f;\
 	rm -rf dist;\
 	rm -rf docs/build
-	rm FileTypes.h
+	rm -f FileTypes.h
 
 test-nose:
 	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py

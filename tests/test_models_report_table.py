@@ -1,5 +1,6 @@
 import logging
 import unittest
+import tempfile
 
 from pbcommand.models.report import Table, Column, PbReportError
 
@@ -46,9 +47,12 @@ class TestBasicTable(unittest.TestCase):
                         Column('two', header="Two"),
                         Column('three', header="Three")]
         self.table = Table('my_table_with_values', columns=self.columns)
-        datum = {'one': list(xrange(3)), 'two': list('abc'),
-                 'three': 'file1 file2 file3'.split()}
-        for k, values in datum.iteritems():
+        datum = [
+            ('one', list(xrange(3))),
+            ('two', list('abc')),
+            ('three', 'file1 file2 file3'.split())
+        ]
+        for k, values in datum:
             for value in values:
                 self.table.add_data_by_column_id(k, value)
 
@@ -70,6 +74,12 @@ class TestBasicTable(unittest.TestCase):
         """Conversion to dictionary"""
         self.assertTrue(isinstance(self.table.to_dict(), dict))
         log.info(self.table.to_dict())
+
+    def test_to_csv(self):
+        f = tempfile.NamedTemporaryFile(suffix=".csv").name
+        self.table.to_csv(f)
+        with open(f) as csv_out:
+            self.assertEqual(csv_out.read(), "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n")
 
 
 class TestTable(unittest.TestCase):
