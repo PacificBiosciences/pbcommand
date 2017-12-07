@@ -7,8 +7,11 @@ for importing into JIRA/X-ray
 
 # NOTE: deliberately avoiding any dependencies outside the standard library!
 from xml.dom import minidom
+import logging
 import argparse
 import sys
+
+log = logging.getLogger(__name__)
 
 
 class TestCase(object):
@@ -50,6 +53,22 @@ class TestCase(object):
             test.appendChild(properties)
         return test
 
+    @staticmethod
+    def from_xml(node):
+        tests, requirements = [], []
+        for prop in node.getElementsByTagName("property"):
+            property_type = prop.getAttribute("name")
+            if property_type == "Requirement":
+                requirements.append(prop.getAttribute("value"))
+            elif property_type == "Test":
+                tests.append(prop.getAttribute("value"))
+        return TestCase(
+            name=node.getAttribute("name"),
+            success=node.getAttribute("success") == "True",
+            tests=tests,
+            requirements=requirements,
+            asserts=int(node.getAttribute("asserts")))
+
 
 def create_nunit_xml(test_cases):
     """
@@ -75,6 +94,16 @@ def create_nunit_xml(test_cases):
     for test_case in test_cases:
         results.appendChild(test_case.to_xml(doc))
     return doc
+
+
+def combine_results(xml_files):
+    test_cases = []
+    for xml_file in xml_files:
+        log.info("Reading NUnit report %s", xml_file)
+        dom = minidom.parse(xml_file)
+        for node in dom.getElementsByTagName("test-case"):
+            test_cases.append(TestCase.from_xml(node))
+    return create_nunit_xml(test_cases)
 
 
 def main(argv):
