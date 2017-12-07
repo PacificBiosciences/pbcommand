@@ -18,8 +18,8 @@ class TestCase(object):
     """
     Container for the results of an executed test.
     """
-    def __init__ (self, name, success, tests=(), requirements=(),
-                  asserts=1):
+    def __init__(self, name, success, tests=(), requirements=(),
+                 asserts=1):
         self.name = name
         self.success = success
         self.tests = list(tests)
@@ -78,7 +78,7 @@ def create_nunit_xml(test_cases):
     failed = [t.success for t in test_cases].count(False)
     doc = minidom.Document()
     root = doc.createElement("test-results")
-    root.setAttribute("total", str(passed+failed))
+    root.setAttribute("total", str(passed + failed))
     root.setAttribute("failed", str(failed))
     root.setAttribute("passed", str(passed))
     suite = doc.createElement("test-suite")
