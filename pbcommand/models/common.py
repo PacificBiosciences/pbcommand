@@ -368,6 +368,8 @@ class FileTypes(object):
                                    "consensusalignmentset.xml", MimeTypes.XML)
     DS_GMAP_REF = DataSetFileType(to_ds_ns("GmapReferenceSet"), "file",
                                   "gmapreferenceset.xml", MimeTypes.XML)
+    DS_TRANSCRIPT = DataSetFileType(to_ds_ns("TranscriptSet"), "file",
+                                    "transcriptset.xml", MimeTypes.XML)
 
     # PacBio Defined Formats
     # **** Index Files
