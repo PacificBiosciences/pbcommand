@@ -42,7 +42,9 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
 class ServiceJob(object):
     def __init__(self, ix, job_uuid, name, state, path, job_type, created_at,
                  settings, is_active=True, smrtlink_version=None,
-                 created_by=None, updated_at=None, error_message=None):
+                 created_by=None, updated_at=None, error_message=None, imported_at=None, job_updated_at=None,
+                 created_by_email=None, is_multi_job=False, tags="", parent_multi_job_id=None, workflow=None,
+                 project_id=1):
         """
 
         :param ix: Job Integer Id
@@ -66,11 +68,17 @@ class ServiceJob(object):
         :type job_type: str
         :type created_at: DateTime
         :type updated_at: DateTime | None
+        :type job_updated_at: DateTime | None
         :type settings: dict
         :type is_active: bool
         :type smrtlink_version: str | None
         :type created_by: str | None
+        :type created_by_email: str | None
         :type error_message: str | None
+        :type is_multi_job: bool
+        :type tags: str
+        :type workflow: dict | None
+        :type project_id: int
         """
         self.id = int(ix)
         # validation
@@ -85,12 +93,21 @@ class ServiceJob(object):
         self.is_active = is_active
         self.smrtlink_version = smrtlink_version
         self.created_by = created_by
+        self.created_by_email = created_by_email
         # Is this Option[T] or T?
         self.updated_at = updated_at
         self.error_message = error_message
+        self.imported_at = imported_at
+        self.job_updated_at = updated_at if job_updated_at is None else job_updated_at
+        self.is_multi_job = is_multi_job
+        self.tags = tags
+        self.parent_multi_job_id = parent_multi_job_id
+        # for MultiJob state
+        self.workflow = {} if workflow is None else workflow
+        self.project_id = project_id
 
-        if self.updated_at is not None:
-            dt = self.updated_at - self.created_at
+        if self.job_updated_at is not None:
+            dt = self.job_updated_at - self.created_at
             self.run_time_sec = dt.total_seconds()
         else:
             self.run_time_sec = None
@@ -169,20 +186,45 @@ class ServiceJob(object):
         job_type = se('jobTypeId')
         created_at = to_t('createdAt')
         updated_at = to_opt_datetime('updatedAt')
+        job_updated_at = to_opt_datetime('jobUpdatedAt')
+        imported_at = to_opt_datetime('importedAt')
+
+        project_id = s_or("projectId", 1)
 
         smrtlink_version = se_or("smrtlinkVersion")
         error_message = se_or("errorMessage")
         created_by = se_or("createdBy")
+        created_by_email = se_or('createdByEmail')
         is_active = d.get('isActive', True)
         settings = to_d('jsonSettings')
 
-        return ServiceJob(ix, job_uuid, name, state, path, job_type,
+        is_multi_job = d.get("isMultiJob", False)
+        parent_multi_job_id = s_or("parentMultiJobId")
+
+        workflow = json.loads(se_or("workflow", "{}"))
+
+        tags = se_or("tags", "")
+
+        return ServiceJob(ix,
+                          job_uuid,
+                          name,
+                          state,
+                          path,
+                          job_type,
                           created_at,
                           settings, is_active=is_active,
                           smrtlink_version=smrtlink_version,
                           created_by=created_by,
+                          created_by_email=created_by_email,
                           updated_at=updated_at,
-                          error_message=error_message)
+                          error_message=error_message,
+                          imported_at=imported_at,
+                          job_updated_at=job_updated_at,
+                          project_id=project_id,
+                          tags=tags,
+                          is_multi_job=is_multi_job,
+                          parent_multi_job_id=parent_multi_job_id,
+                          workflow=workflow)
 
     def was_successful(self):
         """ :rtype: bool """

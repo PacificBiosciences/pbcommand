@@ -4,3 +4,5 @@ from .models import (JobExeError, JobResult, LogLevels,
 # this module imports the models, so the model loading
 # must be called first to avoid cyclic-dependencies
 from .service_access_layer import ServiceAccessLayer
+# There's some crufty legacy naming. Using a cleaner model here
+SmrtLinkClient = ServiceAccessLayer
