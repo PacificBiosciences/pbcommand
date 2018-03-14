@@ -368,6 +368,8 @@ class FileTypes(object):
                                    "consensusalignmentset.xml", MimeTypes.XML)
     DS_GMAP_REF = DataSetFileType(to_ds_ns("GmapReferenceSet"), "file",
                                   "gmapreferenceset.xml", MimeTypes.XML)
+    DS_TRANSCRIPT = DataSetFileType(to_ds_ns("TranscriptSet"), "file",
+                                    "transcriptset.xml", MimeTypes.XML)
 
     # PacBio Defined Formats
     # **** Index Files
@@ -404,6 +406,7 @@ class FileTypes(object):
     BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", MimeTypes.BINARY)
     BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", MimeTypes.BINARY)
     BAM_CCS_ALN = FileType("PacBio.AlignmentFile.ConsensusAlignmentBamFile", "file", "ccs_align.bam", MimeTypes.BINARY)
+    BAM_TRANSCRIPT = FileType("PacBio.TranscriptFile.TranscriptBamFile", "file", "transcripts.bam", MimeTypes.BINARY)
     # MK TODO. Add remaining SubreadSet files types, Scraps, HqRegion, etc..
 
     BAZ = FileType("PacBio.ReadFile.BazFile", "file", "baz", MimeTypes.BINARY)

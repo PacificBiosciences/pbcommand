@@ -73,7 +73,7 @@ def _pacbio_choice_option_from_dict(d):
 
     opt_id = d['id']
     name = d['name']
-    desc = d['description']
+    desc = d['description'].encode("UTF-8")
 
     klass_map = {TaskOptionTypes.CHOICE_STR: PacBioStringChoiceOption,
                  TaskOptionTypes.CHOICE_FLOAT: PacBioFloatChoiceOption,
@@ -138,7 +138,7 @@ def _pacbio_option_from_dict(d):
     if "pb_option" in d:
         return _pacbio_legacy_option_from_dict(d)
     else:
-        return __simple_option_by_type(d['id'], d['name'], d['default'], d['description'], d['optionTypeId'])
+        return __simple_option_by_type(d['id'], d['name'], d['default'], d['description'].encode("UTF-8"), d['optionTypeId'])
 
 
 def pacbio_option_from_dict(d):

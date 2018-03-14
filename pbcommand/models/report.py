@@ -1041,7 +1041,7 @@ class ReportSpec(object):
     """
 
     def __init__(self, id_, version, title, description, attributes=(),
-                 plotgroups=(), tables=()):
+                 plotgroups=(), tables=(), hidden=False):
         self.id = id_
         self.version = version
         self.title = title
@@ -1052,15 +1052,18 @@ class ReportSpec(object):
         self._attr_dict = {a.id: a for a in attributes}
         self._plotgrp_dict = {p.id: p for p in plotgroups}
         self._table_dict = {t.id: t for t in tables}
+        self.hidden = hidden
 
     @staticmethod
     def from_dict(d):
+        hidden = d.get("isHidden", False)
         return ReportSpec(d['id'], d['version'], d['title'], d['description'],
                           [AttributeSpec.from_dict(a)
                            for a in d['attributes']],
                           [PlotGroupSpec.from_dict(p)
                            for p in d['plotGroups']],
-                          [TableSpec.from_dict(t) for t in d['tables']])
+                          [TableSpec.from_dict(t) for t in d['tables']],
+                          hidden=hidden)
 
     def get_attribute_spec(self, id_):
         return self._attr_dict.get(id_, None)
