@@ -327,7 +327,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
         # service job
         result = sal.get_analysis_job_by_id(job_id)
         if not result.was_successful():
-            raise JobExeError("Job {i} failed".format(i=job_id))
+            raise JobExeError("Job {i} failed:\n{e}".format(i=job_id, e=job_result.job.error_message))
     else:
         # service job or error
         result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
