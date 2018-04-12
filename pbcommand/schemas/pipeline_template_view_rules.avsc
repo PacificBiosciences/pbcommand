@@ -45,6 +45,28 @@
           ]
         }
       }
+    },
+    {
+      "name": "entryPoints",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "EntryPointsViewRule",
+          "fields": [
+            {
+              "name": "entryId",
+              "type": "string",
+              "doc": "The entry point id"
+            },
+            {
+              "name": "uuid",
+              "type": "string",
+              "doc": "The UUID of the default dataset for this entrypoint"
+            }
+          ]
+        }
+      }
     }
   ]
 }
