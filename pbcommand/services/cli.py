@@ -10,6 +10,8 @@ pbservice import-fasta /path/to/file.fasta --name my-name --organism my-org --pl
 
 0.2.0 Version, Jobs Support, leveraging
 
+0.3.0 Version, restricted to localhost
+
 pbservice run-analysis path/to/file.json
 pbservice run-merge-dataset path/to/file.json
 
@@ -45,7 +47,7 @@ from pbcommand.utils import (is_dataset,
 
 from .utils import to_ascii
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress warning message

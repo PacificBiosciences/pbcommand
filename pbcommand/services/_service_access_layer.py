@@ -343,7 +343,8 @@ def _to_relative_tasks_url(job_type):
 class ServiceAccessLayer(object):
     """
     General Client Access Layer for interfacing with the job types on
-    SMRT Link Analysis Services
+    SMRT Link Analysis Services.  This API only supports insecure (HTTP)
+    access to localhost.
     """
 
     ROOT_JM = "/smrt-link/job-manager"
@@ -357,7 +358,7 @@ class ServiceAccessLayer(object):
     def __init__(self, base_url, port, debug=False, sleep_time=2):
         """
 
-        :param base_url: base url of the SL Server (e.g, smrtlink-alpha, or http://smrtlink-alpha)
+        :param base_url: base url of the SL Server.  This MUST be either 'localhost' or 'http://localhost'
         :param port: port of the SL server
         :param debug: set improved debugging output on Services request failures
         :param sleep_time: sleep time (in seconds) between polling for job status
