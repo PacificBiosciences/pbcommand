@@ -1046,8 +1046,6 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
         Check whether the client still has authorization to access the /status
         endpoint, and acquire a new auth token if not.
         """
-        if self._auth_token is None:
-            raise RuntimeError("Must log in first")
         try:
             status = self.get_status()
         except requests.exceptions.HTTPError as e:
