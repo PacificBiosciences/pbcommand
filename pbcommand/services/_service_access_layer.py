@@ -377,7 +377,7 @@ class ServiceAccessLayer(object):
         return h if h.startswith(prefix) else prefix + h
 
     def _validate_url(self, url):
-        if not url in {"http://localhost", "localhost"}:
+        if url not in {"http://localhost", "localhost"}:
             raise NotImplementedError("This API only supports HTTP connections to localhost")
 
     @property
@@ -495,7 +495,7 @@ class ServiceAccessLayer(object):
     def _import_dataset(self, dataset_type, path):
         # This returns a job resource
         url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
-        return _import_dataset_by_type(dataset_type)(url, path)
+        return _import_dataset_by_type(dataset_type)(url, path, headers=self._get_headers())
 
     def run_import_dataset_by_type(self, dataset_type, path_to_xml):
         job_or_error = self._import_dataset(dataset_type, path_to_xml)
@@ -978,7 +978,7 @@ def get_token(url, user, password, scopes, secret, consumer_key):
     basic_auth = _create_auth(secret, consumer_key)
     # To be explicit for pedagogical purposes
     headers = {
-        "Authorization":  "Basic {}".format(basic_auth),
+        "Authorization": "Basic {}".format(basic_auth),
         "Content-Type": "application/x-www-form-urlencoded"
     }
 

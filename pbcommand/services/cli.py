@@ -36,7 +36,7 @@ from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
-from pbcommand.services.service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
+from pbcommand.services._service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
 from pbcommand.validators import validate_file, validate_or
 from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
