@@ -1,8 +1,8 @@
-VERSION = (0, 7, 0)
+VERSION = (1, 0, 0)
 
 
 def get_version():
-    """Return the version as a string. "O.7"
+    """Return the version as a string. "1.0.0"
 
     This uses a major.minor.tiny to be compatible with semver spec.
 
