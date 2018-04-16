@@ -1013,7 +1013,7 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
         super(SmrtLinkAuthClient, self).__init__(base_url, port, debug=debug, sleep_time=sleep_time)
         self._user = user
         self._password = password
-        
+
         if token is None:
             if (user is None or password is None):
                 raise ValueError("Both user and password must be defined unless an existing auth token is supplied")
