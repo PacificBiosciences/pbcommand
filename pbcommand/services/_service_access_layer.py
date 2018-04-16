@@ -2,6 +2,7 @@
 
 
 """
+import base64
 import json
 import logging
 import pprint
@@ -11,6 +12,9 @@ import pytz
 
 import requests
 from requests import RequestException
+# To disable the ssl cert check warning
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 from pbcommand.models import (FileTypes,
                               DataSetFileType,
@@ -41,7 +45,8 @@ class Constants(object):
 def __jsonable_request(request_method, headers):
     def wrapper(url, d_):
         data = json.dumps(d_)
-        return request_method(url, data=data, headers=headers)
+        # FIXME 'verify' should be passed in
+        return request_method(url, data=data, headers=headers, verify=False)
     return wrapper
 
 
@@ -55,16 +60,8 @@ def _put_requests(headers):
 
 def _get_requests(headers):
     def wrapper(url):
-        return requests.get(url, headers=headers)
+        return requests.get(url, headers=headers, verify=False)
     return wrapper
-
-
-# These are exposed publicly as a utility, but shouldn't be used in any API
-# call. The _process_* are the entry points for API calls to make sure an
-# errors are handled correctly.
-rqpost = _post_requests(Constants.HEADERS)
-rqput = _put_requests(Constants.HEADERS)
-rqget = _get_requests(Constants.HEADERS)
 
 
 def _parse_base_service_error(response):
@@ -86,9 +83,15 @@ def _parse_base_service_error(response):
         return response
 
 
-def _process_rget(total_url, ignore_errors=False):
+def __get_headers(h):
+    if h is None:
+        return Constants.HEADERS
+    return h
+
+
+def _process_rget(total_url, ignore_errors=False, headers=None):
     """Process get request and return JSON response. Raise if not successful"""
-    r = rqget(total_url)
+    r = _get_requests(__get_headers(headers))(total_url)
     _parse_base_service_error(r)
     if not r.ok and not ignore_errors:
         log.error("Failed ({s}) GET to {x}".format(x=total_url, s=r.status_code))
@@ -99,15 +102,15 @@ def _process_rget(total_url, ignore_errors=False):
 
 def _process_rget_with_transform(func, ignore_errors=False):
     """Post process the JSON result (if successful) with F(json_d) -> T"""
-    def wrapper(total_url):
-        j = _process_rget(total_url, ignore_errors=ignore_errors)
+    def wrapper(total_url, headers=None):
+        j = _process_rget(total_url, ignore_errors=ignore_errors, headers=headers)
         return func(j)
     return wrapper
 
 
-def _process_rget_with_jobs_transform(total_url, ignore_errors=False):
+def _process_rget_with_jobs_transform(total_url, ignore_errors=False, headers=None):
     # defining an internal method, because this used in several places
-    jobs_d = _process_rget(total_url, ignore_errors=ignore_errors)
+    jobs_d = _process_rget(total_url, ignore_errors=ignore_errors, headers=headers)
     # Sort by Id desc so newer jobs show up first
     jobs = [ServiceJob.from_d(job_d) for job_d in jobs_d]
     return sorted(jobs, key=lambda x: x.id, reverse=True)
@@ -120,9 +123,9 @@ def _process_rget_or_none(func, ignore_errors=False):
     This is intended to be used for looking up Results by Id where the a 404
     is found.
     """
-    def wrapper(total_url):
+    def wrapper(total_url, headers):
         try:
-            return _process_rget_with_transform(func, ignore_errors)(total_url)
+            return _process_rget_with_transform(func, ignore_errors)(total_url, headers)
         except (RequestException, SMRTServiceBaseError):
             # FIXME
             # this should be a tighter exception case
@@ -132,13 +135,13 @@ def _process_rget_or_none(func, ignore_errors=False):
     return wrapper
 
 
-def _process_rget_with_job_transform_or_none(total_url):
-    return _process_rget_or_none(ServiceJob.from_d)(total_url)
+def _process_rget_with_job_transform_or_none(total_url, headers=None):
+    return _process_rget_or_none(ServiceJob.from_d)(total_url, headers=headers)
 
 
 def __process_creatable_to_json(f):
-    def wrapper(total_url, payload_d):
-        r = f(total_url, payload_d)
+    def wrapper(total_url, payload_d, headers):
+        r = f(__get_headers(headers))(total_url, payload_d)
         _parse_base_service_error(r)
         # FIXME This should be strict to only return a 201
         if r.status_code not in (200, 201, 202, 204):
@@ -151,20 +154,20 @@ def __process_creatable_to_json(f):
     return wrapper
 
 
-_process_rpost = __process_creatable_to_json(rqpost)
-_process_rput = __process_creatable_to_json(rqput)
+_process_rpost = __process_creatable_to_json(_post_requests)
+_process_rput = __process_creatable_to_json(_put_requests)
 
 
 def _process_rpost_with_transform(func):
-    def wrapper(total_url, payload_d):
-        j = _process_rpost(total_url, payload_d)
+    def wrapper(total_url, payload_d, headers=None):
+        j = _process_rpost(total_url, payload_d, headers)
         return func(j)
     return wrapper
 
 
 def _process_rput_with_transform(func):
-    def wrapper(total_url, payload_d):
-        j = _process_rput(total_url, payload_d)
+    def wrapper(total_url, payload_d, headers=None):
+        j = _process_rput(total_url, payload_d, headers)
         return func(j)
     return wrapper
 
@@ -189,9 +192,9 @@ def _import_dataset_by_type(dataset_type_or_id):
     else:
         ds_type_id = dataset_type_or_id
 
-    def wrapper(total_url, path):
+    def wrapper(total_url, path, headers):
         _d = dict(datasetType=ds_type_id, path=path)
-        return _process_rpost_with_transform(ServiceJob.from_d)(total_url, _d)
+        return _process_rpost_with_transform(ServiceJob.from_d)(total_url, _d, headers)
 
     return wrapper
 
@@ -293,11 +296,6 @@ def _job_id_or_error(job_or_error, custom_err_msg=None):
         raise JobExeError("Failed to create job. {e}. Raw Response {x}".format(e=emsg, x=job_or_error))
 
 
-def _to_host(h):
-    prefix = "http://"
-    return h if h.startswith(prefix) else prefix + h
-
-
 def _to_ds_file(d):
     # is_chunk this isn't exposed at the service level
     return DataStoreFile(d['uuid'], d['sourceId'], d['fileTypeId'], d['path'], is_chunked=False, name=d.get("name", ""), description=d.get("description", ""))
@@ -348,10 +346,10 @@ class ServiceAccessLayer(object):
     SMRT Link Analysis Services
     """
 
-    ROOT_JM = "/secondary-analysis/job-manager"
+    ROOT_JM = "/smrt-link/job-manager"
     ROOT_JOBS = ROOT_JM + "/jobs"
-    ROOT_DS = "/secondary-analysis/datasets"
-    ROOT_PT = '/secondary-analysis/resolved-pipeline-templates'
+    ROOT_DS = "/smrt-link/datasets"
+    ROOT_PT = '/smrt-link/resolved-pipeline-templates'
 
     # in sec when blocking to run a job
     JOB_DEFAULT_TIMEOUT = 60 * 30
@@ -364,11 +362,23 @@ class ServiceAccessLayer(object):
         :param debug: set improved debugging output on Services request failures
         :param sleep_time: sleep time (in seconds) between polling for job status
         """
-        self.base_url = _to_host(base_url)
+        self.base_url = self._to_base_url(base_url)
+        self._validate_url(self.base_url)
         self.port = port
         # This will display verbose details with respect to the failed request
         self.debug = debug
         self._sleep_time = sleep_time
+
+    def _get_headers(self):
+        return Constants.HEADERS
+
+    def _to_base_url(self, h):
+        prefix = "http://"
+        return h if h.startswith(prefix) else prefix + h
+
+    def _validate_url(self, url):
+        if not url in {"http://localhost", "localhost"}:
+            raise NotImplementedError("This API only supports HTTP connections to localhost")
 
     @property
     def uri(self):
@@ -394,27 +404,28 @@ class ServiceAccessLayer(object):
         :rtype: dict
         """
         # This should be converted to a concrete typed object
-        return _process_rget(_to_url(self.uri, "/status"))
+        return _process_rget(_to_url(self.uri, "/status"),
+                             headers=self._get_headers())
 
     def get_job_by_type_and_id(self, job_type, job_id):
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
 
     def get_job_by_id(self, job_id):
         """Get a Job by int id"""
         # FIXME. Make this an internal method It's ambiguous which job type type you're asking for
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)))
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
 
     def _get_job_resource_type(self, job_type, job_id, resource_type_id):
         # grab the datastore or the reports
         _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
     def _get_job_resource_type_with_transform(self, job_type, job_id, resource_type_id, transform_func):
         _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)))
+        return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
     def _get_jobs_by_job_type(self, job_type):
-        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)))
+        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
 
     def get_analysis_jobs(self):
         """:rtype: list[ServiceJob]"""
@@ -453,7 +464,7 @@ class ServiceAccessLayer(object):
 
     def get_analysis_job_report_details(self, job_id, report_uuid):
         _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
-        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)))
+        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)), headers=self._get_headers())
 
     def get_analysis_job_report_attrs(self, job_id):
         """Return a dict of all the Report Attributes"""
@@ -465,7 +476,7 @@ class ServiceAccessLayer(object):
     def get_import_job_report_details(self, job_id, report_uuid):
         # It would have been better to return a Report instance, not raw json
         _d = dict(t=JobTypes.IMPORT_DS, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
-        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)))
+        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)), headers=self._get_headers())
 
     def get_import_job_report_attrs(self, job_id):
         """Return a dict of all the Report Attributes"""
@@ -576,15 +587,16 @@ class ServiceAccessLayer(object):
         """
         return _process_rget_or_none(_null_func, ignore_errors=ignore_errors)(
             _to_url(self.uri, "{p}/{i}".format(i=int_or_uuid,
-                                               p=ServiceAccessLayer.ROOT_DS)))
+                                               p=ServiceAccessLayer.ROOT_DS)),
+            headers=self._get_headers())
 
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
         """Get a Dataset using the DataSetMetaType and (int|uuid) of the dataset"""
         ds_endpoint = _get_endpoint_or_raise(dataset_type)
-        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)))
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def _get_datasets_by_type(self, dstype):
-        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=dstype, p=ServiceAccessLayer.ROOT_DS)))
+        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=dstype, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def get_subreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
@@ -628,7 +640,7 @@ class ServiceAccessLayer(object):
                  name=name,
                  organism=organism,
                  ploidy=ploidy)
-        return _process_rpost_with_transform(ServiceJob.from_d)(self._to_url("{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d)
+        return _process_rpost_with_transform(ServiceJob.from_d)(self._to_url("{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d, headers=self._get_headers())
 
     def run_import_fasta(self, fasta_path, name, organism, ploidy, time_out=JOB_DEFAULT_TIMEOUT):
         """Import a Reference into a Block"""""
@@ -641,15 +653,15 @@ class ServiceAccessLayer(object):
 
     def create_logger_resource(self, idx, name, description):
         _d = dict(id=idx, name=name, description=description)
-        return _process_rpost(_to_url(self.uri, "/smrt-base/loggers"), _d)
+        return _process_rpost(_to_url(self.uri, "/smrt-base/loggers"), _d, headers=self._get_headers())
 
     def log_progress_update(self, job_type_id, job_id, message, level, source_id):
         """This is the generic job logging mechanism"""
         _d = dict(message=message, level=level, sourceId=source_id)
-        return _process_rpost(_to_url(self.uri, "{p}/{t}/{i}/log".format(t=job_type_id, i=job_id, p=ServiceAccessLayer.ROOT_JOBS)), _d)
+        return _process_rpost(_to_url(self.uri, "{p}/{t}/{i}/log".format(t=job_type_id, i=job_id, p=ServiceAccessLayer.ROOT_JOBS)), _d, headers=self._get_headers())
 
     def get_pipeline_template_by_id(self, pipeline_template_id):
-        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)))
+        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
 
     def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=()):
         """Creates and runs a pbsmrtpipe pipeline by pipeline template id"""
@@ -671,7 +683,7 @@ class ServiceAccessLayer(object):
                  taskOptions=task_options,
                  workflowOptions=workflow_options)
 
-        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d)
+        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
     def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), time_out=JOB_DEFAULT_TIMEOUT):
@@ -689,12 +701,12 @@ class ServiceAccessLayer(object):
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
         job_url = self._to_url(_to_relative_tasks_url(JobTypes.PB_PIPE)(job_id_or_uuid))
-        return _process_rget_with_transform(_transform_job_tasks)(job_url)
+        return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
 
     def get_import_job_tasks(self, job_id_or_uuid):
         # this is more for testing purposes
         job_url = self._to_url(_to_relative_tasks_url(JobTypes.IMPORT_DS)(job_id_or_uuid))
-        return _process_rget_with_transform(_transform_job_tasks)(job_url)
+        return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
 
 
 def __run_and_ignore_errors(f, warn_message):
@@ -715,7 +727,7 @@ def _run_func(f, warn_message, ignore_errors=True):
         return f()
 
 
-def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True):
+def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True, headers=None):
     """Log the status of a pbsmrtpipe to SMRT Server"""
     # Keeping this as public to avoid breaking pbsmrtpipe. The
     # new public interface should be the JobServiceClient
@@ -726,12 +738,12 @@ def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=
     warn_message = "Failed Request to {u} data: {d}".format(u=total_url, d=_d)
 
     def f():
-        return _process_rpost(total_url, _d)
+        return _process_rpost(total_url, _d, headers=headers)
 
     return _run_func(f, warn_message, ignore_errors=ignore_errors)
 
 
-def add_datastore_file(total_url, datastore_file, ignore_errors=True):
+def add_datastore_file(total_url, datastore_file, ignore_errors=True, headers=None):
     """Add datastore to SMRT Server
 
     :type datastore_file: DataStoreFile
@@ -742,12 +754,12 @@ def add_datastore_file(total_url, datastore_file, ignore_errors=True):
     warn_message = "Failed Request to {u} data: {d}.".format(u=total_url, d=_d)
 
     def f():
-        return _process_rpost(total_url, _d)
+        return _process_rpost(total_url, _d, headers=headers)
 
     return _run_func(f, warn_message, ignore_errors=ignore_errors)
 
 
-def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True):
+def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True, headers=None):
     """
     :type create_job_task_record: CreateJobTaskRecord
     :rtype: JobTask
@@ -755,12 +767,12 @@ def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True):
     warn_message = "Unable to create Task {c}".format(c=repr(create_job_task_record))
 
     def f():
-        return _process_rpost_with_transform(JobTask.from_d)(job_tasks_url, create_job_task_record.to_dict())
+        return _process_rpost_with_transform(JobTask.from_d)(job_tasks_url, create_job_task_record.to_dict(), headers=headers)
 
     return _run_func(f, warn_message, ignore_errors)
 
 
-def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True):
+def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True, headers=None):
     """
     :type update_job_task_record: UpdateJobTaskRecord
     :rtype: JobTask
@@ -768,19 +780,19 @@ def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True)
     warn_message = "Unable to update Task {c}".format(c=repr(update_job_task_record))
 
     def f():
-        return _process_rput_with_transform(JobTask.from_d)(task_url, update_job_task_record.to_dict())
+        return _process_rput_with_transform(JobTask.from_d)(task_url, update_job_task_record.to_dict(), headers=headers)
 
     return _run_func(f, warn_message, ignore_errors)
 
 
 def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
-                           ignore_errors=True):
+                           ignore_errors=True, headers=None):
     warn_message = "Unable to update datastore file {u}".format(u=uuid)
     total_url = "{b}/{u}".format(b=datastore_url, u=uuid)
     d = {"fileSize": file_size, "path": path, "isActive": set_is_active}
 
     def f():
-        return _process_rput(total_url, d)
+        return _process_rput(total_url, d, headers=headers)
 
     return _run_func(f, warn_message, ignore_errors)
 
@@ -868,11 +880,11 @@ class JobServiceClient(object):
 
         The Url has the form:
 
-        http://localhost:8888/secondary-analysis/job-manager/jobs/pbsmrtpipe/1234
+        http://localhost:8888/smrt-link/job-manager/jobs/pbsmrtpipe/1234
 
         or
 
-        http://localhost:8888/secondary-analysis/job-manager/jobs/pbsmrtpipe/5d562c74-e452-11e6-8b96-3c15c2cc8f88
+        http://localhost:8888/smrt-link/job-manager/jobs/pbsmrtpipe/5d562c74-e452-11e6-8b96-3c15c2cc8f88
         """
         self.job_root_url = job_root_url
         self.ignore_errors = ignore_errors
@@ -880,6 +892,9 @@ class JobServiceClient(object):
     def __repr__(self):
         _d = dict(k=self.__class__.__name__, u=self.job_root_url)
         return "<{k} Job URL:{u} >".format(**_d)
+
+    def _get_headers(self):
+        return Constants.HEADERS
 
     def to_url(self, segment):
         return "{i}/{s}".format(i=self.job_root_url, s=segment)
@@ -944,3 +959,115 @@ class JobServiceClient(object):
                                 error_message=detailed_error_message)
 
         return _update_job_task_state(task_url, u)
+
+
+#-----------------------------------------------------------------------
+# SSL stuff
+class Wso2Constants(object):
+    SECRET = "KMLz5g7fbmx8RVFKKdu0NOrJic4a"
+    CONSUMER_KEY = "6NjRXBcFfLZOwHc0Xlidiz4ywcsa"
+    SCOPES = ["welcome", "run-design", "run-qc", "openid", "analysis",
+              "sample-setup", "data-management", "userinfo"]
+
+
+def _create_auth(secret, consumer_key):
+    return base64.b64encode(":".join([secret, consumer_key]))
+
+
+def get_token(url, user, password, scopes, secret, consumer_key):
+    basic_auth = _create_auth(secret, consumer_key)
+    # To be explicit for pedagogical purposes
+    headers = {
+        "Authorization":  "Basic {}".format(basic_auth),
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    scope_str = " ".join({s for s in scopes})
+    payload = dict(grant_type="password",
+                   username=user,
+                   password=password,
+                   scope=scope_str)
+
+    # verify is false to disable the SSL cert verification
+    return requests.post(url, payload, headers=headers, verify=False)
+
+
+def _get_smrtlink_wso2_token(user, password, url):
+    r = get_token(url, user, password, Wso2Constants.SCOPES, Wso2Constants.SECRET, Wso2Constants.CONSUMER_KEY)
+    j = r.json()
+    access_token = j['access_token']
+    refresh_token = j['refresh_token']
+    scopes = j['scope'].split(" ")
+    return access_token, refresh_token, scopes
+
+
+class SmrtLinkAuthClient(ServiceAccessLayer):
+    """
+    HTTPS-enabled client that routes via WSO2 and requires authentication.
+    For internal use only - this is NOT an officially supported API.  Currently
+    somewhat sloppy w.r.t. SSL security features.
+    """
+
+    def __init__(self, *args, **kwds):
+        super(SmrtLinkAuthClient, self).__init__(*args, **kwds)
+        self._auth_token = self._user = self._password = None
+
+    def _validate_url(self, url):
+        if url.startswith("http://"):
+            raise ValueError("URL must start with https://")
+
+    def _get_headers(self):
+        if self._auth_token is None:
+            raise RuntimeError("You must authenticate before running API calls.")
+        return {
+            "Authorization": "Bearer {}".format(self._auth_token),
+            "Content-type": "application/json"
+        }
+
+    def _to_base_url(self, h):
+        self._validate_url(h)
+        prefix = "https://"
+        return h if h.startswith(prefix) else prefix + h
+
+    @property
+    def uri(self):
+        return "{b}:{u}/SMRTLink/1.0.0".format(b=self.base_url, u=self.port)
+
+    def login(self, user, password):
+        """
+        Obtain an OAuth token for accessing services via WSO2 API Manager.
+        """
+        url = "{u}:{p}/token".format(u=self.base_url, p=self.port)
+        self._auth_token, refresh_token, scopes = _get_smrtlink_wso2_token(user, password, url)
+        self._user = user
+        self._password = password
+        return self
+
+    def reauthenticate_if_necessary(self):
+        """
+        Check whether the client still has authorization to access the /status
+        endpoint, and acquire a new auth token if not.
+        """
+        if self._auth_token is None:
+            raise RuntimeError("Must log in first")
+        try:
+            status = self.get_status()
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                self.login(self._user, self._password)
+            else:
+                raise e
+
+
+def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):
+    """
+    Return an instance of the appropriate client class given the input
+    parameters.  Unlike the client itself this hardcodes 8243 as the WSO2
+    port number.
+    """
+    if host != "localhost":
+        if user is None or password is None:
+            raise ValueError("user and password required for authentication on remote hosts")
+        return SmrtLinkAuthClient(host, 8243, sleep_time=sleep_time).login(user, password)
+    else:
+        return ServiceAccessLayer(host, port, sleep_time=sleep_time)
