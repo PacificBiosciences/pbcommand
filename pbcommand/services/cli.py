@@ -10,6 +10,8 @@ pbservice import-fasta /path/to/file.fasta --name my-name --organism my-org --pl
 
 0.2.0 Version, Jobs Support, leveraging
 
+0.3.0 Version, restricted to localhost
+
 pbservice run-analysis path/to/file.json
 pbservice run-merge-dataset path/to/file.json
 
@@ -36,7 +38,7 @@ from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
-from pbcommand.services.service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
+from pbcommand.services._service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
 from pbcommand.validators import validate_file, validate_or
 from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
@@ -45,7 +47,7 @@ from pbcommand.utils import (is_dataset,
 
 from .utils import to_ascii
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress warning message
