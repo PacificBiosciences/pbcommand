@@ -363,8 +363,9 @@ class ServiceAccessLayer(object):
         :param debug: set improved debugging output on Services request failures
         :param sleep_time: sleep time (in seconds) between polling for job status
         """
+        if base_url not in {"http://localhost", "localhost"}:
+            raise NotImplementedError("This API only supports HTTP connections to localhost")
         self.base_url = self._to_base_url(base_url)
-        self._validate_url(self.base_url)
         self.port = port
         # This will display verbose details with respect to the failed request
         self.debug = debug
@@ -376,10 +377,6 @@ class ServiceAccessLayer(object):
     def _to_base_url(self, h):
         prefix = "http://"
         return h if h.startswith(prefix) else prefix + h
-
-    def _validate_url(self, url):
-        if url not in {"http://localhost", "localhost"}:
-            raise NotImplementedError("This API only supports HTTP connections to localhost")
 
     @property
     def uri(self):
@@ -1009,40 +1006,40 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
     somewhat sloppy w.r.t. SSL security features.
     """
 
-    def __init__(self, *args, **kwds):
-        super(SmrtLinkAuthClient, self).__init__(*args, **kwds)
-        self._auth_token = self._user = self._password = None
+    def __init__(self, base_url, user, password, port=8243, debug=False,
+                 sleep_time=2, token=None):
+        if base_url.startswith("http://"):
+            raise ValueError("Invalid URL - this client requires HTTPS")
+        super(SmrtLinkAuthClient, self).__init__(base_url, port, debug=debug, sleep_time=sleep_time)
+        self._user = user
+        self._password = password
+        
+        if token is None:
+            if (user is None or password is None):
+                raise ValueError("Both user and password must be defined unless an existing auth token is supplied")
+            self._login()
+        else:
+            # assume token is valid. This will fail on the first client request if not valid with an obvious error message
+            self.auth_token = token
+            self.refresh_token = None
 
-    def _validate_url(self, url):
-        if url.startswith("http://"):
-            raise ValueError("URL must start with https://")
+    def _login(self):
+        url = "{u}:{p}/token".format(u=self.base_url, p=self.port)
+        self.auth_token, self.refresh_token, _ = _get_smrtlink_wso2_token(self._user, self._password, url)
 
     def _get_headers(self):
-        if self._auth_token is None:
-            raise RuntimeError("You must authenticate before running API calls.")
         return {
-            "Authorization": "Bearer {}".format(self._auth_token),
+            "Authorization": "Bearer {}".format(self.auth_token),
             "Content-type": "application/json"
         }
 
     def _to_base_url(self, h):
-        self._validate_url(h)
         prefix = "https://"
         return h if h.startswith(prefix) else prefix + h
 
     @property
     def uri(self):
         return "{b}:{u}/SMRTLink/1.0.0".format(b=self.base_url, u=self.port)
-
-    def login(self, user, password):
-        """
-        Obtain an OAuth token for accessing services via WSO2 API Manager.
-        """
-        url = "{u}:{p}/token".format(u=self.base_url, p=self.port)
-        self._auth_token, refresh_token, scopes = _get_smrtlink_wso2_token(user, password, url)
-        self._user = user
-        self._password = password
-        return self
 
     def reauthenticate_if_necessary(self):
         """
@@ -1055,20 +1052,18 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
             status = self.get_status()
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 401:
-                self.login(self._user, self._password)
+                self._login()
             else:
                 raise e
 
 
 def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):
     """
-    Return an instance of the appropriate client class given the input
-    parameters.  Unlike the client itself this hardcodes 8243 as the WSO2
-    port number.
+    Convenience method for use in CLI testing tools.  Returns an instance of
+    the appropriate client class given the input parameters.  Unlike the client
+    itself this hardcodes 8243 as the WSO2 port number.
     """
     if host != "localhost":
-        if user is None or password is None:
-            raise ValueError("user and password required for authentication on remote hosts")
-        return SmrtLinkAuthClient(host, 8243, sleep_time=sleep_time).login(user, password)
+        return SmrtLinkAuthClient(host, user, password, sleep_time=sleep_time)
     else:
         return ServiceAccessLayer(host, port, sleep_time=sleep_time)
