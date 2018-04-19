@@ -363,8 +363,6 @@ class ServiceAccessLayer(object):
         :param debug: set improved debugging output on Services request failures
         :param sleep_time: sleep time (in seconds) between polling for job status
         """
-        if base_url not in {"http://localhost", "localhost"}:
-            raise NotImplementedError("This API only supports HTTP connections to localhost")
         self.base_url = self._to_base_url(base_url)
         self.port = port
         # This will display verbose details with respect to the failed request
@@ -375,6 +373,8 @@ class ServiceAccessLayer(object):
         return Constants.HEADERS
 
     def _to_base_url(self, h):
+        if h not in {"http://localhost", "localhost"}:
+            raise NotImplementedError("This API only supports HTTP connections to localhost")
         prefix = "http://"
         return h if h.startswith(prefix) else prefix + h
 
@@ -1008,8 +1008,6 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
 
     def __init__(self, base_url, user, password, port=8243, debug=False,
                  sleep_time=2, token=None):
-        if base_url.startswith("http://"):
-            raise ValueError("Invalid URL - this client requires HTTPS")
         super(SmrtLinkAuthClient, self).__init__(base_url, port, debug=debug, sleep_time=sleep_time)
         self._user = user
         self._password = password
@@ -1034,6 +1032,8 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
         }
 
     def _to_base_url(self, h):
+        if h.startswith("http://"):
+            raise ValueError("Invalid URL - this client requires HTTPS")
         prefix = "https://"
         return h if h.startswith(prefix) else prefix + h
 
