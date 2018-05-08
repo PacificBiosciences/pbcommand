@@ -62,8 +62,6 @@ def __args_gather_runner(func, chunk_json, output_file, chunk_key):
     if not chunk_key.startswith('$chunk.'):
         chunk_key = '$chunk.' + chunk_key
         log.warn("Prepending chunk key with '$chunk.' to '{c}'".format(c=chunk_key))
-    else:
-        chunk_key = chunk_key
 
     fastx_files = _get_datum_from_chunks_by_chunk_key(chunks, chunk_key)
     _ = func(fastx_files, output_file)

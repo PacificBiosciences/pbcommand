@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import os
 import sys
 import warnings
@@ -22,7 +22,7 @@ except ImportError:
 
 def run_main(tc):
     """:type tc: ToolContract"""
-    print "Loaded tc {c}".format(c=tc)
+    print("Loaded tc {c}".format(c=tc))
 
     if tc.task.nproc == SymbolTypes.MAX_NPROC:
         nproc = get_input('Enter max nproc: ')
@@ -45,7 +45,7 @@ def run_main(tc):
 
     tool_options = {}
     rtc = resolve_tool_contract(tc, input_files, output_dir, '/tmp', int(nproc), tool_options, is_distributable=False)
-    print rtc
+    print(rtc)
 
     def to_n(ext):
         return "resolved_tool_contract." + ext
@@ -57,14 +57,14 @@ def run_main(tc):
         return os.path.join(output_dir, to_f(ext))
 
     rtc_path = to_p("json")
-    print "writing RTC to {f}".format(f=rtc_path)
+    print("writing RTC to {f}".format(f=rtc_path))
 
     # Always write the JSON RTC file
     write_resolved_tool_contract(rtc, rtc_path)
 
     if rtc.driver.serialization.lower() == "avro":
         avro_rtc_path = to_p("avro")
-        print "writing AVRO RTC to {f}".format(f=avro_rtc_path)
+        print("writing AVRO RTC to {f}".format(f=avro_rtc_path))
         write_resolved_tool_contract_avro(rtc, avro_rtc_path)
 
     return rtc

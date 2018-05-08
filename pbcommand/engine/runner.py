@@ -71,8 +71,6 @@ def run_cmd(cmd, stdout_fh, stderr_fh, shell=True, time_out=None, env=None, exec
             sleep_time += dt
 
     run_time = time.time() - started_at
-
-    run_time = run_time
     returncode = process.returncode
     log.debug("returncode is {r} in {s:.2f} sec.".format(r=process.returncode,
                                                          s=run_time))
