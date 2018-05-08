@@ -340,7 +340,7 @@ def _to_relative_tasks_url(job_type):
     return wrapper
 
 
-class ServiceAccessLayer(object):
+class ServiceAccessLayer(object): # pragma: no cover
     """
     General Client Access Layer for interfacing with the job types on
     SMRT Link Analysis Services.  This API only supports insecure (HTTP)
@@ -725,7 +725,7 @@ def _run_func(f, warn_message, ignore_errors=True):
         return f()
 
 
-def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True, headers=None):
+def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True, headers=None): # pragma: no cover
     """Log the status of a pbsmrtpipe to SMRT Server"""
     # Keeping this as public to avoid breaking pbsmrtpipe. The
     # new public interface should be the JobServiceClient
@@ -741,7 +741,7 @@ def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=
     return _run_func(f, warn_message, ignore_errors=ignore_errors)
 
 
-def add_datastore_file(total_url, datastore_file, ignore_errors=True, headers=None):
+def add_datastore_file(total_url, datastore_file, ignore_errors=True, headers=None): # pragma: no cover
     """Add datastore to SMRT Server
 
     :type datastore_file: DataStoreFile
@@ -757,7 +757,7 @@ def add_datastore_file(total_url, datastore_file, ignore_errors=True, headers=No
     return _run_func(f, warn_message, ignore_errors=ignore_errors)
 
 
-def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True, headers=None):
+def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True, headers=None): # pragma: no cover
     """
     :type create_job_task_record: CreateJobTaskRecord
     :rtype: JobTask
@@ -770,7 +770,7 @@ def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True, 
     return _run_func(f, warn_message, ignore_errors)
 
 
-def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True, headers=None):
+def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True, headers=None): # pragma: no cover
     """
     :type update_job_task_record: UpdateJobTaskRecord
     :rtype: JobTask
@@ -784,7 +784,7 @@ def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True,
 
 
 def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
-                           ignore_errors=True, headers=None):
+                           ignore_errors=True, headers=None): # pragma: no cover
     warn_message = "Unable to update datastore file {u}".format(u=uuid)
     total_url = "{b}/{u}".format(b=datastore_url, u=uuid)
     d = {"fileSize": file_size, "path": path, "isActive": set_is_active}
@@ -862,7 +862,7 @@ class UpdateJobTaskRecord(object):
         return _d
 
 
-class JobServiceClient(object):
+class JobServiceClient(object): # pragma: no cover
     # Keeping this class private. It should only be used from pbsmrtpipe
     def __init__(self, job_root_url, ignore_errors=False):
         """
@@ -961,18 +961,18 @@ class JobServiceClient(object):
 
 #-----------------------------------------------------------------------
 # SSL stuff
-class Wso2Constants(object):
+class Wso2Constants(object): # pragma: no cover
     SECRET = "KMLz5g7fbmx8RVFKKdu0NOrJic4a"
     CONSUMER_KEY = "6NjRXBcFfLZOwHc0Xlidiz4ywcsa"
     SCOPES = ["welcome", "run-design", "run-qc", "openid", "analysis",
               "sample-setup", "data-management", "userinfo"]
 
 
-def _create_auth(secret, consumer_key):
+def _create_auth(secret, consumer_key): # pragma: no cover
     return base64.b64encode(":".join([secret, consumer_key]))
 
 
-def get_token(url, user, password, scopes, secret, consumer_key):
+def get_token(url, user, password, scopes, secret, consumer_key): # pragma: no cover
     basic_auth = _create_auth(secret, consumer_key)
     # To be explicit for pedagogical purposes
     headers = {
@@ -990,7 +990,7 @@ def get_token(url, user, password, scopes, secret, consumer_key):
     return requests.post(url, payload, headers=headers, verify=False)
 
 
-def _get_smrtlink_wso2_token(user, password, url):
+def _get_smrtlink_wso2_token(user, password, url): # pragma: no cover
     r = get_token(url, user, password, Wso2Constants.SCOPES, Wso2Constants.SECRET, Wso2Constants.CONSUMER_KEY)
     j = r.json()
     access_token = j['access_token']
@@ -999,7 +999,7 @@ def _get_smrtlink_wso2_token(user, password, url):
     return access_token, refresh_token, scopes
 
 
-class SmrtLinkAuthClient(ServiceAccessLayer):
+class SmrtLinkAuthClient(ServiceAccessLayer): # pragma: no cover
     """
     HTTPS-enabled client that routes via WSO2 and requires authentication.
     For internal use only - this is NOT an officially supported API.  Currently
@@ -1055,7 +1055,7 @@ class SmrtLinkAuthClient(ServiceAccessLayer):
                 raise e
 
 
-def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):
+def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5): # pragma: no cover
     """
     Convenience method for use in CLI testing tools.  Returns an instance of
     the appropriate client class given the input parameters.  Unlike the client

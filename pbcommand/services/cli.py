@@ -17,6 +17,7 @@ pbservice run-merge-dataset path/to/file.json
 
 This program is largely replaced by the Scala version in 'smrtflow'.
 """
+from __future__ import print_function
 import argparse
 import json
 
@@ -58,7 +59,7 @@ _LOG_FORMAT = '[%(levelname)s] %(asctime)-15s %(message)s'
 
 def _list_dict_printer(list_d):
     for i in list_d:
-        print i
+        print(i)
 
 
 try:
@@ -66,7 +67,7 @@ try:
     from tabulate import tabulate
 
     def printer(list_d):
-        print tabulate(list_d)
+        print(tabulate(list_d))
     list_dict_printer = printer
 except ImportError:
     list_dict_printer = _list_dict_printer
@@ -363,7 +364,7 @@ def args_emit_analysis_template(args):
              workflowOptions=[])
 
     sx = json.dumps(d, sort_keys=True, indent=4, separators=(',', ': '))
-    print sx
+    print(sx)
 
     return 0
 
@@ -375,7 +376,7 @@ def args_get_sal_summary(args):
 
     sal = ServiceAccessLayer(host, port)
 
-    print sal.to_summary()
+    print(sal.to_summary())
 
     return 0
 
@@ -396,12 +397,12 @@ def run_get_job_summary(host, port, job_id):
     else:
         # this is not awesome, but the scala code should be the fundamental
         # tool
-        print "Job {}".format(job_id)
+        print("Job {}".format(job_id))
         # The settings will often make this unreadable
-        print job._replace(settings={})
-        print " Entry Points {}".format(len(epoints))
+        print(job._replace(settings={}))
+        print(" Entry Points {}".format(len(epoints)))
         for epoint in epoints:
-            print "  {}".format(epoint)
+            print("  {}".format(epoint))
 
     return 0
 
@@ -459,7 +460,7 @@ def run_get_dataset_summary(host, port, dataset_id_or_uuid):
     if ds is None:
         log.error("Unable to find DataSet '{i}' on {u}".format(i=dataset_id_or_uuid, u=sal.uri))
     else:
-        print pprint.pformat(ds, indent=2)
+        print(pprint.pformat(ds, indent=2))
 
     return 0
 
@@ -505,7 +506,7 @@ def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=No
         # this needs to be improved
         sorted_datasets = datasets if sort_by is None else sorted(datasets, cmp=sort_by)
 
-        print "Number of {t} Datasets {n}".format(t=dataset_type, n=len(datasets))
+        print("Number of {t} Datasets {n}".format(t=dataset_type, n=len(datasets)))
         list_dict_printer(sorted_datasets[:max_items])
 
     return 0
