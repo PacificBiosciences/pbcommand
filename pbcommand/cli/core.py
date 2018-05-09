@@ -14,6 +14,7 @@ Going to do this in a new steps.
 
 
 """
+from __future__ import print_function
 import argparse
 import json
 import logging
@@ -265,6 +266,6 @@ def pbparser_runner(argv,
     if EMIT_TOOL_CONTRACT_OPTION in argv:
         # print tool_contract
         x = json.dumps(tool_contract.to_dict(), indent=4, separators=(',', ': '))
-        print x
+        print(x)
     else:
         return pacbio_args_or_contract_runner(argv, arg_parser, args_runner_func, contract_runner_func, alog, setup_log_func)

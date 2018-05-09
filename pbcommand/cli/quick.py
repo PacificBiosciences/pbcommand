@@ -1,3 +1,4 @@
+from __future__ import print_function
 import argparse
 import json
 import logging
@@ -240,7 +241,7 @@ def __args_summary_runner(registry):
     def _w(args):
         log.info("Registry {r}".format(r=registry))
         log.info("\n" + registry.to_summary())
-        print registry.to_summary()
+        print(registry.to_summary())
         return 0
     return _w
 
@@ -297,7 +298,7 @@ def __args_emit_tc_runner(registry):
             sys.stderr.write("ERROR. Unable to find tool-contract id {i}".format(i=tc_id))
             return -1
         else:
-            print json.dumps(tc.to_dict(), sort_keys=True, indent=4, separators=(',', ': '))
+            print(json.dumps(tc.to_dict(), sort_keys=True, indent=4, separators=(',', ': ')))
             return 0
     return _w
 
