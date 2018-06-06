@@ -316,7 +316,7 @@ class Plot(BaseReportElement):
     VALID_PLOT_TYPES = {"image", "plotly"}
 
     def __init__(self, id_, image, caption=None, thumbnail=None, title=None,
-                 plot_type="image", plotlyVersion=None):
+                 plot_type="image", plotly_version=None):
         """
         :param id_: (str, not None, or empty) Unique id for plot.
         :param image: (str) Required - not None - path to image
@@ -340,8 +340,8 @@ class Plot(BaseReportElement):
 
         self._thumbnail = thumbnail
         assert plot_type in self.VALID_PLOT_TYPES
-        self.type = plot_type
-        self.plotlyVersion = plotlyVersion
+        self._plot_type = plot_type
+        self._plotly_version = plotly_version
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
@@ -361,8 +361,16 @@ class Plot(BaseReportElement):
     def caption(self):
         return self._caption
 
+    @property
+    def plotType(self):
+        return self._plot_type
+
+    @property
+    def plotlyVersion(self):
+        return self._plotly_version
+
     def _get_attrs_simple(self):
-        return ['image', 'caption', 'title', 'type', 'plotlyVersion']
+        return ['image', 'caption', 'title', 'plotType', 'plotlyVersion']
 
     def _get_attrs_complex_list(self):
         return []

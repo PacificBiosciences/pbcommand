@@ -132,7 +132,7 @@
                       ]
                     },
                     {
-                      "name": "type",
+                      "name": "plotType",
                       "doc": "Specifies plot type, either `image` or `plotly`",
                       "type": ["string", "null"],
                       "default": "image"
