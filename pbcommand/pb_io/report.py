@@ -29,7 +29,10 @@ def _to_plot(d):
     image = d['image']
     thumbnail = d.get('thumbnail', None)
     title = d.get('title', None)
-    p = Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title)
+    plot_type = d.get("type", "image")
+    plotly_version = d.get("plotlyVersion", None)
+    p = Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title,
+             plot_type=plot_type, plotlyVersion=plotly_version)
     return p
 
 

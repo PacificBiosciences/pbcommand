@@ -58,3 +58,4 @@ class TestSerializationAdapterReport(unittest.TestCase):
 
     def test_plots(self):
         self.assertEqual(len(self.report.plotGroups[0].plots), 1)
+        self.assertEqual(self.report.plotGroups[0].plots[0].type, "image")
