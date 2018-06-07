@@ -21,7 +21,7 @@
     },
     {
       "name": "taskOptions",
-      "type": [{
+      "type": {
         "type": "array",
         "items": {
           "type": "record",
@@ -44,7 +44,7 @@
             }
           ]
         }
-      }, "null"]
+      }
     },
     {
       "name": "entryPoints",
