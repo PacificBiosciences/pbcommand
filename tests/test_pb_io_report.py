@@ -5,6 +5,7 @@ import json
 from pprint import pformat
 
 from pbcommand.pb_io import load_report_from_json
+from pbcommand.models.report import Plot, PlotlyPlot
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
@@ -59,5 +60,5 @@ class TestSerializationAdapterReport(unittest.TestCase):
     def test_plots(self):
         self.assertEqual(len(self.report.plotGroups[0].plots), 1)
         self.assertEqual(len(self.report.plotGroups[1].plots), 1)
-        self.assertEqual(self.report.plotGroups[0].plots[0].plotType, "image")
-        self.assertEqual(self.report.plotGroups[1].plots[0].plotType, "plotly")
+        self.assertEqual(self.report.plotGroups[0].plots[0].plotType, Plot.PLOT_TYPE)
+        self.assertEqual(self.report.plotGroups[1].plots[0].plotType, PlotlyPlot.PLOT_TYPE)

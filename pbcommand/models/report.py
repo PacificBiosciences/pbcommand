@@ -313,7 +313,7 @@ class Plot(BaseReportElement):
     """
     A plot contains a path to image file.
     """
-    plotType = "image"
+    PLOT_TYPE = "image"
 
     def __init__(self, id_, image, caption=None, thumbnail=None, title=None):
         """
@@ -357,6 +357,10 @@ class Plot(BaseReportElement):
     def caption(self):
         return self._caption
 
+    @property
+    def plotType(self):
+        return self.PLOT_TYPE
+
     def _get_attrs_simple(self):
         return ['image', 'caption', 'title', 'plotType']
 
@@ -365,12 +369,16 @@ class Plot(BaseReportElement):
 
 
 class PlotlyPlot(Plot):
-    plotType = "plotly"
+    PLOT_TYPE = "plotly"
 
     def __init__(self, id_, image, caption=None, thumbnail=None, title=None,
                  plotly_version=None):
-        self.plotlyVersion = plotly_version
+        self._plotly_version = plotly_version
         super(PlotlyPlot, self).__init__(id_, image, caption, thumbnail, title)
+
+    @property
+    def plotlyVersion(self):
+        return self._plotly_version
 
     def _get_attrs_simple(self):
         return ['image', 'caption', 'title', 'plotType', 'plotlyVersion']

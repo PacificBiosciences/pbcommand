@@ -29,11 +29,11 @@ def _to_plot(d):
     image = d['image']
     thumbnail = d.get('thumbnail', None)
     title = d.get('title', None)
-    plot_type = d.get("plotType", "image")
+    plot_type = d.get("plotType", Plot.PLOT_TYPE)
     plotly_version = d.get("plotlyVersion", None)
-    if plot_type == "image":
+    if plot_type == Plot.PLOT_TYPE:
         return Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title)
-    elif plot_type == "plotly":
+    elif plot_type == PlotlyPlot.PLOT_TYPE:
         return PlotlyPlot(id_, image, caption=caption, thumbnail=thumbnail, title=title, plotly_version=plotly_version)
     else:
         raise ValueError("Unrecognized plotType '{t}'".format(t=plot_type))
