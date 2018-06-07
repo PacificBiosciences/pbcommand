@@ -67,6 +67,34 @@
           ]
         }
       }
-    }
+    },
+    {
+      "name": "inputFilters",
+      "doc": "Used to filter datasets for selection for the primary (subreads) entry point of this pipeline",
+      "type": {
+        "type": "array", 
+        "items": {
+          "type": "record",
+          "name": "FilterEncoding",
+          "fields": [
+            {
+              "name": "field",
+              "type": "string",
+              "doc": "The dataset field on which to filter"
+            },
+            {
+              "name": "operator",
+              "type": "string",
+              "doc": "The operator.  One of: '=' or '!='"
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "doc": "The value of the dataset at the given field.  The left hand side of the comparison in the filter"
+            }
+          ]
+          }
+        }
+      }
   ]
 }
