@@ -54,8 +54,10 @@ class TestSerializationAdapterReport(unittest.TestCase):
         self.assertEqual(len(self.report.attributes), 6)
 
     def test_plotgroups(self):
-        self.assertEqual(len(self.report.plotGroups), 1)
+        self.assertEqual(len(self.report.plotGroups), 2)
 
     def test_plots(self):
         self.assertEqual(len(self.report.plotGroups[0].plots), 1)
+        self.assertEqual(len(self.report.plotGroups[1].plots), 1)
         self.assertEqual(self.report.plotGroups[0].plots[0].plotType, "image")
+        self.assertEqual(self.report.plotGroups[1].plots[0].plotType, "plotly")

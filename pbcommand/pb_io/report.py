@@ -7,7 +7,7 @@ import logging
 import uuid as U
 
 from pbcommand.models.report import (Report, Plot, PlotGroup, Attribute,
-                                     Table, Column, ReportSpec)
+                                     Table, Column, ReportSpec, PlotlyPlot)
 from pbcommand.schemas import validate_report, validate_report_spec
 
 
@@ -31,9 +31,12 @@ def _to_plot(d):
     title = d.get('title', None)
     plot_type = d.get("plotType", "image")
     plotly_version = d.get("plotlyVersion", None)
-    p = Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title,
-             plot_type=plot_type, plotly_version=plotly_version)
-    return p
+    if plot_type == "image":
+        return Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title)
+    elif plot_type == "plotly":
+        return PlotlyPlot(id_, image, caption=caption, thumbnail=thumbnail, title=title, plotly_version=plotly_version)
+    else:
+        raise ValueError("Unrecognized plotType '{t}'".format(t=plot_type))
 
 
 def _to_plot_group(d):

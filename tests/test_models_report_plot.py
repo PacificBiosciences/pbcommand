@@ -2,7 +2,7 @@ import logging
 import unittest
 from pprint import pformat
 
-from pbcommand.models.report import Plot, PbReportError
+from pbcommand.models.report import Plot, PbReportError, PlotlyPlot
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class TestPlot(unittest.TestCase):
         self.assertEquals('123', d['id'])
         self.assertEquals('foo', d['image'])
         self.assertEquals('foo is the caption', d['caption'])
+        self.assertEquals("image", d['plotType'])
         log.info(pformat(d, indent=4))
         log.info(repr(a))
         self.assertIsNotNone(repr(a))
@@ -41,3 +42,12 @@ class TestPlot(unittest.TestCase):
         log.info(pformat(p.to_dict()))
         self.assertTrue(isinstance(p.to_dict(), dict))
 
+    def test_plotly_plot(self):
+        a = PlotlyPlot('123', 'foo', caption='foo is the caption',
+                       plotly_version="1.2.3")
+        d = a.to_dict()
+        self.assertEquals('123', d['id'])
+        self.assertEquals('foo', d['image'])
+        self.assertEquals('foo is the caption', d['caption'])
+        self.assertEquals(d['plotType'], "plotly")
+        self.assertEquals(d['plotlyVersion'], "1.2.3")
