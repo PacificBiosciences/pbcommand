@@ -25,13 +25,14 @@ __all__ = ['PbReportError',
            'Attribute',
            'Report',
            'Plot',
+           'PlotlyPlot',
            'PlotGroup',
            'Column',
            'Table']
 
 # If/when the Report datamodel change, this needs to be changed using
 # the semver model
-PB_REPORT_SCHEMA_VERSION = "1.0.0"
+PB_REPORT_SCHEMA_VERSION = "1.0.1"
 
 _HAS_NUMPY = False
 
@@ -312,6 +313,7 @@ class Plot(BaseReportElement):
     """
     A plot contains a path to image file.
     """
+    PLOT_TYPE = "image"
 
     def __init__(self, id_, image, caption=None, thumbnail=None, title=None):
         """
@@ -355,11 +357,31 @@ class Plot(BaseReportElement):
     def caption(self):
         return self._caption
 
+    @property
+    def plotType(self):
+        return self.PLOT_TYPE
+
     def _get_attrs_simple(self):
-        return ['image', 'caption', 'title']
+        return ['image', 'caption', 'title', 'plotType']
 
     def _get_attrs_complex_list(self):
         return []
+
+
+class PlotlyPlot(Plot):
+    PLOT_TYPE = "plotly"
+
+    def __init__(self, id_, image, caption=None, thumbnail=None, title=None,
+                 plotly_version=None):
+        self._plotly_version = plotly_version
+        super(PlotlyPlot, self).__init__(id_, image, caption, thumbnail, title)
+
+    @property
+    def plotlyVersion(self):
+        return self._plotly_version
+
+    def _get_attrs_simple(self):
+        return ['image', 'caption', 'title', 'plotType', 'plotlyVersion']
 
 
 class Table(BaseReportElement):
