@@ -71,7 +71,7 @@
     {
       "name": "inputFilters",
       "doc": "Used to filter datasets for selection for the primary (subreads) entry point of this pipeline",
-      "type": {
+      "type": ["null", {
         "type": "array", 
         "items": {
           "type": "record",
@@ -94,7 +94,7 @@
             }
           ]
           }
-        }
+        }]
       }
   ]
 }
