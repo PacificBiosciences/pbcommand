@@ -62,13 +62,13 @@
             },
             {
               "name": "uuid",
-              "type": ["string", "null"],
+              "type": ["null", "string"],
               "doc": "The UUID of the default dataset for this entrypoint",
               "default": null
             },
             {
               "name": "label",
-              "type": ["string", "null"],
+              "type": ["null", "string"],
               "default": null,
               "doc": "Entry point label to display in the UI"
             }
@@ -93,7 +93,8 @@
             },
             {
               "name": "operator",
-              "type": "string",
+              "type": "enum",
+              "symbols": ["=", "!=", "contains"],
               "doc": "The operator.  One of: '=', '!=', or 'contains'."
             },
             {
@@ -103,7 +104,7 @@
             },
             {
               "name": "entryId",
-              "type": ["string", "null"],
+              "type": ["null", "string"],
               "default": null,
               "doc": "Entry point ID that the filter applies to, e.g. eid_subread or eid_ref_dataset.  This is assumed to be eid_subread if not specified."
             }
