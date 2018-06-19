@@ -21,7 +21,7 @@
     },
     {
       "name": "taskOptions",
-      "type": {
+      "type": ["null", {
         "type": "array",
         "items": {
           "type": "record",
@@ -44,11 +44,12 @@
             }
           ]
         }
-      }
+      }],
+      "default": null
     },
     {
       "name": "entryPoints",
-      "type": {
+      "type": ["null", {
         "type": "array",
         "items": {
           "type": "record",
@@ -73,7 +74,8 @@
             }
           ]
         }
-      }
+      }],
+      "default": null
     },
     {
       "name": "inputFilters",
