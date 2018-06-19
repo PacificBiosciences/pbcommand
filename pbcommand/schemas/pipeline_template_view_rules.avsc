@@ -57,7 +57,8 @@
           "fields": [
             {
               "name": "entryId",
-              "type": "string",
+              "type": "enum",
+              "symbols": ["eid_subread", "eid_hdfsubread", "eid_ref_dataset", "eid_barcode"],
               "doc": "The entry point id"
             },
             {
@@ -79,7 +80,7 @@
     },
     {
       "name": "inputFilters",
-      "doc": "Used to filter datasets for selection for the primary (subreads) entry point of this pipeline",
+      "doc": "Used to filter datasets for selection for the entry point(s) of this pipeline",
       "type": ["null", {
         "type": "array", 
         "items": {
@@ -104,8 +105,9 @@
             },
             {
               "name": "entryId",
-              "type": ["null", "string"],
-              "default": null,
+              "type": "enum",
+              "symbols": ["eid_subread", "eid_hdfsubread", "eid_ref_dataset", "eid_barcode"],
+              "default": "eid_subread",
               "doc": "Entry point ID that the filter applies to, e.g. eid_subread or eid_ref_dataset.  This is assumed to be eid_subread if not specified."
             }
           ]
