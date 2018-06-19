@@ -92,7 +92,7 @@
             {
               "name": "operator",
               "type": "string",
-              "doc": "The operator.  One of: '=' or '!='"
+              "doc": "The operator.  One of: '=', '!=', or 'contains'."
             },
             {
               "name": "value",
