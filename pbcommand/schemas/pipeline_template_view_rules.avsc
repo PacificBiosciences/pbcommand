@@ -21,7 +21,7 @@
     },
     {
       "name": "taskOptions",
-      "type": {
+      "type": ["null", {
         "type": "array",
         "items": {
           "type": "record",
@@ -44,11 +44,12 @@
             }
           ]
         }
-      }
+      }],
+      "default": null
     },
     {
       "name": "entryPoints",
-      "type": {
+      "type": ["null", {
         "type": "array",
         "items": {
           "type": "record",
@@ -61,12 +62,20 @@
             },
             {
               "name": "uuid",
-              "type": "string",
-              "doc": "The UUID of the default dataset for this entrypoint"
+              "type": ["string", "null"],
+              "doc": "The UUID of the default dataset for this entrypoint",
+              "default": null
+            },
+            {
+              "name": "label",
+              "type": ["string", "null"],
+              "default": null,
+              "doc": "Entry point label to display in the UI"
             }
           ]
         }
-      }
+      }],
+      "default": null
     },
     {
       "name": "inputFilters",
@@ -85,16 +94,22 @@
             {
               "name": "operator",
               "type": "string",
-              "doc": "The operator.  One of: '=' or '!='"
+              "doc": "The operator.  One of: '=', '!=', or 'contains'."
             },
             {
               "name": "value",
               "type": "string",
               "doc": "The value of the dataset at the given field.  The left hand side of the comparison in the filter"
+            },
+            {
+              "name": "entryId",
+              "type": ["string", "null"],
+              "default": null,
+              "doc": "Entry point ID that the filter applies to, e.g. eid_subread or eid_ref_dataset.  This is assumed to be eid_subread if not specified."
             }
           ]
-          }
-        }]
-      }
+        }
+      }]
+    }
   ]
 }
