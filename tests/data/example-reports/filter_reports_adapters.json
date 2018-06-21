@@ -48,6 +48,20 @@
       ],
       "legend": null,
       "title": "Observed Insert Length Distribution"
+    },
+    {
+      "id": "adapter.plotly_image",
+      "thumbnail": null,
+      "plots": [
+        {
+          "caption": null,
+          "image": "plotly.json.gz",
+          "id": "adapter.plotly_image.plot1",
+          "plotType": "plotly"
+        }
+      ],
+      "legend": null,
+      "title": "Plotly Test"
     }
   ]
 }

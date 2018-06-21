@@ -130,6 +130,17 @@
                         "string",
                         "null"
                       ]
+                    },
+                    {
+                      "name": "plotType",
+                      "doc": "Specifies plot type, either `image` or `plotly`",
+                      "type": ["string", "null"],
+                      "default": "image"
+                    },
+                    {
+                      "name": "plotlyVersion",
+                      "doc": "Version of plotly.js used, if type=plotly",
+                      "type": ["string", "null"]
                     }
                   ]
                 }

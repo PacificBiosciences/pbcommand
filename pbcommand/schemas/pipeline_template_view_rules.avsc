@@ -21,7 +21,7 @@
     },
     {
       "name": "taskOptions",
-      "type": {
+      "type": ["null", {
         "type": "array",
         "items": {
           "type": "record",
@@ -44,11 +44,12 @@
             }
           ]
         }
-      }
+      }],
+      "default": null
     },
     {
       "name": "entryPoints",
-      "type": {
+      "type": ["null", {
         "type": "array",
         "items": {
           "type": "record",
@@ -56,17 +57,62 @@
           "fields": [
             {
               "name": "entryId",
-              "type": "string",
+              "type": "enum",
+              "symbols": ["eid_subread", "eid_hdfsubread", "eid_ref_dataset", "eid_barcode"],
               "doc": "The entry point id"
             },
             {
               "name": "uuid",
-              "type": "string",
-              "doc": "The UUID of the default dataset for this entrypoint"
+              "type": ["null", "string"],
+              "doc": "The UUID of the default dataset for this entrypoint",
+              "default": null
+            },
+            {
+              "name": "label",
+              "type": ["null", "string"],
+              "default": null,
+              "doc": "Entry point label to display in the UI"
             }
           ]
         }
-      }
+      }],
+      "default": null
+    },
+    {
+      "name": "inputFilters",
+      "doc": "Used to filter datasets for selection for the entry point(s) of this pipeline",
+      "type": ["null", {
+        "type": "array", 
+        "items": {
+          "type": "record",
+          "name": "FilterEncoding",
+          "fields": [
+            {
+              "name": "field",
+              "type": "string",
+              "doc": "The dataset field on which to filter"
+            },
+            {
+              "name": "operator",
+              "type": "enum",
+              "symbols": ["=", "!=", "contains"],
+              "doc": "The operator.  One of: '=', '!=', or 'contains'."
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "doc": "The value of the dataset at the given field.  The left hand side of the comparison in the filter"
+            },
+            {
+              "name": "entryId",
+              "type": "enum",
+              "symbols": ["eid_subread", "eid_hdfsubread", "eid_ref_dataset", "eid_barcode"],
+              "default": "eid_subread",
+              "doc": "Entry point ID that the filter applies to, e.g. eid_subread or eid_ref_dataset.  This is assumed to be eid_subread if not specified."
+            }
+          ]
+        }
+      }]
     }
   ]
 }
