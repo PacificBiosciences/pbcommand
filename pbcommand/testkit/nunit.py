@@ -109,17 +109,21 @@ def combine_results(xml_files):
 def main(argv):
     """Standalone program runner"""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("test_name")
-    parser.add_argument("test_key",
-                        help="JIRA issue associated with this test")
+    parser.add_argument("test_names",
+                        help="Comma-separated list of test names")
+    parser.add_argument("test_keys",
+                        help="JIRA issue(s) associated with this test (comma-separated list)")
     parser.add_argument("--failed", action="store_false", dest="success",
                         default=True, help="Indicate test failure")
     parser.add_argument("--output-xml", action="store",
                         default="nunit_out.xml",
                         help="NUnit XML file to write")
     args = parser.parse_args(argv)
-    test_case = TestCase(args.test_name, args.success, [args.test_key])
-    doc = create_nunit_xml([test_case])
+    test_cases = []
+    for test_name, test_key in zip(args.test_names.split(","),
+                                   args.test_keys.split(",")):
+        test_cases.append(TestCase(test_name, args.success, [test_key]))
+    doc = create_nunit_xml(test_cases)
     with open(args.output_xml, "w") as xml_out:
         xml_out.write(doc.toprettyxml(indent="  "))
     return 0
