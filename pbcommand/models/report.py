@@ -1093,6 +1093,11 @@ class ReportSpec(object):
     def get_plotgroup_spec(self, id_):
         return self._plotgrp_dict.get(id_, None)
 
+    def get_plot_spec(self, pg_id, plot_id):
+        pg_spec = self._plotgrp_dict.get(pg_id)
+        if pg_spec is not None:
+            return pg_spec.get_plot_spec(plot_id)
+
     def get_table_spec(self, id_):
         return self._table_dict.get(id_, None)
 
