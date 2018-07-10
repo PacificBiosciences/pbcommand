@@ -302,7 +302,7 @@ def add_run_analysis_job_opts(p):
     return
 
 
-def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=()):
+def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=(), tags=None):
     """Run analysis (pbsmrtpipe) job
 
     :rtype ServiceJob:
