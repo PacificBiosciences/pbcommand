@@ -279,7 +279,8 @@ def load_analysis_job_json(d):
     job_name = to_ascii(d['name'])
     pipeline_template_id = to_ascii(d["pipelineId"])
     service_epoints = [ServiceEntryPoint.from_d(x) for x in d['entryPoints']]
-    return job_name, pipeline_template_id, service_epoints
+    tags = d.get('tags', [])
+    return job_name, pipeline_template_id, service_epoints, tags
 
 
 def _validate_analysis_job_json(path):
@@ -345,11 +346,11 @@ def args_run_analysis_job(args):
         d = json.loads(f.read())
 
     log.debug("Loaded \n" + pprint.pformat(d))
-    job_name, pipeline_id, service_entry_points = load_analysis_job_json(d)
+    job_name, pipeline_id, service_entry_points, tags = load_analysis_job_json(d)
 
     sal = ServiceAccessLayer(args.host, args.port)
     # this should raise if there's a failure
-    result = run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=args.block)
+    result = run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=args.block, tags=tags)
     return 0
 
 
