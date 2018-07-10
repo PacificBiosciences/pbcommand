@@ -677,12 +677,6 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
         task_options = list(task_options)
 
-        # Translate the tags
-        if tags:
-            tags_str = ",".join(list(tags))
-        else:
-            tags_str = None
-
         # FIXME. Need to define this in the scenario IO layer.
         # workflow_options = [_to_o("woption_01", "value_01")]
         workflow_options = []
@@ -690,8 +684,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
                  pipelineId=pipeline_template_id,
                  entryPoints=seps,
                  taskOptions=task_options,
-                 workflowOptions=workflow_options,
-                 tags=tags_str)
+                 workflowOptions=workflow_options)
+
+        # Only add the request if the non empty.
+        if tags:
+            tags_str = ",".join(list(tags))
+            d['tags'] = tags_str
 
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
