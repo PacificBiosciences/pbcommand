@@ -302,7 +302,7 @@ def add_run_analysis_job_opts(p):
     return
 
 
-def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=(), tags=None):
+def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=(), tags=()):
     """Run analysis (pbsmrtpipe) job
 
     :rtype ServiceJob:
@@ -325,7 +325,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
         resolved_service_entry_points.append(ep)
 
     if block:
-        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, time_out=time_out, task_options=task_options)
+        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, time_out=time_out, task_options=task_options, tags=tags)
         job_id = job_result.job.id
         # service job
         result = sal.get_analysis_job_by_id(job_id)
@@ -333,7 +333,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
             raise JobExeError("Job {i} failed:\n{e}".format(i=job_id, e=job_result.job.error_message))
     else:
         # service job or error
-        result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
+        result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, tags=tags)
 
     log.info("Result {r}".format(r=result))
     return result
