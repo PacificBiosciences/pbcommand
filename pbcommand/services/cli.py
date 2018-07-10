@@ -279,7 +279,8 @@ def load_analysis_job_json(d):
     job_name = to_ascii(d['name'])
     pipeline_template_id = to_ascii(d["pipelineId"])
     service_epoints = [ServiceEntryPoint.from_d(x) for x in d['entryPoints']]
-    return job_name, pipeline_template_id, service_epoints
+    tags = d.get('tags', [])
+    return job_name, pipeline_template_id, service_epoints, tags
 
 
 def _validate_analysis_job_json(path):
@@ -302,7 +303,7 @@ def add_run_analysis_job_opts(p):
     return
 
 
-def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=()):
+def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=(), tags=()):
     """Run analysis (pbsmrtpipe) job
 
     :rtype ServiceJob:
@@ -325,7 +326,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
         resolved_service_entry_points.append(ep)
 
     if block:
-        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, time_out=time_out, task_options=task_options)
+        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, time_out=time_out, task_options=task_options, tags=tags)
         job_id = job_result.job.id
         # service job
         result = sal.get_analysis_job_by_id(job_id)
@@ -333,7 +334,7 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
             raise JobExeError("Job {i} failed:\n{e}".format(i=job_id, e=job_result.job.error_message))
     else:
         # service job or error
-        result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points)
+        result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, tags=tags)
 
     log.info("Result {r}".format(r=result))
     return result
@@ -345,11 +346,11 @@ def args_run_analysis_job(args):
         d = json.loads(f.read())
 
     log.debug("Loaded \n" + pprint.pformat(d))
-    job_name, pipeline_id, service_entry_points = load_analysis_job_json(d)
+    job_name, pipeline_id, service_entry_points, tags = load_analysis_job_json(d)
 
     sal = ServiceAccessLayer(args.host, args.port)
     # this should raise if there's a failure
-    result = run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=args.block)
+    result = run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=args.block, tags=tags)
     return 0
 
 
