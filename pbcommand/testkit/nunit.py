@@ -96,12 +96,21 @@ def create_nunit_xml(test_cases):
     return doc
 
 
-def combine_results(xml_files):
+def combine_results(xml_files, only_with_properties=False):
+    """
+    Combine multiple NUnit outputs into a single test suite.
+
+    :param xml_files: list of NUnit input file names
+    :param only_with_properties: only output test cases that include one or more property tags (for Bamboo reporting)
+    """
     test_cases = []
     for xml_file in xml_files:
         log.info("Reading NUnit report %s", xml_file)
         dom = minidom.parse(xml_file)
         for node in dom.getElementsByTagName("test-case"):
+            if only_with_properties:
+                if len(node.getElementsByTagName("property")) == 0:
+                    continue
             test_cases.append(TestCase.from_xml(node))
     return create_nunit_xml(test_cases)
 
