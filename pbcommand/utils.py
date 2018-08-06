@@ -515,7 +515,7 @@ def pool_map(func, args, nproc):
     if computed_nproc > 1:
         log.debug("Running on %d processors", computed_nproc)
         pool = multiprocessing.Pool(processes=computed_nproc)
-        result = pool.map(func, args) # TODO try map_async instead
+        result = pool.map(func, args)  # TODO try map_async instead
         pool.close()
         pool.join()
     else:
