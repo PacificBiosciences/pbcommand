@@ -1,4 +1,5 @@
 """Utils for common funcs, such as setting up a log, composing functions."""
+import multiprocessing
 import functools
 import os
 import logging
@@ -502,3 +503,22 @@ def walker(root_dir, file_filter_func):
 def to_ascii(s):
     # This is not awesome
     return s.encode('ascii', 'ignore')
+
+
+def pool_map(func, args, nproc):
+    """
+    Wrapper for calling a function in parallel using the multiprocessing
+    module and blocking until results are available.
+    """
+    nargs = len(args)
+    computed_nproc = min(nargs, nproc, multiprocessing.cpu_count())
+    if computed_nproc > 1:
+        log.debug("Running on %d processors", computed_nproc)
+        pool = multiprocessing.Pool(processes=computed_nproc)
+        result = pool.map(func, args) # TODO try map_async instead
+        pool.close()
+        pool.join()
+    else:
+        log.debug("computed_nproc=1, running serially")
+        result = map(func, args)
+    return result
