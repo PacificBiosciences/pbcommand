@@ -473,12 +473,11 @@ class ServiceAccessLayer(object):  # pragma: no cover
         job_reports = self.get_analysis_job_reports(job_id)
         return [self.get_analysis_job_report_obj(job_id, x['dataStoreFile'].uuid) for x in job_reports]
 
-
     def __get_report_d(self, job_id, report_uuid, processor_func):
         _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
                   u=report_uuid)
-        return _process_rget_or_none(processor_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)),
-                                                  headers=self._get_headers())
+        u = "{p}/{t}/{i}/{r}/{u}".format(**_d)
+        return _process_rget_or_none(processor_func)(_to_url(self.uri, u), headers=self._get_headers())
 
     def get_analysis_job_report_details(self, job_id, report_uuid):
         return self.__get_report_d(job_id, report_uuid, lambda x: x)
