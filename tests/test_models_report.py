@@ -5,7 +5,7 @@ import os.path
 import re
 import unittest
 
-from pbcommand.pb_io import load_report_from_json, load_report_spec_from_json
+from pbcommand.pb_io import load_report_from_json, load_report_from, load_report_spec_from_json
 from pbcommand.models.report import (Report, Attribute, PlotGroup, Plot, Table,
                                      Column, PbReportError, format_metric)
 from pbcommand.schemas import validate_report
@@ -94,6 +94,9 @@ class TestReportModel(unittest.TestCase):
 
         log.debug("\n" + pformat(d))
 
+        r2 = load_report_from(d)
+        self.assertEqual(r.uuid, r2.uuid)
+
         self.assertEqual('redfang', d['id'])
         self.assertEqual('redfang.a', d['attributes'][0]['id'])
         self.assertEqual('redfang.a2', d['attributes'][1]['id'])
@@ -115,6 +118,17 @@ class TestReportModel(unittest.TestCase):
         fields = ('version', 'uuid', 'plotGroups', 'tables', 'dataset_uuids')
         for field in fields:
             self.assertTrue(field in d)
+
+    def test_load_from_file(self):
+        rpt_id = 'test_report'
+        name = "test_report.json"
+        path = get_data_file_from_subdir(_SERIALIZED_JSON_DIR, name)
+
+        r = load_report_from(path)
+        self.assertEqual(r.id, rpt_id)
+
+        r2 = load_report_from(r.to_dict())
+        self.assertEqual(r2.id, rpt_id)
 
     def test_to_dict_multi(self):
         """
