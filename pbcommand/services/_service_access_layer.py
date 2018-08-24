@@ -27,6 +27,8 @@ from .models import (SMRTServiceBaseError,
                      ServiceResourceTypes, ServiceJob, JobEntryPoint,
                      JobTask)
 
+from pbcommand.pb_io import load_report_from
+
 from .utils import to_sal_summary
 
 log = logging.getLogger(__name__)
@@ -460,9 +462,34 @@ class ServiceAccessLayer(object):  # pragma: no cover
         """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
+    def get_analysis_job_reports_objs(self, job_id):
+        """
+        Get a List of Report Instances
+
+        :param job_id:
+        :rtype list[Report]
+        :return: List of Reports
+        """
+        job_reports = self.get_analysis_job_reports(job_id)
+        return [self.get_analysis_job_report_obj(job_id, x['dataStoreFile'].uuid) for x in job_reports]
+
+    def __get_report_d(self, job_id, report_uuid, processor_func):
+        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
+                  u=report_uuid)
+        u = "{p}/{t}/{i}/{r}/{u}".format(**_d)
+        return _process_rget_or_none(processor_func)(_to_url(self.uri, u), headers=self._get_headers())
+
     def get_analysis_job_report_details(self, job_id, report_uuid):
-        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
-        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)), headers=self._get_headers())
+        return self.__get_report_d(job_id, report_uuid, lambda x: x)
+
+    def get_analysis_job_report_obj(self, job_id, report_uuid):
+        """
+        Fetch a SMRT Link Report Instance from a Job Id and Report UUID
+
+        There's inconsistencies in the API, hence the naming of the method is a bit verbose.
+        :rtype Report
+        """
+        return self.__get_report_d(job_id, report_uuid, load_report_from)
 
     def get_analysis_job_report_attrs(self, job_id):
         """Return a dict of all the Report Attributes"""
