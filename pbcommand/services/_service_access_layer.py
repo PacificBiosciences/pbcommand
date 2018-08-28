@@ -350,7 +350,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     """
 
     ROOT_SL = "/smrt-link"
-    ROOT_JM =  ROOT_SL + "/job-manager"
+    ROOT_JM = ROOT_SL + "/job-manager"
     ROOT_JOBS = ROOT_JM + "/jobs"
     ROOT_MJOBS = ROOT_JM + "/multi-jobs"
     ROOT_RUNS = ROOT_SL + "/runs"
