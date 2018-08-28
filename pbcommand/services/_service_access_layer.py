@@ -349,8 +349,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
     access to localhost.
     """
 
-    ROOT_JM = "/smrt-link/job-manager"
+    ROOT_SL = "/smrt-link"
+    ROOT_JM = ROOT_SL + "/job-manager"
     ROOT_JOBS = ROOT_JM + "/jobs"
+    ROOT_MJOBS = ROOT_JM + "/multi-jobs"
+    ROOT_RUNS = ROOT_SL + "/runs"
+    ROOT_SAMPLES = ROOT_SL + "/samples"
     ROOT_DS = "/smrt-link/datasets"
     ROOT_PT = '/smrt-link/resolved-pipeline-templates'
 
@@ -426,6 +430,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
     def _get_jobs_by_job_type(self, job_type):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
+
+    def get_multi_analysis_jobs(self):
+        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
+
+    def get_multi_analysis_job_by_id(self, int_or_uuid):
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=int_or_uuid)), headers=self._get_headers())
+
+    def get_multi_analysis_job_children_by_id(self, multi_job_int_or_uuid):
+        return _process_rget_with_jobs_transform(
+            _to_url(self.uri, "{p}/{t}/{i}/jobs".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=multi_job_int_or_uuid)),
+            headers=self._get_headers())
 
     def get_analysis_jobs(self):
         """:rtype: list[ServiceJob]"""
@@ -620,11 +635,23 @@ class ServiceAccessLayer(object):  # pragma: no cover
         ds_endpoint = _get_endpoint_or_raise(dataset_type)
         return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
+    def _get_dataset_details_by_id(self, dataset_type, int_or_uuid):
+        """
+        Get a Dataset Details (XML converted to JSON via webservices
+        using the DataSetMetaType and (int|uuid) of the dataset
+        """
+        # FIXME There's some inconsistencies in the interfaces with regards to returning None or raising
+        ds_endpoint = _get_endpoint_or_raise(dataset_type)
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/details".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
+
     def _get_datasets_by_type(self, dstype):
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=dstype, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def get_subreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
+
+    def get_subreadset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
 
     def get_subreadsets(self):
         return self._get_datasets_by_type("subreads")
@@ -632,11 +659,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_hdfsubreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS_H5, int_or_uuid)
 
+    def get_hdfsubreadset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_SUBREADS_H5, int_or_uuid)
+
     def get_hdfsubreadsets(self):
         return self._get_datasets_by_type("hdfsubreads")
 
     def get_referenceset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_REF, int_or_uuid)
+
+    def get_referenceset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_REF, int_or_uuid)
 
     def get_referencesets(self):
         return self._get_datasets_by_type("references")
@@ -644,14 +677,23 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_barcodeset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_BARCODE, int_or_uuid)
 
+    def get_barcodeset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_BARCODE, int_or_uuid)
+
     def get_barcodesets(self):
         return self._get_datasets_by_type("barcodes")
 
     def get_alignmentset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_ALIGN, int_or_uuid)
 
+    def get_alignmentset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_ALIGN, int_or_uuid)
+
     def get_ccsreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_CCS, int_or_uuid)
+
+    def get_ccsreadset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_CCS, int_or_uuid)
 
     def get_ccsreadsets(self):
         return self._get_datasets_by_type("ccsreads")
@@ -742,6 +784,38 @@ class ServiceAccessLayer(object):  # pragma: no cover
         # this is more for testing purposes
         job_url = self._to_url(_to_relative_tasks_url(JobTypes.IMPORT_DS)(job_id_or_uuid))
         return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
+
+    def get_manifests(self):
+        u = self._to_url("{}/manifests".format(ServiceAccessLayer.ROOT_SL))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_manifest_by_id(self, ix):
+        u = self._to_url("{}/manifests/{}".format(ServiceAccessLayer.ROOT_SL, ix))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+
+    def get_runs(self):
+        u = self._to_url("{}".format(ServiceAccessLayer.ROOT_RUNS))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_run_details(self, run_uuid):
+        u = self._to_url("{}/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+
+    def get_run_collections(self, run_uuid):
+        u = self._to_url("{}/{}/collections".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_run_collection(self, run_uuid, collection_uuid):
+        u = self._to_url("{}/{}/collections/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid, collection_uuid))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+
+    def get_samples(self):
+        u = self._to_url("{}/samples".format(ServiceAccessLayer.ROOT_SL, ))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_sample_by_id(self, sample_uuid):
+        u = self._to_url("{}/samples/{}".format(ServiceAccessLayer.ROOT_SL, sample_uuid))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
 
 
 def __run_and_ignore_errors(f, warn_message):
