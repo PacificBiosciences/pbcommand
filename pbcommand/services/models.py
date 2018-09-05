@@ -44,7 +44,7 @@ class ServiceJob(object):
                  settings, is_active=True, smrtlink_version=None,
                  created_by=None, updated_at=None, error_message=None, imported_at=None, job_updated_at=None,
                  created_by_email=None, is_multi_job=False, tags="", parent_multi_job_id=None, workflow=None,
-                 project_id=1):
+                 project_id=1, job_started_at=None, job_completed_at=None):
         """
 
         :param ix: Job Integer Id
@@ -60,6 +60,7 @@ class ServiceJob(object):
         :param created_by: User that created the job
         :param updated_at: when the last update of the job occurred
         :param error_message: Error message if the job has failed
+        :param job_run_time_sec: Job Run time (if the job has completed)
 
         :type ix: int
         :type job_uuid: str
@@ -79,6 +80,7 @@ class ServiceJob(object):
         :type tags: str
         :type workflow: dict | None
         :type project_id: int
+        :type job_run_time_sec: int | None
         """
         self.id = int(ix)
         # validation
@@ -98,6 +100,7 @@ class ServiceJob(object):
         self.updated_at = updated_at
         self.error_message = error_message
         self.imported_at = imported_at
+        # Job was imported from another system
         self.job_updated_at = updated_at if job_updated_at is None else job_updated_at
         self.is_multi_job = is_multi_job
         self.tags = tags
@@ -106,11 +109,17 @@ class ServiceJob(object):
         self.workflow = {} if workflow is None else workflow
         self.project_id = project_id
 
-        if self.job_updated_at is not None:
-            dt = self.job_updated_at - self.created_at
-            self.run_time_sec = dt.total_seconds()
-        else:
-            self.run_time_sec = None
+        self.job_started_at = job_started_at
+        self.job_completed_at = job_completed_at
+        # This is potentially a breaking change. Prior to a clear mechanism of communication of the
+        # job start and completed at time stamps, the job created at was used.
+        # The created_at refers to the data model entity, not when the job is run.
+        # Note this is only defined when the job has been completed
+        self.run_time_sec = None
+
+        if self.job_started_at is not None:
+            if self.job_completed_at is not None:
+                self.run_time_sec = (self.job_completed_at - self.job_started_at).total_seconds()
 
     def __repr__(self):
         # truncate the name to avoid having a useless repr
@@ -186,6 +195,8 @@ class ServiceJob(object):
         job_type = se('jobTypeId')
         created_at = to_t('createdAt')
         updated_at = to_opt_datetime('updatedAt')
+        job_started_at = to_opt_datetime("jobStartedAt")
+        job_completed_at = to_opt_datetime("jobCompletedAt")
         job_updated_at = to_opt_datetime('jobUpdatedAt')
         imported_at = to_opt_datetime('importedAt')
 
@@ -224,7 +235,9 @@ class ServiceJob(object):
                           tags=tags,
                           is_multi_job=is_multi_job,
                           parent_multi_job_id=parent_multi_job_id,
-                          workflow=workflow)
+                          workflow=workflow,
+                          job_started_at=job_started_at,
+                          job_completed_at=job_completed_at)
 
     def was_successful(self):
         """ :rtype: bool """
