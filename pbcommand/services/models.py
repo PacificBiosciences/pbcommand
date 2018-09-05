@@ -60,7 +60,8 @@ class ServiceJob(object):
         :param created_by: User that created the job
         :param updated_at: when the last update of the job occurred
         :param error_message: Error message if the job has failed
-        :param job_run_time_sec: Job Run time (if the job has completed)
+        :param job_started_at: Job start time (if the job has started running)
+        :param job_completed_at: Job completed time (if the job has completed)
 
         :type ix: int
         :type job_uuid: str
@@ -80,7 +81,6 @@ class ServiceJob(object):
         :type tags: str
         :type workflow: dict | None
         :type project_id: int
-        :type job_run_time_sec: int | None
         """
         self.id = int(ix)
         # validation
