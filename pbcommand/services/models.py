@@ -44,7 +44,7 @@ class ServiceJob(object):
                  settings, is_active=True, smrtlink_version=None,
                  created_by=None, updated_at=None, error_message=None, imported_at=None, job_updated_at=None,
                  created_by_email=None, is_multi_job=False, tags="", parent_multi_job_id=None, workflow=None,
-                 project_id=1, job_started_at=None, job_completed_at=None):
+                 project_id=1, job_started_at=None, job_completed_at=None, sub_job_type_id=None):
         """
 
         :param ix: Job Integer Id
@@ -108,6 +108,7 @@ class ServiceJob(object):
         # for MultiJob state
         self.workflow = {} if workflow is None else workflow
         self.project_id = project_id
+        self.sub_job_type_id = sub_job_type_id
 
         self.job_started_at = job_started_at
         self.job_completed_at = job_completed_at
@@ -208,6 +209,7 @@ class ServiceJob(object):
         created_by_email = se_or('createdByEmail')
         is_active = d.get('isActive', True)
         settings = to_d('jsonSettings')
+        sub_job_type_id = se_or("subJobTypeId")
 
         is_multi_job = d.get("isMultiJob", False)
         parent_multi_job_id = s_or("parentMultiJobId")
@@ -237,7 +239,8 @@ class ServiceJob(object):
                           parent_multi_job_id=parent_multi_job_id,
                           workflow=workflow,
                           job_started_at=job_started_at,
-                          job_completed_at=job_completed_at)
+                          job_completed_at=job_completed_at,
+                          sub_job_type_id=sub_job_type_id)
 
     def was_successful(self):
         """ :rtype: bool """
