@@ -110,17 +110,12 @@ class ServiceJob(object):
         self.project_id = project_id
         self.sub_job_type_id = sub_job_type_id
 
-        self.job_started_at = job_started_at
-        self.job_completed_at = job_completed_at
-        # This is potentially a breaking change. Prior to a clear mechanism of communication of the
+        # Prior to SL 6.0.X, there was a lack of clear mechanism of communication of the
         # job start and completed at time stamps, the job created at was used.
         # The created_at refers to the data model entity, not when the job is run.
         # Note this is only defined when the job has been completed
-        self.run_time_sec = None
-
-        if self.job_started_at is not None:
-            if self.job_completed_at is not None:
-                self.run_time_sec = (self.job_completed_at - self.job_started_at).total_seconds()
+        self.job_started_at = job_started_at
+        self.job_completed_at = job_completed_at
 
     def __repr__(self):
         # truncate the name to avoid having a useless repr
@@ -158,6 +153,32 @@ class ServiceJob(object):
                   r=run_time)
 
         return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} runtime: {r} >".format(**_d)
+
+    @property
+    def execution_time_sec(self):
+        """
+        Return the Job Execution time (in sec) for completed jobs or return None for
+        non-completed jobs
+
+        Note, for Jobs from SL > 6.0.0, this was not defined and will always return None
+
+        :rtype: None | int
+        """
+        if self.job_started_at is not None:
+            if self.job_completed_at is not None:
+                return (self.job_completed_at - self.job_started_at).total_seconds()
+        return None
+
+    @property
+    def run_time_sec(self):
+        """
+
+        :return:
+        """
+        if self.job_updated_at is not None:
+            return (self.job_updated_at - self.created_at).total_seconds()
+
+        return None
 
     @staticmethod
     def from_d(d):
