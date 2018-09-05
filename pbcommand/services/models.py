@@ -172,8 +172,13 @@ class ServiceJob(object):
     @property
     def run_time_sec(self):
         """
+        Note, prior to SL 6.0.X, jobs did not have a well defined job start/complete mechanism
+        and the Job entity timestamps were used. This has assumptions that the Job is
+        started when the job is created. This is often not true.
 
-        :return:
+        For completed jobs from SL version >= 6.0.x, use execution_time_sec.
+
+        :rtype: None | int
         """
         if self.job_updated_at is not None:
             return (self.job_updated_at - self.created_at).total_seconds()
