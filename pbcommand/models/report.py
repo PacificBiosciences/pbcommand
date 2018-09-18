@@ -560,6 +560,22 @@ class Table(BaseReportElement):
             for i in range(len(self.columns[0].values)):
                 writer.writerow([str(c.values[i]) for c in self.columns])
 
+    def to_columns_d(self):
+        """
+        Returns the columns as a list of dicts
+
+        """
+        items = []
+        if self.columns:
+            for i in xrange(self.columns[0].nvalues):
+                dx = {}
+                for c in self.columns:
+                    dx[c.id] = c.values[i]
+                items.append(dx)
+
+        return items
+
+
 
 class Column(BaseReportElement):
 

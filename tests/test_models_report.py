@@ -221,6 +221,8 @@ class TestReportModel(unittest.TestCase):
 
         t = r.get_table_by_id('tabid1')
         self.assertEqual(t, t1)
+        columns_d = t.to_columns_d()
+        self.assertEqual(len(columns_d), 0)
 
     def test_get_table_by_id_with_bad_id(self):
         r = Report('redfang')
@@ -345,6 +347,9 @@ class TestReportModel(unittest.TestCase):
                      'BarcodeFasta3'])
             else:
                 self.assertEqual(col.values, [1, 2, 4, 3])
+
+        column_list_d = table.to_columns_d()
+        self.assertEqual(len(column_list_d), 4)
 
 
 class TestMalformedReport(unittest.TestCase):
