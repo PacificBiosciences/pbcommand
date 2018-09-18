@@ -576,7 +576,6 @@ class Table(BaseReportElement):
         return items
 
 
-
 class Column(BaseReportElement):
 
     """
