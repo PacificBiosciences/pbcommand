@@ -620,6 +620,22 @@ class ServiceAccessLayer(object):  # pragma: no cover
             # need to clean this up
             return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
+    def get_dataset_children_jobs(self, dataset_id):
+        """
+        Get a List of Children Jobs for the DataSet
+
+        :param dataset_id: DataSet Int or UUID
+        :type dataset_id: int | string
+        :rtype list[ServiceJob]
+        """
+        return _process_rget_with_jobs_transform(
+            _to_url(self.uri, "{t}/datasets/{i}/jobs".format(t=ServiceAccessLayer.ROOT_SL, i=dataset_id)), headers=self._get_headers())
+
+    def get_dataset_types(self):
+        """Get a List of DataSet Types"""
+        u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_SL, "dataset-types"))
+        return _process_rget(u, headers=self._get_headers())
+
     def get_dataset_by_uuid(self, int_or_uuid, ignore_errors=False):
         """The recommend model is to look up DataSet type by explicit MetaType
 
