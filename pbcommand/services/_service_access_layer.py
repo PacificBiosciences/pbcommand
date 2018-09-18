@@ -631,6 +631,10 @@ class ServiceAccessLayer(object):  # pragma: no cover
         return _process_rget_with_jobs_transform(
             _to_url(self.uri, "{t}/datasets/{i}/jobs".format(t=ServiceAccessLayer.ROOT_SL, i=dataset_id)), headers=self._get_headers())
 
+    def get_job_types(self):
+        u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_JM, "job-types"))
+        return _process_rget(u, headers=self._get_headers())
+
     def get_dataset_types(self):
         """Get a List of DataSet Types"""
         u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_SL, "dataset-types"))
