@@ -480,6 +480,7 @@ class DataStoreFile(object):
         self.uuid = uuid
         # this must globally unique. This is used to provide context to where
         # the file originated from (i.e., the tool author
+        # This should be deprecated. Use source_id to be consistent with the rest of the code base
         self.file_id = source_id
         # Consistent with a value in FileTypes
         self.file_type_id = type_id
@@ -492,6 +493,12 @@ class DataStoreFile(object):
         self.is_chunked = is_chunked
         self.name = name
         self.description = description
+
+    @property
+    def source_id(self):
+        """This is the consistent form that is used in the code base"""
+        return self.file_id
+
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
