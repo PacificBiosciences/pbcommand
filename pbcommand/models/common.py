@@ -279,6 +279,8 @@ class DataSetFileType(FileType):
 class MimeTypes(object):
     """Supported Mime types"""
     JSON = 'application/json'
+    # This might be better as 'application/svg+xml' ?
+    SVG = 'image/svg+xml'
     TXT = 'text/plain'
     CSV = 'text/csv'
     HTML = 'text/html'
@@ -303,6 +305,8 @@ class FileTypes(object):
     LOG = FileType(to_file_ns('log'), 'file', 'log', MimeTypes.TXT)
     # Config file
     CFG = FileType(to_file_ns('cfg'), 'config', 'cfg', MimeTypes.TXT)
+
+    SVG = FileType(to_file_ns('svg'), "file", 'svg', MimeTypes.SVG)
 
     # THIS NEEDS TO BE CONSISTENT with scala code. When the datastore
     # is written to disk the file type id's might be translated to
