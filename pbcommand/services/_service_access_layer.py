@@ -6,6 +6,7 @@ import base64
 import json
 import logging
 import pprint
+import tempfile
 import time
 import datetime
 import pytz
@@ -472,6 +473,50 @@ class ServiceAccessLayer(object):  # pragma: no cover
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+
+    def _to_dsf_id_url(self, job_id, dsf_uuid):
+        u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
+        return _to_url(self.uri, u)
+
+    def get_analysis_job_datastore_file(self, job_id, dsf_uuid):
+        return _process_rget_or_none(_to_ds_file)(self._to_dsf_id_url(job_id, dsf_uuid), headers=self._get_headers())
+
+    def get_analysis_job_datastore_file_download(self, job_id, dsf_uuid, output_file=None):
+        """
+        Download an DataStore file to an output file
+
+        :param job_id:
+        :param dsf_uuid:
+        :param output_file: if None, the file name from the server (content-disposition) will be used.
+        :return:
+        """
+        url = "{}/download".format(self._to_dsf_id_url(job_id, dsf_uuid))
+        dsf = self.get_analysis_job_datastore_file(job_id, dsf_uuid)
+
+        default_name = "download-job-{}-dsf-{}".format(job_id, dsf_uuid)
+
+        if dsf is not None:
+            r = requests.get(url, stream=True)
+            if output_file is None:
+                try:
+                    # 'attachment; filename="job-106-be2b5106-91dc-4ef9-b199-f1481f88b7e4-file-024.subreadset.xml'
+                    raw_header = r.headers.get('content-disposition')
+                    local_filename = raw_header.split("filename=")[-1].replace('"', '')
+                except (TypeError, IndexError, KeyError):
+                    local_filename = default_name
+
+            else:
+                local_filename = output_file
+
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
+                        f.write(chunk)
+            r.close()
+            return local_filename
+        else:
+            # This should probably return None to be consistent with the current API
+            raise KeyError("Unable to get DataStore file {} from Job {}".format(dsf_uuid, job_id))
 
     def get_analysis_job_reports(self, job_id):
         """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
