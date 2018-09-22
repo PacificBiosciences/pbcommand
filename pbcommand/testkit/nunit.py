@@ -18,6 +18,7 @@ class TestCase(object):
     """
     Container for the results of an executed test.
     """
+
     def __init__(self, name, success, tests=(), requirements=(),
                  asserts=1):
         self.name = name
