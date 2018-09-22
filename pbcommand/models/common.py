@@ -499,7 +499,6 @@ class DataStoreFile(object):
         """This is the consistent form that is used in the code base"""
         return self.file_id
 
-
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
                   i=self.file_id,
