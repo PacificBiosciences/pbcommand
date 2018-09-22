@@ -479,7 +479,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         return _to_url(self.uri, u)
 
     def get_analysis_job_datastore_file(self, job_id, dsf_uuid):
-        return _process_rget_or_none(_to_ds_file)(self._to_dsf_id_url(job_id, dsf_uuid), headers= self._get_headers())
+        return _process_rget_or_none(_to_ds_file)(self._to_dsf_id_url(job_id, dsf_uuid), headers=self._get_headers())
 
     def get_analysis_job_datastore_file_download(self, job_id, dsf_uuid, output_file=None):
         """
@@ -493,7 +493,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         url = "{}/download".format(self._to_dsf_id_url(job_id, dsf_uuid))
         dsf = self.get_analysis_job_datastore_file(job_id, dsf_uuid)
 
-        default_name =  "download-job-{}-dsf-{}".format(job_id, dsf_uuid)
+        default_name = "download-job-{}-dsf-{}".format(job_id, dsf_uuid)
 
         if dsf is not None:
             r = requests.get(url, stream=True)
