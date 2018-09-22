@@ -438,6 +438,10 @@ class FileTypes(object):
 
     @staticmethod
     def ALL():
+        """Returns a Dict of id->FileType
+
+        :rtype dict[str, FileType]
+        """
         return REGISTERED_FILE_TYPES
 
 
