@@ -136,7 +136,8 @@ class TestReportModel(unittest.TestCase):
         The id of report sub elements is prepended with the id of the parent
         element when to_dict is called.
         """
-        r = Report('redfang')
+        tags = ["alpha", "beta", "gamma"]
+        r = Report('redfang', tags=tags)
         a = Attribute('a', 'b')
         a2 = Attribute('a2', 'b2')
         r.add_attribute(a)
@@ -187,6 +188,11 @@ class TestReportModel(unittest.TestCase):
         self.assertEqual('redfang.tabid2', d['tables'][1]['id'])
         self.assertEqual('redfang.tabid2.c2', d[
                          'tables'][1]['columns'][0]['id'])
+
+        self.assertItemsEqual(d['tags'], tags)
+
+        loaded_report = load_report_from(d)
+        self.assertItemsEqual(loaded_report.tags, tags)
 
         log.info(repr(r))
         self.assertIsNotNone(repr(r))
