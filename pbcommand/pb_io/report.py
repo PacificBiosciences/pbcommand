@@ -96,6 +96,8 @@ def dict_to_report(dct):
     # Make this optional for now
     report_uuid = dct.get('uuid', str(U.uuid4()))
 
+    tags = dct.get('tags', [])
+
     # Make sure the UUID is well formed
     _ = U.UUID(report_uuid)
 
@@ -124,7 +126,7 @@ def dict_to_report(dct):
                     tables=tables,
                     attributes=attributes,
                     dataset_uuids=dct.get('dataset_uuids', ()),
-                    uuid=report_uuid)
+                    uuid=report_uuid, tags=tags)
 
     return report
 
