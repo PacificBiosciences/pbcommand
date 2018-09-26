@@ -496,13 +496,13 @@ class ServiceAccessLayer(object):  # pragma: no cover
         default_name = "download-job-{}-dsf-{}".format(job_id, dsf_uuid)
 
         if dsf is not None:
-            r = requests.get(url, stream=True)
+            r = requests.get(url, stream=True, verify=False, headers=self._get_headers())
             if output_file is None:
                 try:
                     # 'attachment; filename="job-106-be2b5106-91dc-4ef9-b199-f1481f88b7e4-file-024.subreadset.xml'
                     raw_header = r.headers.get('content-disposition')
                     local_filename = raw_header.split("filename=")[-1].replace('"', '')
-                except (TypeError, IndexError, KeyError):
+                except (TypeError, IndexError, KeyError, AttributeError):
                     local_filename = default_name
 
             else:
