@@ -34,6 +34,7 @@ class TestDataStore(unittest.TestCase):
         ds2 = DataStoreFile.from_dict(ds.to_dict())
         for attr in ["uuid", "file_type_id", "file_id", "path", "is_chunked", "name", "description"]:
             self.assertEqual(getattr(ds2, attr), getattr(ds, attr))
+        self.assertEqual(ds.file_type, FileTypes.DS_SUBREADS)
 
     def test_datastore_paths(self):
         tmpfile = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
