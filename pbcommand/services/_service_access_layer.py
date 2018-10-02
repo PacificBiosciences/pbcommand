@@ -6,9 +6,10 @@ import base64
 import json
 import logging
 import pprint
-import tempfile
 import time
 import datetime
+import warnings
+
 import pytz
 
 import requests
@@ -38,7 +39,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 # log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
 
 # Everything else is considered a non-public
-__all__ = ['ServiceAccessLayer']
+__all__ = ['ServiceAccessLayer', 'SmrtLinkAuthClient']
 
 
 class Constants(object):
@@ -348,6 +349,9 @@ class ServiceAccessLayer(object):  # pragma: no cover
     General Client Access Layer for interfacing with the job types on
     SMRT Link Analysis Services.  This API only supports insecure (HTTP)
     access to localhost.
+
+    As of 10-02-2018, this should only be used (minimally) for internal purposes. All
+    access to the Services should be done via SmrtLinkAuthClient.
     """
 
     ROOT_SL = "/smrt-link"
@@ -375,6 +379,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
         # This will display verbose details with respect to the failed request
         self.debug = debug
         self._sleep_time = sleep_time
+
+        if self.__class__.__name__ == "ServiceAccessLayer":
+            warnings.simplefilter('once', DeprecationWarning)
+            warnings.warn("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported",
+                          DeprecationWarning)
+            warnings.simplefilter('default', DeprecationWarning)  # reset filter
 
     def _get_headers(self):
         return Constants.HEADERS
