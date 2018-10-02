@@ -504,11 +504,12 @@ class DataStoreFile(object):
         return REGISTERED_FILE_TYPES[self.file_type_id]
 
     def __repr__(self):
+        u = str(self.uuid)[:6]
         _d = dict(k=self.__class__.__name__,
                   i=self.file_id,
                   t=self.file_type_id,
-                  p=os.path.basename(self.path))
-        return "<{k} {i} type:{t} filename:{p} >".format(**_d)
+                  p=os.path.basename(self.path), u=u)
+        return "<{k} {i} type:{t} filename:{p} uuid:{u} ... >".format(**_d)
 
     def to_dict(self):
         return dict(sourceId=self.file_id,
