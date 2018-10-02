@@ -8,6 +8,8 @@ import logging
 import pprint
 import time
 import datetime
+import warnings
+
 import pytz
 
 import requests
@@ -377,6 +379,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
         # This will display verbose details with respect to the failed request
         self.debug = debug
         self._sleep_time = sleep_time
+
+        if self.__class__.__name__ == "ServiceAccessLayer":
+            warnings.simplefilter('once', DeprecationWarning)
+            warnings.warn("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported",
+                          DeprecationWarning)
+            warnings.simplefilter('default', DeprecationWarning)  # reset filter
 
     def _get_headers(self):
         return Constants.HEADERS
