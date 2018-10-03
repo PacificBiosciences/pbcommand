@@ -218,10 +218,11 @@ class Attribute(BaseReportElement):
         return not self.__eq__(other)
 
     def __repr__(self):
+        n = "" if self.name is None else self.name[:10]
         _d = dict(k=self.__class__.__name__,
                   i=self.id,
-                  v=self.value,
-                  n=self.name)
+                  v=str(self.value)[:10],
+                  n=n)
         return "<{k} id:{i} value:{v} name:{n} >".format(**_d)
 
 
