@@ -13,7 +13,7 @@ from pbcommand.schemas import validate_report, validate_report_spec
 
 log = logging.getLogger(__name__)
 
-__all__ = ["load_report_from_json"]
+__all__ = ["load_report_from_json", "load_report_from", "load_report_spec_from_json"]
 
 
 def _to_id(s):
@@ -87,6 +87,7 @@ def _to_table(d):
 
 
 def dict_to_report(dct):
+    # Use `load_report_from` instead.
     # FIXME. Add support for different version schemas in a cleaner, more
     # concrete manner.
 
@@ -94,6 +95,8 @@ def dict_to_report(dct):
 
     # Make this optional for now
     report_uuid = dct.get('uuid', str(U.uuid4()))
+
+    tags = dct.get('tags', [])
 
     # Make sure the UUID is well formed
     _ = U.UUID(report_uuid)
@@ -123,18 +126,37 @@ def dict_to_report(dct):
                     tables=tables,
                     attributes=attributes,
                     dataset_uuids=dct.get('dataset_uuids', ()),
-                    uuid=report_uuid)
+                    uuid=report_uuid, tags=tags)
 
     return report
 
 
+def __load_json_or_dict(processor_func):
+    def wrapper(json_path_or_dict):
+        if isinstance(json_path_or_dict, dict):
+            return processor_func(json_path_or_dict)
+        else:
+            with open(json_path_or_dict, 'r') as f:
+                d = json.loads(f.read())
+            return processor_func(d)
+    return wrapper
+
+
+def load_report_from(json_path_or_dict):
+    """
+    Load a Report from a raw dict or path to JSON file
+
+    :param json_path_or_dict:
+    :type json_path_or_dict: dict | str
+    :return:
+    """
+    return __load_json_or_dict(dict_to_report)(json_path_or_dict)
+
+
 def load_report_from_json(json_file):
     """Convert a report json file to Report instance."""
-
-    with open(json_file, 'r') as f:
-        d = json.loads(f.read())
-    r = dict_to_report(d)
-    return r
+    # This should go way in favor of `load_report_from`
+    return load_report_from(json_file)
 
 
 def _to_report(nfiles, attribute_id, report_id):

@@ -44,7 +44,7 @@ class ServiceJob(object):
                  settings, is_active=True, smrtlink_version=None,
                  created_by=None, updated_at=None, error_message=None, imported_at=None, job_updated_at=None,
                  created_by_email=None, is_multi_job=False, tags="", parent_multi_job_id=None, workflow=None,
-                 project_id=1):
+                 project_id=1, job_started_at=None, job_completed_at=None, sub_job_type_id=None):
         """
 
         :param ix: Job Integer Id
@@ -60,6 +60,8 @@ class ServiceJob(object):
         :param created_by: User that created the job
         :param updated_at: when the last update of the job occurred
         :param error_message: Error message if the job has failed
+        :param job_started_at: Job start time (if the job has started running)
+        :param job_completed_at: Job completed time (if the job has completed)
 
         :type ix: int
         :type job_uuid: str
@@ -98,6 +100,7 @@ class ServiceJob(object):
         self.updated_at = updated_at
         self.error_message = error_message
         self.imported_at = imported_at
+        # Job was imported from another system
         self.job_updated_at = updated_at if job_updated_at is None else job_updated_at
         self.is_multi_job = is_multi_job
         self.tags = tags
@@ -105,12 +108,14 @@ class ServiceJob(object):
         # for MultiJob state
         self.workflow = {} if workflow is None else workflow
         self.project_id = project_id
+        self.sub_job_type_id = sub_job_type_id
 
-        if self.job_updated_at is not None:
-            dt = self.job_updated_at - self.created_at
-            self.run_time_sec = dt.total_seconds()
-        else:
-            self.run_time_sec = None
+        # Prior to SL 6.0.X, there was a lack of clear mechanism of communication of the
+        # job start and completed at time stamps, the job created at was used.
+        # The created_at refers to the data model entity, not when the job is run.
+        # Note this is only defined when the job has been completed
+        self.job_started_at = job_started_at
+        self.job_completed_at = job_completed_at
 
     def __repr__(self):
         # truncate the name to avoid having a useless repr
@@ -149,6 +154,37 @@ class ServiceJob(object):
 
         return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} runtime: {r} >".format(**_d)
 
+    @property
+    def execution_time_sec(self):
+        """
+        Return the Job Execution time (in sec) for completed jobs or return None for
+        non-completed jobs
+
+        Note, for Jobs from SL > 6.0.0, this was not defined and will always return None
+
+        :rtype: None | int
+        """
+        if self.job_started_at is not None:
+            if self.job_completed_at is not None:
+                return (self.job_completed_at - self.job_started_at).total_seconds()
+        return None
+
+    @property
+    def run_time_sec(self):
+        """
+        Note, prior to SL 6.0.X, jobs did not have a well defined job start/complete mechanism
+        and the Job entity timestamps were used. This has assumptions that the Job is
+        started when the job is created. This is often not true.
+
+        For completed jobs from SL version >= 6.0.x, use execution_time_sec.
+
+        :rtype: None | int
+        """
+        if self.job_updated_at is not None:
+            return (self.job_updated_at - self.created_at).total_seconds()
+
+        return None
+
     @staticmethod
     def from_d(d):
         """Convert from Service JSON response to `ServiceJob` instance"""
@@ -186,6 +222,8 @@ class ServiceJob(object):
         job_type = se('jobTypeId')
         created_at = to_t('createdAt')
         updated_at = to_opt_datetime('updatedAt')
+        job_started_at = to_opt_datetime("jobStartedAt")
+        job_completed_at = to_opt_datetime("jobCompletedAt")
         job_updated_at = to_opt_datetime('jobUpdatedAt')
         imported_at = to_opt_datetime('importedAt')
 
@@ -197,6 +235,7 @@ class ServiceJob(object):
         created_by_email = se_or('createdByEmail')
         is_active = d.get('isActive', True)
         settings = to_d('jsonSettings')
+        sub_job_type_id = se_or("subJobTypeId")
 
         is_multi_job = d.get("isMultiJob", False)
         parent_multi_job_id = s_or("parentMultiJobId")
@@ -224,7 +263,10 @@ class ServiceJob(object):
                           tags=tags,
                           is_multi_job=is_multi_job,
                           parent_multi_job_id=parent_multi_job_id,
-                          workflow=workflow)
+                          workflow=workflow,
+                          job_started_at=job_started_at,
+                          job_completed_at=job_completed_at,
+                          sub_job_type_id=sub_job_type_id)
 
     def was_successful(self):
         """ :rtype: bool """

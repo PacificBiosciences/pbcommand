@@ -279,6 +279,8 @@ class DataSetFileType(FileType):
 class MimeTypes(object):
     """Supported Mime types"""
     JSON = 'application/json'
+    # This might be better as 'application/svg+xml' ?
+    SVG = 'image/svg+xml'
     TXT = 'text/plain'
     CSV = 'text/csv'
     HTML = 'text/html'
@@ -303,6 +305,8 @@ class FileTypes(object):
     LOG = FileType(to_file_ns('log'), 'file', 'log', MimeTypes.TXT)
     # Config file
     CFG = FileType(to_file_ns('cfg'), 'config', 'cfg', MimeTypes.TXT)
+
+    SVG = FileType(to_file_ns('svg'), "file", 'svg', MimeTypes.SVG)
 
     # THIS NEEDS TO BE CONSISTENT with scala code. When the datastore
     # is written to disk the file type id's might be translated to
@@ -370,6 +374,7 @@ class FileTypes(object):
                                   "gmapreferenceset.xml", MimeTypes.XML)
     DS_TRANSCRIPT = DataSetFileType(to_ds_ns("TranscriptSet"), "file",
                                     "transcriptset.xml", MimeTypes.XML)
+    DS_ALIGN_TRANSCRIPT = DataSetFileType(to_ds_ns("TranscriptAlignmentSet"), "file", "transcriptalignmentset.xml", MimeTypes.XML)
 
     # PacBio Defined Formats
     # **** Index Files
@@ -407,6 +412,7 @@ class FileTypes(object):
     BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", MimeTypes.BINARY)
     BAM_CCS_ALN = FileType("PacBio.AlignmentFile.ConsensusAlignmentBamFile", "file", "ccs_align.bam", MimeTypes.BINARY)
     BAM_TRANSCRIPT = FileType("PacBio.TranscriptFile.TranscriptBamFile", "file", "transcripts.bam", MimeTypes.BINARY)
+    BAM_TRANSCRIPT_ALN = FileType("PacBio.AlignmentFile.TranscriptAlignmentBamFile", "file", "transcripts_align.bam", MimeTypes.BINARY)
     # MK TODO. Add remaining SubreadSet files types, Scraps, HqRegion, etc..
 
     BAZ = FileType("PacBio.ReadFile.BazFile", "file", "baz", MimeTypes.BINARY)
@@ -432,6 +438,10 @@ class FileTypes(object):
 
     @staticmethod
     def ALL():
+        """Returns a Dict of id->FileType
+
+        :rtype dict[str, FileType]
+        """
         return REGISTERED_FILE_TYPES
 
 
@@ -470,6 +480,7 @@ class DataStoreFile(object):
         self.uuid = uuid
         # this must globally unique. This is used to provide context to where
         # the file originated from (i.e., the tool author
+        # This should be deprecated. Use source_id to be consistent with the rest of the code base
         self.file_id = source_id
         # Consistent with a value in FileTypes
         self.file_type_id = type_id
@@ -483,12 +494,22 @@ class DataStoreFile(object):
         self.name = name
         self.description = description
 
+    @property
+    def source_id(self):
+        """This is the consistent form that is used in the code base"""
+        return self.file_id
+
+    @property
+    def file_type(self):
+        return REGISTERED_FILE_TYPES[self.file_type_id]
+
     def __repr__(self):
+        u = str(self.uuid)[:6]
         _d = dict(k=self.__class__.__name__,
                   i=self.file_id,
                   t=self.file_type_id,
-                  p=os.path.basename(self.path))
-        return "<{k} {i} type:{t} filename:{p} >".format(**_d)
+                  p=os.path.basename(self.path), u=u)
+        return "<{k} {i} type:{t} filename:{p} uuid:{u} ... >".format(**_d)
 
     def to_dict(self):
         return dict(sourceId=self.file_id,

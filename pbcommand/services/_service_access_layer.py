@@ -8,6 +8,8 @@ import logging
 import pprint
 import time
 import datetime
+import warnings
+
 import pytz
 
 import requests
@@ -27,6 +29,8 @@ from .models import (SMRTServiceBaseError,
                      ServiceResourceTypes, ServiceJob, JobEntryPoint,
                      JobTask)
 
+from pbcommand.pb_io import load_report_from
+
 from .utils import to_sal_summary
 
 log = logging.getLogger(__name__)
@@ -35,7 +39,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 # log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
 
 # Everything else is considered a non-public
-__all__ = ['ServiceAccessLayer']
+__all__ = ['ServiceAccessLayer', 'SmrtLinkAuthClient']
 
 
 class Constants(object):
@@ -345,10 +349,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     General Client Access Layer for interfacing with the job types on
     SMRT Link Analysis Services.  This API only supports insecure (HTTP)
     access to localhost.
+
+    As of 10-02-2018, this should only be used (minimally) for internal purposes. All
+    access to the Services should be done via SmrtLinkAuthClient.
     """
 
-    ROOT_JM = "/smrt-link/job-manager"
+    ROOT_SL = "/smrt-link"
+    ROOT_JM = ROOT_SL + "/job-manager"
     ROOT_JOBS = ROOT_JM + "/jobs"
+    ROOT_MJOBS = ROOT_JM + "/multi-jobs"
+    ROOT_RUNS = ROOT_SL + "/runs"
+    ROOT_SAMPLES = ROOT_SL + "/samples"
     ROOT_DS = "/smrt-link/datasets"
     ROOT_PT = '/smrt-link/resolved-pipeline-templates'
 
@@ -368,6 +379,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
         # This will display verbose details with respect to the failed request
         self.debug = debug
         self._sleep_time = sleep_time
+
+        if self.__class__.__name__ == "ServiceAccessLayer":
+            warnings.simplefilter('once', DeprecationWarning)
+            warnings.warn("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported",
+                          DeprecationWarning)
+            warnings.simplefilter('default', DeprecationWarning)  # reset filter
 
     def _get_headers(self):
         return Constants.HEADERS
@@ -425,6 +442,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def _get_jobs_by_job_type(self, job_type):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
 
+    def get_multi_analysis_jobs(self):
+        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
+
+    def get_multi_analysis_job_by_id(self, int_or_uuid):
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=int_or_uuid)), headers=self._get_headers())
+
+    def get_multi_analysis_job_children_by_id(self, multi_job_int_or_uuid):
+        return _process_rget_with_jobs_transform(
+            _to_url(self.uri, "{p}/{t}/{i}/jobs".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=multi_job_int_or_uuid)),
+            headers=self._get_headers())
+
     def get_analysis_jobs(self):
         """:rtype: list[ServiceJob]"""
         return self._get_jobs_by_job_type(JobTypes.PB_PIPE)
@@ -456,13 +484,82 @@ class ServiceAccessLayer(object):  # pragma: no cover
         # this doesn't work the list is sli
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
+    def _to_dsf_id_url(self, job_id, dsf_uuid):
+        u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
+        return _to_url(self.uri, u)
+
+    def get_analysis_job_datastore_file(self, job_id, dsf_uuid):
+        return _process_rget_or_none(_to_ds_file)(self._to_dsf_id_url(job_id, dsf_uuid), headers=self._get_headers())
+
+    def get_analysis_job_datastore_file_download(self, job_id, dsf_uuid, output_file=None):
+        """
+        Download an DataStore file to an output file
+
+        :param job_id:
+        :param dsf_uuid:
+        :param output_file: if None, the file name from the server (content-disposition) will be used.
+        :return:
+        """
+        url = "{}/download".format(self._to_dsf_id_url(job_id, dsf_uuid))
+        dsf = self.get_analysis_job_datastore_file(job_id, dsf_uuid)
+
+        default_name = "download-job-{}-dsf-{}".format(job_id, dsf_uuid)
+
+        if dsf is not None:
+            r = requests.get(url, stream=True, verify=False, headers=self._get_headers())
+            if output_file is None:
+                try:
+                    # 'attachment; filename="job-106-be2b5106-91dc-4ef9-b199-f1481f88b7e4-file-024.subreadset.xml'
+                    raw_header = r.headers.get('content-disposition')
+                    local_filename = raw_header.split("filename=")[-1].replace('"', '')
+                except (TypeError, IndexError, KeyError, AttributeError):
+                    local_filename = default_name
+
+            else:
+                local_filename = output_file
+
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
+                        f.write(chunk)
+            r.close()
+            return local_filename
+        else:
+            # This should probably return None to be consistent with the current API
+            raise KeyError("Unable to get DataStore file {} from Job {}".format(dsf_uuid, job_id))
+
     def get_analysis_job_reports(self, job_id):
         """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
         return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
+    def get_analysis_job_reports_objs(self, job_id):
+        """
+        Get a List of Report Instances
+
+        :param job_id:
+        :rtype list[Report]
+        :return: List of Reports
+        """
+        job_reports = self.get_analysis_job_reports(job_id)
+        return [self.get_analysis_job_report_obj(job_id, x['dataStoreFile'].uuid) for x in job_reports]
+
+    def __get_report_d(self, job_id, report_uuid, processor_func):
+        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
+                  u=report_uuid)
+        u = "{p}/{t}/{i}/{r}/{u}".format(**_d)
+        return _process_rget_or_none(processor_func)(_to_url(self.uri, u), headers=self._get_headers())
+
     def get_analysis_job_report_details(self, job_id, report_uuid):
-        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
-        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)), headers=self._get_headers())
+        return self.__get_report_d(job_id, report_uuid, lambda x: x)
+
+    def get_analysis_job_report_obj(self, job_id, report_uuid):
+        """
+        Fetch a SMRT Link Report Instance from a Job Id and Report UUID
+
+        There's inconsistencies in the API, hence the naming of the method is a bit verbose.
+        :rtype Report
+        """
+        return self.__get_report_d(job_id, report_uuid, load_report_from)
 
     def get_analysis_job_report_attrs(self, job_id):
         """Return a dict of all the Report Attributes"""
@@ -578,6 +675,26 @@ class ServiceAccessLayer(object):  # pragma: no cover
             # need to clean this up
             return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
+    def get_dataset_children_jobs(self, dataset_id):
+        """
+        Get a List of Children Jobs for the DataSet
+
+        :param dataset_id: DataSet Int or UUID
+        :type dataset_id: int | string
+        :rtype list[ServiceJob]
+        """
+        return _process_rget_with_jobs_transform(
+            _to_url(self.uri, "{t}/datasets/{i}/jobs".format(t=ServiceAccessLayer.ROOT_SL, i=dataset_id)), headers=self._get_headers())
+
+    def get_job_types(self):
+        u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_JM, "job-types"))
+        return _process_rget(u, headers=self._get_headers())
+
+    def get_dataset_types(self):
+        """Get a List of DataSet Types"""
+        u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_SL, "dataset-types"))
+        return _process_rget(u, headers=self._get_headers())
+
     def get_dataset_by_uuid(self, int_or_uuid, ignore_errors=False):
         """The recommend model is to look up DataSet type by explicit MetaType
 
@@ -593,11 +710,23 @@ class ServiceAccessLayer(object):  # pragma: no cover
         ds_endpoint = _get_endpoint_or_raise(dataset_type)
         return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
+    def _get_dataset_details_by_id(self, dataset_type, int_or_uuid):
+        """
+        Get a Dataset Details (XML converted to JSON via webservices
+        using the DataSetMetaType and (int|uuid) of the dataset
+        """
+        # FIXME There's some inconsistencies in the interfaces with regards to returning None or raising
+        ds_endpoint = _get_endpoint_or_raise(dataset_type)
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/details".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
+
     def _get_datasets_by_type(self, dstype):
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=dstype, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def get_subreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
+
+    def get_subreadset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
 
     def get_subreadsets(self):
         return self._get_datasets_by_type("subreads")
@@ -605,11 +734,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_hdfsubreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS_H5, int_or_uuid)
 
+    def get_hdfsubreadset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_SUBREADS_H5, int_or_uuid)
+
     def get_hdfsubreadsets(self):
         return self._get_datasets_by_type("hdfsubreads")
 
     def get_referenceset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_REF, int_or_uuid)
+
+    def get_referenceset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_REF, int_or_uuid)
 
     def get_referencesets(self):
         return self._get_datasets_by_type("references")
@@ -617,14 +752,23 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_barcodeset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_BARCODE, int_or_uuid)
 
+    def get_barcodeset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_BARCODE, int_or_uuid)
+
     def get_barcodesets(self):
         return self._get_datasets_by_type("barcodes")
 
     def get_alignmentset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_ALIGN, int_or_uuid)
 
+    def get_alignmentset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_ALIGN, int_or_uuid)
+
     def get_ccsreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_CCS, int_or_uuid)
+
+    def get_ccsreadset_details_by_id(self, int_or_uuid):
+        return self._get_dataset_details_by_id(FileTypes.DS_CCS, int_or_uuid)
 
     def get_ccsreadsets(self):
         return self._get_datasets_by_type("ccsreads")
@@ -715,6 +859,38 @@ class ServiceAccessLayer(object):  # pragma: no cover
         # this is more for testing purposes
         job_url = self._to_url(_to_relative_tasks_url(JobTypes.IMPORT_DS)(job_id_or_uuid))
         return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
+
+    def get_manifests(self):
+        u = self._to_url("{}/manifests".format(ServiceAccessLayer.ROOT_SL))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_manifest_by_id(self, ix):
+        u = self._to_url("{}/manifests/{}".format(ServiceAccessLayer.ROOT_SL, ix))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+
+    def get_runs(self):
+        u = self._to_url("{}".format(ServiceAccessLayer.ROOT_RUNS))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_run_details(self, run_uuid):
+        u = self._to_url("{}/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+
+    def get_run_collections(self, run_uuid):
+        u = self._to_url("{}/{}/collections".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_run_collection(self, run_uuid, collection_uuid):
+        u = self._to_url("{}/{}/collections/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid, collection_uuid))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+
+    def get_samples(self):
+        u = self._to_url("{}/samples".format(ServiceAccessLayer.ROOT_SL, ))
+        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+
+    def get_sample_by_id(self, sample_uuid):
+        u = self._to_url("{}/samples/{}".format(ServiceAccessLayer.ROOT_SL, sample_uuid))
+        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
 
 
 def __run_and_ignore_errors(f, warn_message):

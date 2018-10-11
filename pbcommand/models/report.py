@@ -218,10 +218,11 @@ class Attribute(BaseReportElement):
         return not self.__eq__(other)
 
     def __repr__(self):
+        n = "" if self.name is None else self.name[:10]
         _d = dict(k=self.__class__.__name__,
                   i=self.id,
-                  v=self.value,
-                  n=self.name)
+                  v=str(self.value)[:10],
+                  n=n)
         return "<{k} id:{i} value:{v} name:{n} >".format(**_d)
 
 
@@ -560,6 +561,21 @@ class Table(BaseReportElement):
             for i in range(len(self.columns[0].values)):
                 writer.writerow([str(c.values[i]) for c in self.columns])
 
+    def to_columns_d(self):
+        """
+        Returns the columns as a list of dicts
+
+        """
+        items = []
+        if self.columns:
+            for i in xrange(self.columns[0].nvalues):
+                dx = {}
+                for c in self.columns:
+                    dx[c.id] = c.values[i]
+                items.append(dx)
+
+        return items
+
 
 class Column(BaseReportElement):
 
@@ -625,7 +641,7 @@ class Report(BaseReportElement):
     It can be serialized to json.
     """
 
-    def __init__(self, id_, title=None, tables=(), attributes=(), plotgroups=(), dataset_uuids=(), uuid=None):
+    def __init__(self, id_, title=None, tables=(), attributes=(), plotgroups=(), dataset_uuids=(), uuid=None, tags=()):
         """
         :param id_: (str) Should be a string that identifies the report, like 'adapter'.
         :param title: Display name of report Defaults to the Report+id if None (added in 0.3.9)
@@ -634,6 +650,7 @@ class Report(BaseReportElement):
         :param plotgroups: (list of plot group instances)
         :param dataset_uuids: list[string] DataSet uuids of files used to generate the report
         :param uuid: the unique identifier for the Report
+        :param tags: a list of strings
         """
         BaseReportElement.__init__(self, id_)
         self._attributes = []
@@ -656,6 +673,8 @@ class Report(BaseReportElement):
 
         # Datasets that
         self._dataset_uuids = dataset_uuids
+
+        self.tags = tags
 
     @property
     def dataset_uuids(self):
@@ -691,13 +710,14 @@ class Report(BaseReportElement):
         self._tables.append(table)
 
     def __repr__(self):
+        t = ",".join(self.tags) if self.tags else ""
         _d = dict(k=self.__class__.__name__,
                   i=self.id,
                   n=self.title,
                   a=len(self.attributes),
                   p=len(self.plotGroups),
-                  t=len(self.tables), u=self.uuid)
-        return "<{k} id:{i} title:{n} uuid:{u} nattributes:{a} nplot_groups:{p} ntables:{t} >".format(**_d)
+                  t=len(self.tables), u=self.uuid, g=t)
+        return "<{k} id:{i} title:{n} uuid:{u} nattributes:{a} nplot_groups:{p} ntables:{t} tags:{g} >".format(**_d)
 
     @property
     def attributes(self):
@@ -763,6 +783,9 @@ class Report(BaseReportElement):
         d['title'] = self.title
         d['version'] = PB_REPORT_SCHEMA_VERSION
         d['dataset_uuids'] = list(set(self.dataset_uuids))
+
+        d['tags'] = self.tags
+
         return d
 
     def to_json(self):

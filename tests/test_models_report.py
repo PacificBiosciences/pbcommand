@@ -5,7 +5,7 @@ import os.path
 import re
 import unittest
 
-from pbcommand.pb_io import load_report_from_json, load_report_spec_from_json
+from pbcommand.pb_io import load_report_from_json, load_report_from, load_report_spec_from_json
 from pbcommand.models.report import (Report, Attribute, PlotGroup, Plot, Table,
                                      Column, PbReportError, format_metric)
 from pbcommand.schemas import validate_report
@@ -94,6 +94,9 @@ class TestReportModel(unittest.TestCase):
 
         log.debug("\n" + pformat(d))
 
+        r2 = load_report_from(d)
+        self.assertEqual(r.uuid, r2.uuid)
+
         self.assertEqual('redfang', d['id'])
         self.assertEqual('redfang.a', d['attributes'][0]['id'])
         self.assertEqual('redfang.a2', d['attributes'][1]['id'])
@@ -116,13 +119,25 @@ class TestReportModel(unittest.TestCase):
         for field in fields:
             self.assertTrue(field in d)
 
+    def test_load_from_file(self):
+        rpt_id = 'test_report'
+        name = "test_report.json"
+        path = get_data_file_from_subdir(_SERIALIZED_JSON_DIR, name)
+
+        r = load_report_from(path)
+        self.assertEqual(r.id, rpt_id)
+
+        r2 = load_report_from(r.to_dict())
+        self.assertEqual(r2.id, rpt_id)
+
     def test_to_dict_multi(self):
         """
         Multiple complex elements.
         The id of report sub elements is prepended with the id of the parent
         element when to_dict is called.
         """
-        r = Report('redfang')
+        tags = ["alpha", "beta", "gamma"]
+        r = Report('redfang', tags=tags)
         a = Attribute('a', 'b')
         a2 = Attribute('a2', 'b2')
         r.add_attribute(a)
@@ -174,6 +189,11 @@ class TestReportModel(unittest.TestCase):
         self.assertEqual('redfang.tabid2.c2', d[
                          'tables'][1]['columns'][0]['id'])
 
+        self.assertItemsEqual(d['tags'], tags)
+
+        loaded_report = load_report_from(d)
+        self.assertItemsEqual(loaded_report.tags, tags)
+
         log.info(repr(r))
         self.assertIsNotNone(repr(r))
 
@@ -207,6 +227,8 @@ class TestReportModel(unittest.TestCase):
 
         t = r.get_table_by_id('tabid1')
         self.assertEqual(t, t1)
+        columns_d = t.to_columns_d()
+        self.assertEqual(len(columns_d), 0)
 
     def test_get_table_by_id_with_bad_id(self):
         r = Report('redfang')
@@ -331,6 +353,9 @@ class TestReportModel(unittest.TestCase):
                      'BarcodeFasta3'])
             else:
                 self.assertEqual(col.values, [1, 2, 4, 3])
+
+        column_list_d = table.to_columns_d()
+        self.assertEqual(len(column_list_d), 4)
 
 
 class TestMalformedReport(unittest.TestCase):
