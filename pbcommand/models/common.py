@@ -855,20 +855,20 @@ def _strict_validate_int_or_raise(value):
     def _to_msg(type_):
         return _type_error_msg(value, type_)
 
-    if isinstance(value, types.BooleanType):
-        raise TypeError(_to_msg(types.BooleanType))
-    elif isinstance(value, types.FloatType):
-        raise TypeError(_to_msg(types.FloatType))
-    elif isinstance(value, types.StringType):
-        raise TypeError(_to_msg(types.StringType))
+    if isinstance(value, bool):
+        raise TypeError(_to_msg(bool))
+    elif isinstance(value, float):
+        raise TypeError(_to_msg(float))
+    elif isinstance(value, bytes):
+        raise TypeError(_to_msg(bytes))
     else:
         return int(value)
 
 
 def _strict_validate_bool_or_raise(value):
-    if isinstance(value, types.BooleanType):
+    if isinstance(value, bool):
         return value
-    raise TypeError(_type_error_msg(value, types.BooleanType))
+    raise TypeError(_type_error_msg(value, bool))
 
 
 def _strict_validate_float_or_raise(value):
@@ -876,10 +876,10 @@ def _strict_validate_float_or_raise(value):
     def _to_msg(type_):
         return _type_error_msg(value, type_)
 
-    if isinstance(value, types.BooleanType):
-        raise TypeError(_to_msg(types.BooleanType))
-    elif isinstance(value, types.StringType):
-        raise TypeError(_to_msg(types.StringType))
+    if isinstance(value, bool):
+        raise TypeError(_to_msg(bool))
+    elif isinstance(value, bytes):
+        raise TypeError(_to_msg(bytes))
     else:
         return float(value)
 

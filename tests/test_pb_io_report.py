@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import logging
 import unittest
@@ -9,7 +10,7 @@ from pbcommand.models.report import Plot, PlotlyPlot
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from base_utils import get_data_file_from_subdir
+from .base_utils import get_data_file_from_subdir
 
 log = logging.getLogger(__name__)
 

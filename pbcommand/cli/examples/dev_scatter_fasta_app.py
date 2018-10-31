@@ -70,7 +70,7 @@ def __to_chunked_fastx_files(fastx_reader_klass, fastax_writer_klass, chunk_key,
 
             if i != max_total_nchunks:
                 for _ in xrange(n):
-                    records.append(it.next())
+                    records.append(next(it))
             else:
                 for x in it:
                     records.append(x)

@@ -194,7 +194,7 @@ class ToolContractTask(object):
         self.input_file_types = input_types
         self.output_file_types = output_types
         # This needs to be list
-        self.options = _validate_or_raise(options, types.ListType)
+        self.options = _validate_or_raise(options, list)
         self.nproc = nproc
         # List of ResourceTypes
         self.resources = resources

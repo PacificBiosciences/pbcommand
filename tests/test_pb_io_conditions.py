@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import unittest
 import logging
 import os
 
-from base_utils import get_data_file_from_subdir
+from .base_utils import get_data_file_from_subdir
 
 from pbcommand.pb_io import load_reseq_conditions_from
 
