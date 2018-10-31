@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 
 import traceback
 import tempfile
@@ -10,7 +11,7 @@ import nose
 
 from pbcommand.validators import *
 
-from base_utils import get_data_file_from_subdir
+from .base_utils import get_data_file_from_subdir
 
 log = logging.getLogger(__name__)
 

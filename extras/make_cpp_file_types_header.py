@@ -3,6 +3,7 @@
 """
 Generate C++ preprocessor defines for PacBio file type IDs.
 """
+from __future__ import print_function
 
 import argparse
 import sys
@@ -19,7 +20,7 @@ def run(argv):
             ft = getattr(FileTypes, ft_name)
             if isinstance(ft, FileType):
                 out.write("""#define {f} "{i}"\n""".format(f=ft_name, i=ft.file_type_id))
-    print "Wrote {f}".format(f=args.out)
+    print("Wrote {f}".format(f=args.out))
     return 0
 
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 import os
 import logging
@@ -17,7 +18,7 @@ from pbcommand.schemas import (validate_rtc, validate_tc, validate_presets,
                                validate_report_spec)
 from pbcommand.utils import walker
 
-from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
+from .base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
 
 
 log = logging.getLogger(__name__)
