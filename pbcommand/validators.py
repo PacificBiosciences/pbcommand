@@ -81,7 +81,7 @@ def validate_nonempty_file(resource):
         raise e
     try:
         with open(resource_path) as handle:
-            l = [handle.next() for i in range(2)]
+            l = [next(handle) for i in range(2)]
     except StopIteration:
         raise IOError("{f} appears to be empty".format(f=resource))
     return resource_path

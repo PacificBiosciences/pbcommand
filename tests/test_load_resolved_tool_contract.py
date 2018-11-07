@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 import pprint
 import tempfile
 import unittest
 import logging
 import os.path
 
-from base_utils import get_data_file, get_tool_contract, get_resolved_tool_contract
+from .base_utils import get_data_file, get_tool_contract, get_resolved_tool_contract
 from pbcommand.resolver import resolve_tool_contract
 from pbcommand.pb_io.tool_contract_io import (load_resolved_tool_contract_from,
                                               load_tool_contract_from)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pprint
 
 from pbcommand.models.common import (FileTypes, ResourceTypes, SymbolTypes, TaskTypes)
@@ -24,11 +25,11 @@ def example_01():
 def example_02():
     p = example_01()
 
-    print "Generated Manifest"
+    print("Generated Manifest")
     pprint.pprint(p.parsers[1].to_tool_contract())
 
     # ipython will dump out here. with non-zero exitcode. blah...
-    print "Running Argparse --help"
+    print("Running Argparse --help")
     p.parsers[0].parser.parse_args(["--help"])
 
     return p

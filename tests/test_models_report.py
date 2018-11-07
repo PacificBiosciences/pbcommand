@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function
+
 import json
 import logging
 from pprint import pformat
@@ -12,7 +14,7 @@ from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from base_utils import get_data_file_from_subdir, DATA_DIR
+from .base_utils import get_data_file_from_subdir, DATA_DIR
 
 log = logging.getLogger(__name__)
 
@@ -408,7 +410,7 @@ class TestReportSpec(unittest.TestCase):
         try:
             self.spec.validate_report(rpt)
         except ValueError as e:
-            print e
+            print(e)
             self.assertEqual(error_len(e), 3)
         else:
             self.fail("Expected exception")
