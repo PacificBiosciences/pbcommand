@@ -679,13 +679,14 @@ class DataStoreViewRule(object):
     """
 
     def __init__(self, source_id, file_type_id, is_hidden, name="",
-                 description=""):
+                 description="", type_name=None):
         """
         :param source_id: Unique source id of the datastore file
         :param file_type_id: File Type id of the datastore file
         :param is_hidden: Mark the file has hidden
         :param name: Display name of the file
         :param description: Description of the file
+        :param type_name: Name of file type to display
         """
 
         # for generating rules compositionally in Python, it's easier to just
@@ -698,16 +699,18 @@ class DataStoreViewRule(object):
         self.is_hidden = is_hidden
         self.name = name
         self.description = description
+        self.type_name = type_name
 
     def to_dict(self):
         return {"sourceId": self.source_id, "fileTypeId": self.file_type_id,
                 "isHidden": self.is_hidden, "name": self.name,
-                "description": self.description}
+                "description": self.description, "typeName": self.type_name}
 
     @staticmethod
     def from_dict(d):
         return DataStoreViewRule(d['sourceId'], d['fileTypeId'], d['isHidden'],
-                                 d.get('name', ''), d.get('description', ''))
+                                 d.get('name', ''), d.get('description', ''),
+                                 d.get('typeName', None))
 
 
 class PipelineDataStoreViewRules(object):
