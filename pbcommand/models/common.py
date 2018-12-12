@@ -705,7 +705,7 @@ class DataStoreViewRule(object):
         d = {"sourceId": self.source_id, "fileTypeId": self.file_type_id,
              "isHidden": self.is_hidden, "name": self.name,
              "description": self.description}
-        if self.type_name is not None: # XXX workaround for Scala code
+        if self.type_name is not None:  # XXX workaround for Scala code
             d["typeName"] = self.type_name
         return d
 
