@@ -702,9 +702,12 @@ class DataStoreViewRule(object):
         self.type_name = type_name
 
     def to_dict(self):
-        return {"sourceId": self.source_id, "fileTypeId": self.file_type_id,
-                "isHidden": self.is_hidden, "name": self.name,
-                "description": self.description, "typeName": self.type_name}
+        d = {"sourceId": self.source_id, "fileTypeId": self.file_type_id,
+             "isHidden": self.is_hidden, "name": self.name,
+             "description": self.description}
+        if self.type_name is not None: # XXX workaround for Scala code
+            d["typeName"]: self.type_name
+        return d
 
     @staticmethod
     def from_dict(d):
