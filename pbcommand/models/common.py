@@ -706,7 +706,7 @@ class DataStoreViewRule(object):
              "isHidden": self.is_hidden, "name": self.name,
              "description": self.description}
         if self.type_name is not None: # XXX workaround for Scala code
-            d["typeName"]: self.type_name
+            d["typeName"] = self.type_name
         return d
 
     @staticmethod
