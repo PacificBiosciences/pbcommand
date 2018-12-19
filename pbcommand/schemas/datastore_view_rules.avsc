@@ -47,6 +47,11 @@
               "name": "description",
               "type": ["string", "null"],
               "doc": "Override the display description (optional). If this is null, the default description of the datastore file will be used in UI"
+            },
+            {
+              "name": "typeName",
+              "type": ["string", "null"],
+              "doc": "Overide the display file type (optional)"
             }
           ]
         }
