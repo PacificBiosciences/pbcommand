@@ -9,7 +9,6 @@ import copy
 import logging
 import datetime
 import unittest
-import unittest.suite
 
 from xml.etree.ElementTree import Element, ElementTree, ParseError
 
