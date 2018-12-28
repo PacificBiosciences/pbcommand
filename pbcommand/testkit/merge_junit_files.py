@@ -17,6 +17,7 @@ from pbcommand.testkit import xunit
 
 log = logging.getLogger(__name__)
 
+
 def run(args):
     xunit.merge_junit_files(args.output_file, args.junit_file)
     return 0

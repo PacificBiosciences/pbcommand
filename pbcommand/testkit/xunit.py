@@ -247,8 +247,10 @@ def _parser(file_name):
     return xunit_test_suite
 
 
-def convert_suite_and_result_to_xunit(suite, result,
-        name="PysivXunitTestSuite", requirements=()):
+def convert_suite_and_result_to_xunit(suite,
+                                      result,
+                                      name="PysivXunitTestSuite",
+                                      requirements=()):
     """Custom a test suite and result to XML.
 
     The name is used to set the xml suitename for jenkins.
