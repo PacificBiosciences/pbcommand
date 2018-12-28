@@ -15,8 +15,8 @@ import pytz
 import requests
 from requests import RequestException
 # To disable the ssl cert check warning
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+from requests.packages.urllib3.exceptions import InsecureRequestWarning #pylint: disable=import-error
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning) #pylint: disable=no-member
 
 from pbcommand.models import (FileTypes,
                               DataSetFileType,
