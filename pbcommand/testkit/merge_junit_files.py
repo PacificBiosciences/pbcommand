@@ -13,7 +13,7 @@ from pbcommand.cli import (get_default_argparser_with_base_opts,
                            pacbio_args_runner)
 from pbcommand.utils import setup_log
 
-from pbsmrtpipe.testkit import xunit
+from pbcommand.testkit import xunit
 
 log = logging.getLogger(__name__)
 
