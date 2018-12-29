@@ -7,6 +7,7 @@ from collections import namedtuple
 
 
 class ReseqCondition(namedtuple("ReseqCondition", "cond_id subreadset alignmentset referenceset")):
+
     def to_dict(self):
         return {"condId": self.cond_id,
                 "subreadset": self.subreadset,
@@ -24,6 +25,7 @@ class ReseqCondition(namedtuple("ReseqCondition", "cond_id subreadset alignments
 
 class ReseqConditions(namedtuple("ReseqConditions", "conditions")):
     # leave out the pipeline id. Not sure if this is necessary
+
     def to_dict(self):
         return {"conditions": [c.to_dict() for c in self.conditions]}
 

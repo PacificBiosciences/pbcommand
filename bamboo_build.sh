@@ -26,4 +26,8 @@ $PIP install --user -e ./
 nosetests -s --verbose --with-xunit --xunit-file=nosetests.xml --with-coverage --cover-xml --cover-xml-file=coverage.xml --logging-config \
     log_nose.cfg tests/test_*.py
 sed -i -e 's@filename="@filename="./@g' coverage.xml
+which python
+which pylint
+python --version
+pylint --version
 make run-pylint run-pep8
