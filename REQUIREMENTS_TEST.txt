@@ -1,7 +1,9 @@
+xmlbuilder
 pytest
 nose
 coverage
 tox
+pep8
 autopep8
 pylint
 # Putting these here for RTD
