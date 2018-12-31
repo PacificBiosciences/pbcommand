@@ -12,6 +12,8 @@ sphinx-bootstrap-theme
 # which generates an ImportError
 # maybe related https://github.com/jupyter/nbconvert/issues/495
 jupyter_client
+# Note: We might need to drop jupyter_client because of zmq version incompatibility.
+# But really, we might not need sphinx at all anymore. ~cdunn
 # for ipython notebooks in sphinx docs
 nbsphinx
 avro
