@@ -459,6 +459,8 @@ def get_dataset_metadata(path):
         uuid = element.get("UniqueId")
         mt = element.get("MetaType")
         break
+    else:
+        raise ValueError('Did not find events=("start",) in XML path={}'.format(path))
     if mt in FileTypes.ALL_DATASET_TYPES().keys():
         return DataSetMetaData(uuid, mt)
     else:
