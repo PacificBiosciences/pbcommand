@@ -13,25 +13,6 @@ from pbcommand.pb_io.tool_contract_io import (load_resolved_tool_contract_from,
 log = logging.getLogger(__name__)
 
 
-"""
-# This fails for both nosetests and py.test.
-# But nose skips it if the name starts with "_".
-
-class TestUtil(unittest.TestCase):
-    FILE_NAME = "resolved_contract_01"
-
-    def _to_object(self, path):
-        log.debug("Loading from {p}".format(p=path))
-        return load_tool_contract_from(path)
-
-    #@unittest.skip("Skipped1")
-    def test_sanity(self):
-        path = get_data_file(self.FILE_NAME)
-        tool_contract = self._to_object(path)
-        self.assertIsNotNone(tool_contract)
-"""
-
-
 class TestLoadResolvedContract(unittest.TestCase):
 
     def test_01(self):
