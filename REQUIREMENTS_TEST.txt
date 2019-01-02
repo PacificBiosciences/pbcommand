@@ -1,22 +1,8 @@
+xmlbuilder
+pytest
 nose
 coverage
 tox
+pep8
 autopep8
 pylint
-# Putting these here for RTD
-sphinx-argparse
-sphinx-bootstrap-theme
-# I think this is a bug in jupyter client
-# for some reason jupyter_client.manager is called
-# which generates an ImportError
-# maybe related https://github.com/jupyter/nbconvert/issues/495
-jupyter_client
-# for ipython notebooks in sphinx docs
-nbsphinx
-avro
-requests
-iso8601
-# For sphinx extension
-ipython
-# ipython requires this?
-matplotlib
