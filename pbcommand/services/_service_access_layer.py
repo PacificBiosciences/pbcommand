@@ -215,7 +215,7 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
     return job
 
 
-def _block_for_job_to_complete(sal, job_id, time_out=600, sleep_time=2):
+def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2):
     """
     Waits for job to complete
 
