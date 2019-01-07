@@ -47,3 +47,5 @@ sed -i -e 's@filename="@filename="./@g' coverage.xml
 which pylint
 pylint --version
 make run-pylint run-pep8
+
+bash bamboo_wheel.sh

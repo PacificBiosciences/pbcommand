@@ -1,5 +1,6 @@
 .PHONY: all clean install dev-install test doc
 SHELL = /bin/bash -e
+WHEELHOUSE?=./wheelhouse
 
 all: install
 
@@ -62,3 +63,8 @@ build-avro-schema-docs:
 
 cpp-header:
 	python extras/make_cpp_file_types_header.py FileTypes.h
+
+wheel:
+	which pip
+	pip wheel -v --wheel-dir=${WHEELHOUSE} --no-deps .
+	ls -larth ${WHEELHOUSE}
