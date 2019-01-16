@@ -40,6 +40,7 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
 
 
 class ServiceJob(object):
+
     def __init__(self, ix, job_uuid, name, state, path, job_type, created_at,
                  settings, is_active=True, smrtlink_version=None,
                  created_by=None, updated_at=None, error_message=None, imported_at=None, job_updated_at=None,

@@ -988,6 +988,7 @@ class AttributeSpec(object):
 
 
 class ColumnSpec(object):
+
     def __init__(self, id_, header, description, type_, format_=None,
                  is_hidden=False):
         self.id = id_

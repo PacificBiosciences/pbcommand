@@ -1,3 +1,4 @@
+import pytest
 import functools
 import tempfile
 import unittest
@@ -102,13 +103,14 @@ class TestUtils(unittest.TestCase):
             import pbtestdata
         except ImportError:
             raise unittest.SkipTest("pbtestdata not available, skipping")
-        else:
-            md = get_dataset_metadata(pbtestdata.get_file("subreads-xml"))
-            self.assertEqual(md.metatype, "PacBio.DataSet.SubreadSet")
-            try:
-                from pbcore.io import SubreadSet
-            except ImportError:
-                raise unittest.SkipTest("pbcore not available, skipping")
-            else:
-                ds = SubreadSet(pbtestdata.get_file("subreads-xml"))
-                self.assertEqual(md.uuid, ds.uuid)
+        md = get_dataset_metadata(pbtestdata.get_file("subreads-xml"))
+        self.assertEqual(md.metatype, "PacBio.DataSet.SubreadSet")
+        try:
+            from pbcore.io import SubreadSet
+        except ImportError:
+            raise unittest.SkipTest("pbcore not available, skipping")
+        ds = SubreadSet(pbtestdata.get_file("subreads-xml"))
+        self.assertEqual(md.uuid, ds.uuid)
+
+        with pytest.raises(Exception) as e:
+            get_dataset_metadata(None)

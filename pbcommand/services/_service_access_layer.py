@@ -15,8 +15,8 @@ import pytz
 import requests
 from requests import RequestException
 # To disable the ssl cert check warning
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+from requests.packages.urllib3.exceptions import InsecureRequestWarning  # pylint: disable=import-error
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # pylint: disable=no-member
 
 from pbcommand.models import (FileTypes,
                               DataSetFileType,
@@ -215,7 +215,7 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
     return job
 
 
-def _block_for_job_to_complete(sal, job_id, time_out=600, sleep_time=2):
+def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2):
     """
     Waits for job to complete
 
@@ -965,6 +965,7 @@ def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
 
 
 class CreateJobTaskRecord(object):
+
     def __init__(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
         self.task_uuid = task_uuid
         self.task_id = task_id
@@ -996,6 +997,7 @@ class CreateJobTaskRecord(object):
 
 
 class UpdateJobTaskRecord(object):
+
     def __init__(self, task_uuid, state, message, error_message=None):
         """:type error_message: str | None"""
         self.task_uuid = task_uuid
@@ -1033,6 +1035,7 @@ class UpdateJobTaskRecord(object):
 
 class JobServiceClient(object):  # pragma: no cover
     # Keeping this class private. It should only be used from pbsmrtpipe
+
     def __init__(self, job_root_url, ignore_errors=False):
         """
 
