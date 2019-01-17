@@ -875,6 +875,11 @@ class ServiceAccessLayer(object):  # pragma: no cover
         u = self._to_url("{}/samples/{}".format(ServiceAccessLayer.ROOT_SL, sample_uuid))
         return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
 
+    def submit_multi_job(self, job_options):
+        u = self._to_url("{}/multi-analysis".format(ServiceAccessLayer.ROOT_MJOBS))
+        return _process_rpost_with_transform(ServiceJob.from_d)(u, job_options,
+            headers=self._get_headers())
+
 
 def __run_and_ignore_errors(f, warn_message):
     """
