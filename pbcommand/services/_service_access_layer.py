@@ -877,8 +877,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
     def submit_multi_job(self, job_options):
         u = self._to_url("{}/multi-analysis".format(ServiceAccessLayer.ROOT_MJOBS))
-        return _process_rpost_with_transform(ServiceJob.from_d)(u, job_options,
-            headers=self._get_headers())
+        return _process_rpost_with_transform(ServiceJob.from_d)(u, job_options, headers=self._get_headers())
 
 
 def __run_and_ignore_errors(f, warn_message):
