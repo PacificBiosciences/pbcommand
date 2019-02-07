@@ -45,6 +45,7 @@ def load_pipeline_chunks_from_json(path):
             chunk_datum = cs['chunk']
             c = PipelineChunk(chunk_id, **chunk_datum)
             chunks.append(c)
+        chunks.sort(lambda a,b: cmp(a.chunk_id, b.chunk_id))
         return chunks
     except Exception:
         msg = "Unable to load pipeline chunks from {f}".format(f=path)
