@@ -13,7 +13,7 @@ import types
 import warnings
 import functools
 import datetime
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 log = logging.getLogger(__name__)
 
@@ -552,7 +552,7 @@ class DataStore(object):
 
         :type ds_files: list[DataStoreFile]
         """
-        self.files = {f.uuid: f for f in ds_files}
+        self.files = OrderedDict([(f.uuid, f) for f in ds_files])
         self.created_at = datetime.datetime.now() if created_at is None else created_at
         self.updated_at = datetime.datetime.now()
 
