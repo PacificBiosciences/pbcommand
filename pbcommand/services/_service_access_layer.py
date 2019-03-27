@@ -344,6 +344,12 @@ def _to_relative_tasks_url(job_type):
     return wrapper
 
 
+def _show_deprecation_warning(msg):
+    warnings.simplefilter('once', DeprecationWarning)
+    warnings.warn(msg, DeprecationWarning)
+    warnings.simplefilter('default', DeprecationWarning)  # reset filte
+
+
 class ServiceAccessLayer(object):  # pragma: no cover
     """
     General Client Access Layer for interfacing with the job types on
@@ -381,10 +387,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         self._sleep_time = sleep_time
 
         if self.__class__.__name__ == "ServiceAccessLayer":
-            warnings.simplefilter('once', DeprecationWarning)
-            warnings.warn("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported",
-                          DeprecationWarning)
-            warnings.simplefilter('default', DeprecationWarning)  # reset filter
+            _show_deprecation_warning("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported")
 
     def _get_headers(self):
         return Constants.HEADERS
@@ -453,9 +456,24 @@ class ServiceAccessLayer(object):  # pragma: no cover
             _to_url(self.uri, "{p}/{t}/{i}/jobs".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=multi_job_int_or_uuid)),
             headers=self._get_headers())
 
+    def get_all_analysis_jobs(self):
+        return _process_rget_with_jobs_transform(
+            _to_url(self.uri, "{p}/analysis-jobs".format(
+                p=ServiceAccessLayer.ROOT_JM)),
+            headers=self._get_headers())
+
+    # FIXME deprecated
     def get_analysis_jobs(self):
+        _show_deprecation_warning("Please use get_pbsmrtpipe_jobs() instead")
+        return self.get_pbsmrtpipe_jobs()
+
+    def get_pbsmrtpipe_jobs(self):
         """:rtype: list[ServiceJob]"""
         return self._get_jobs_by_job_type(JobTypes.PB_PIPE)
+
+    def get_cromwell_jobs(self):
+        """:rtype: list[ServiceJob]"""
+        return self._get_jobs_by_job_type(JobTypes.CROMWELL)
 
     def get_import_dataset_jobs(self):
         """:rtype: list[ServiceJob]"""
@@ -832,6 +850,19 @@ class ServiceAccessLayer(object):  # pragma: no cover
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
                                           sleep_time=self._sleep_time)
+
+    def run_cromwell_workflow(self, name, workflow_source, inputs_json, engine_options, dependencies_zip, time_out=JOB_DEFAULT_TIMEOUT, tags=()):
+        d = dict(
+            name=name,
+            workflowSource=workflow_source,
+            inputsJson=inputs_json,
+            engineOptions=engine_options,
+            dependenciesZip=dependencies_zip)
+        if tags:
+            tags_str = ",".join(list(tags))
+            d['tags'] = tags_str
+        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.CROMWELL, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
+        return ServiceJob.from_d(raw_d)
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
