@@ -10,6 +10,7 @@ import traceback
 import time
 import types
 import subprocess
+import sys
 from contextlib import contextmanager
 import xml.etree.ElementTree as ET
 
@@ -502,10 +503,14 @@ def walker(root_dir, file_filter_func):
             if file_filter_func(path):
                 yield path
 
+if sys.version_info[0] < 3:
+    python2 == True
 
 def to_ascii(s):
-    # This is not awesome
-    return s.encode('ascii', 'ignore')
+    if python2:
+        return s.encode('ascii', 'ignore')
+    else:
+        return s
 
 
 def pool_map(func, args, nproc):
