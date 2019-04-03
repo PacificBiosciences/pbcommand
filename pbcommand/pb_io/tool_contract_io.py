@@ -1,11 +1,9 @@
 """IO Layer for creating models from files"""
 import json
 import logging
-from avro.datafile import DataFileWriter
-from avro.io import DatumWriter
+import warnings
 
 import pbcommand
-
 from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA, validate_presets
 from pbcommand.models import (TaskTypes,
                               GatherToolContractTask,
@@ -377,6 +375,9 @@ def write_resolved_tool_contract(rtc, output_json_file):
 
 
 def _write_records_to_avro(schema, _d_or_ds, output_file):
+    from avro.datafile import DataFileWriter
+    from avro.io import DatumWriter
+    warnings.warn("Avro support is deprecated and will be removed", DeprecationWarning)
     # FIXME. There's only one record being written here,
     # why does this not support a single item
     if isinstance(_d_or_ds, dict):
