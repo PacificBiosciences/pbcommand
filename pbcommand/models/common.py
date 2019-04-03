@@ -866,8 +866,8 @@ def _strict_validate_int_or_raise(value):
         raise TypeError(_to_msg(bool))
     elif isinstance(value, float):
         raise TypeError(_to_msg(float))
-    elif isinstance(value, bytes):
-        raise TypeError(_to_msg(bytes))
+    elif isinstance(value, str):
+        raise TypeError(_to_msg(str))
     else:
         return int(value)
 
@@ -885,8 +885,8 @@ def _strict_validate_float_or_raise(value):
 
     if isinstance(value, bool):
         raise TypeError(_to_msg(bool))
-    elif isinstance(value, bytes):
-        raise TypeError(_to_msg(bytes))
+    elif isinstance(value, str):
+        raise TypeError(_to_msg(str))
     else:
         return float(value)
 
