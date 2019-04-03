@@ -163,5 +163,3 @@ class TestPacBioFloatChoiceOptionTest(TestPacBioBasicChoiceTest):
         choices = (1, 2.0, "bad-value")
         with self.assertRaises(TypeError):
             _ = self._to_opt(c=choices)
-
-

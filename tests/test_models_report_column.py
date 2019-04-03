@@ -13,7 +13,7 @@ class TestColumn(unittest.TestCase):
         def none_col():
             c = Column(None)
 
-        self.assertRaises(none_col)
+        self.assertRaises(Exception, none_col)
 
     def test_repr(self):
         c = Column('my_column', header="My Column", values=list(xrange(5)))
