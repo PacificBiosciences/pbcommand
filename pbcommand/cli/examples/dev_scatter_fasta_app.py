@@ -1,4 +1,8 @@
 """Example of Generating a Chunk.json file that 'scatters' a pair of fasta files"""
+from __future__ import division
+from builtins import next
+from builtins import range
+from builtins import object
 import os
 import logging
 import sys
@@ -55,12 +59,12 @@ def __to_chunked_fastx_files(fastx_reader_klass, fastax_writer_klass, chunk_key,
 
     max_total_nchunks = min(nrecords, max_total_nchunks)
 
-    n = int(math.ceil(float(nrecords)) / max_total_nchunks)
+    n = int(math.ceil(float(nrecords)) // max_total_nchunks)
 
     nchunks = 0
     with fastx_reader_klass(fastx_path) as r:
         it = iter(r)
-        for i in xrange(max_total_nchunks):
+        for i in range(max_total_nchunks):
             records = []
 
             chunk_id = "_".join([base_name, str(nchunks)])
@@ -69,7 +73,7 @@ def __to_chunked_fastx_files(fastx_reader_klass, fastax_writer_klass, chunk_key,
             fasta_chunk_path = os.path.join(dir_name, chunk_name)
 
             if i != max_total_nchunks:
-                for _ in xrange(n):
+                for _ in range(n):
                     records.append(next(it))
             else:
                 for x in it:

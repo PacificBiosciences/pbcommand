@@ -18,6 +18,7 @@ pbservice run-merge-dataset path/to/file.json
 This program is largely replaced by the Scala version in 'smrtflow'.
 """
 from __future__ import print_function
+from builtins import object
 import argparse
 import json
 
@@ -500,7 +501,7 @@ def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=No
     f = fs.get(dataset_type)
 
     if f is None:
-        raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=fs.keys()))
+        raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=list(fs.keys())))
     else:
         datasets = f()
         # this needs to be improved

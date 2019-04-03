@@ -2,6 +2,7 @@
 
 
 """
+from builtins import object
 import base64
 import json
 import logging
@@ -281,7 +282,7 @@ DATASET_METATYPES_TO_ENDPOINTS = {
 def _get_endpoint_or_raise(ds_type):
     if ds_type in DATASET_METATYPES_TO_ENDPOINTS:
         return DATASET_METATYPES_TO_ENDPOINTS[ds_type]
-    raise KeyError("Unsupported datasettype {t}. Supported values {v}".format(t=ds_type, v=DATASET_METATYPES_TO_ENDPOINTS.keys()))
+    raise KeyError("Unsupported datasettype {t}. Supported values {v}".format(t=ds_type, v=list(DATASET_METATYPES_TO_ENDPOINTS.keys())))
 
 
 def _job_id_or_error(job_or_error, custom_err_msg=None):
@@ -327,7 +328,7 @@ def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_fun
     probably not a great idea. Should re-evaluate this.
     """
     report_datafiles = sal_get_reports_func(job_id)
-    report_uuids = [r.values()[0].uuid for r in report_datafiles]
+    report_uuids = [list(r.values())[0].uuid for r in report_datafiles]
     reports = [sal_get_reports_details_func(job_id, r_uuid) for r_uuid in report_uuids]
     all_report_attributes = {}
 

@@ -3,6 +3,7 @@ parser"""
 
 from __future__ import absolute_import, division, print_function
 
+from builtins import object
 import os
 import re
 import copy
@@ -326,7 +327,7 @@ def convert_suite_and_result_to_xunit(suite,
                    errors=str(nerrors), failures=str(nfailures),
                    skip=str(nskipped))
 
-    for idx, message in all_test_cases.iteritems():
+    for idx, message in all_test_cases.items():
         test_method = idx.split('.')[-1]
         with x.testcase(classname=idx, name=test_method, time="1.000"):
             if idx in klass_results['errors']:

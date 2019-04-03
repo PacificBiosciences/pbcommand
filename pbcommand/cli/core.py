@@ -15,6 +15,7 @@ Going to do this in a new steps.
 
 """
 from __future__ import print_function
+from builtins import object
 import argparse
 import json
 import logging

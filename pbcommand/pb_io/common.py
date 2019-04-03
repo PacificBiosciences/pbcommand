@@ -1,3 +1,4 @@
+from past.builtins import cmp
 import logging
 import json
 import sys

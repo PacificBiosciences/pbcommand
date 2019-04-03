@@ -5,6 +5,7 @@ Large parts of this are pulled from pbsmrtpipe.
 
 Author: Michael Kocher
 """
+from builtins import object
 import json
 import logging
 import os
@@ -15,6 +16,7 @@ import functools
 import datetime
 from collections import namedtuple, OrderedDict
 from pbcommand import to_ascii
+from future.utils import with_metaclass
 
 log = logging.getLogger(__name__)
 
@@ -228,9 +230,7 @@ class _RegisteredFileType(type):
         return file_type
 
 
-class FileType(object):
-    __metaclass__ = _RegisteredFileType
-
+class FileType(with_metaclass(_RegisteredFileType, object)):
     def __init__(self, file_type_id, base_name, ext, mime_type):
         """
         Core File Type data model
@@ -435,7 +435,7 @@ class FileTypes(object):
 
     @staticmethod
     def ALL_DATASET_TYPES():
-        return {i: f for i, f in REGISTERED_FILE_TYPES.iteritems() if isinstance(f, DataSetFileType)}
+        return {i: f for i, f in REGISTERED_FILE_TYPES.items() if isinstance(f, DataSetFileType)}
 
     @staticmethod
     def ALL():
@@ -572,7 +572,7 @@ class DataStore(object):
             raise TypeError("DataStoreFile expected. Got type {t} for {d}".format(t=type(ds_file), d=ds_file))
 
     def to_dict(self):
-        fs = [f.to_dict() for i, f in self.files.iteritems()]
+        fs = [f.to_dict() for i, f in self.files.items()]
         _d = dict(version=self.version,
                   createdAt=_datetime_to_string(self.created_at),
                   updatedAt=_datetime_to_string(self.updated_at), files=fs)
@@ -660,15 +660,15 @@ class PipelineChunk(object):
 
     @property
     def chunk_d(self):
-        return {k: v for k, v in self._datum.iteritems() if _is_chunk_key(k)}
+        return {k: v for k, v in self._datum.items() if _is_chunk_key(k)}
 
     @property
     def chunk_keys(self):
-        return self.chunk_d.keys()
+        return list(self.chunk_d.keys())
 
     @property
     def chunk_metadata(self):
-        return {k: v for k, v in self._datum.iteritems() if not _is_chunk_key(k)}
+        return {k: v for k, v in self._datum.items() if not _is_chunk_key(k)}
 
     def to_dict(self):
         return {'chunk_id': self.chunk_id, 'chunk': self._datum}

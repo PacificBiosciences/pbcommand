@@ -4,6 +4,9 @@
 Author: Johann Miller and Michael Kocher
 """
 
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from collections import defaultdict, OrderedDict
 import warnings
 import csv
@@ -17,6 +20,7 @@ from pprint import pformat
 import datetime
 
 import pbcommand
+from future.utils import with_metaclass
 
 
 log = logging.getLogger(__name__)
@@ -86,9 +90,7 @@ class PbReportError(Exception):
     pass
 
 
-class BaseReportElement(object):
-    __metaclass__ = abc.ABCMeta
-
+class BaseReportElement(with_metaclass(abc.ABCMeta, object)):
     def __init__(self, id_):
         if not isinstance(id_, basestring):
             raise PbReportError(
@@ -438,7 +440,7 @@ class Table(BaseReportElement):
         outs.append(header)
         outs.append("-" * len(header))
 
-        for i in xrange(max_values):
+        for i in range(max_values):
             out = []
             for column in self.columns:
                 try:
@@ -540,7 +542,7 @@ class Table(BaseReportElement):
             for col in table.columns:
                 col_collisions[col.id].append(col)
         columns = {}
-        for col_id, cols in col_collisions.iteritems():
+        for col_id, cols in col_collisions.items():
             assert len(cols) == len(tables)
             columns[col_id] = Column.merge(cols)
         # order by table[0]'s column order:
@@ -568,7 +570,7 @@ class Table(BaseReportElement):
         """
         items = []
         if self.columns:
-            for i in xrange(self.columns[0].nvalues):
+            for i in range(self.columns[0].nvalues):
                 dx = {}
                 for c in self.columns:
                     dx[c.id] = c.values[i]
@@ -861,7 +863,7 @@ class Report(BaseReportElement):
             attrs = _merge_attributes_d(attributes_list)
             labels = _merge_attributes_names(attributes_list)
             columns = [Column(k.lower(), header=labels[k], values=values)
-                       for k, values in attrs.iteritems()]
+                       for k, values in attrs.items()]
             table = Table(table_id, title=title, columns=columns)
             return table
 
@@ -869,7 +871,7 @@ class Report(BaseReportElement):
             d = _merge_attributes_d(attributes_list)
             labels = _merge_attributes_names(attributes_list)
             return [Attribute(k, sum(values), name=labels[k])
-                    for k, values in d.iteritems()]
+                    for k, values in d.items()]
 
         def _merge_tables(tables):
             """Pass through singletons, Table.merge dupes"""
