@@ -268,7 +268,7 @@ def convert_suite_and_result_to_xunit(suite,
     # those differently.
     def parse_setupclass_error(klass_id):
         """Return what's inside the parentheses."""
-        return re.search("(?<=\().*(?=\))", klass_id).group(0)
+        return re.search(r"(?<=\().*(?=\))", klass_id).group(0)
 
     # Test cls names/id
     names = 'errors skipped failures'.split()

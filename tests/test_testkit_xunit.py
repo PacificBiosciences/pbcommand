@@ -9,6 +9,13 @@ import shutil
 from pbcommand.testkit import pb_requirements
 from pbcommand.testkit import xunit as X
 
+try:
+    import avro
+except ImportError:
+    avro = None
+
+skip_unless_avro_installed = unittest.skipUnless(avro is not None,
+                                                 "avro not installed")
 
 def _get_and_run_test_suite():
     class MyTestClass(unittest.TestCase):
@@ -41,6 +48,7 @@ def _generate_jenkins_xml(test_name):
 
 class TestXunitOutput(unittest.TestCase):
 
+    @skip_unless_avro_installed
     def test_convert_to_xunit(self):
         suite, result = _get_and_run_test_suite()
         x = X.convert_suite_and_result_to_xunit([suite], result,
@@ -57,6 +65,7 @@ class TestXunitOutput(unittest.TestCase):
                 requirements.append(p.attrib["value"])
         self.assertEqual(requirements, ["SL-1","SL-2","SL-3","SL-4"])
 
+    @skip_unless_avro_installed
     def test_xunit_file_to_jenkins(self):
         j = _generate_jenkins_xml("my_testkit_job")
         root = ElementTree.fromstring(str(j))
@@ -74,6 +83,7 @@ class TestXunitOutput(unittest.TestCase):
                 x.write(str(_generate_jenkins_xml(job_name)))
         return (x1, x2)
 
+    @skip_unless_avro_installed
     def test_merge_junit_files(self):
         x1, x2 = self._get_junit_files()
         x_merged = tempfile.NamedTemporaryFile(suffix=".xml").name
@@ -94,6 +104,7 @@ class TestXunitOutput(unittest.TestCase):
         job_names = [el.attrib['name'] for el in suites.findall("testsuite")]
         self.assertEqual(job_names, ["job_1", "job_2", "job_1", "job_2"])
 
+    @skip_unless_avro_installed
     def test_merge_junit_files_cmdline(self):
         x1, x2 = self._get_junit_files()
         x_merged = tempfile.NamedTemporaryFile(suffix=".xml").name

@@ -31,7 +31,7 @@ class TestCompose(unittest.TestCase):
 
         h = compose(f, g)
         value = h(7)
-        self.assertEquals(value, 18)
+        self.assertEqual(value, 18)
 
     def test_no_args_list(self):
 
@@ -56,7 +56,7 @@ class TestCompose(unittest.TestCase):
 
         f = compose(add_five, add_two)
         value = f(5)
-        self.assertEquals(value, 12)
+        self.assertEqual(value, 12)
 
 
 class TestLogging(unittest.TestCase):

@@ -63,11 +63,11 @@ class TestColumn(unittest.TestCase):
 #            a.add_plot( Plot('id', 'i1') )
 #
 #            d = a.to_dict()
-#            self.assertEquals( 123, d['id'] )
-#            self.assertEquals( 'foo title', d['title'] )
-#            self.assertEquals( 'foo legend', d['legend'] )
-#            self.assertEquals( 'foo thumbnail', d['thumbnail'] )
-#            self.assertEquals( 1, len(d['plots']) )
+#            self.assertEqual( 123, d['id'] )
+#            self.assertEqual( 'foo title', d['title'] )
+#            self.assertEqual( 'foo legend', d['legend'] )
+#            self.assertEqual( 'foo thumbnail', d['thumbnail'] )
+#            self.assertEqual( 1, len(d['plots']) )
 #        except:
 #            log.error(traceback.format_exc())
 #            raise

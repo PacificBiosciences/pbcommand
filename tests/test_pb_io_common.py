@@ -31,4 +31,4 @@ class TestWriteChunk(unittest.TestCase):
         write_pipeline_chunks(pipeline_chunks, tmp_name, "Example chunk file")
 
         pchunks = load_pipeline_chunks_from_json(tmp_name)
-        self.assertEquals(len(pchunks), nchunks)
+        self.assertEqual(len(pchunks), nchunks)

@@ -20,6 +20,13 @@ from pbcommand.utils import walker
 
 from .base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
 
+try:
+    import avro
+except ImportError:
+    avro = None
+
+skip_unless_avro_installed = unittest.skipUnless(avro is not None,
+                                                 "avro not installed")
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +53,7 @@ def _to_assertion(path, schema_validate_func):
 
 
 class ValidateResolvedToolContracts(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_validate_resolved_tool_contracts(self):
         for path in walker(DATA_DIR_RTC, json_filter):
             f = _to_assertion(path, validate_rtc)
@@ -54,6 +62,7 @@ class ValidateResolvedToolContracts(unittest.TestCase):
 
 
 class ValidateToolContracts(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_validate_tool_contracts(self):
         for path in walker(DATA_DIR_TC, json_filter):
             f = _to_assertion(path, validate_tc)
@@ -62,6 +71,7 @@ class ValidateToolContracts(unittest.TestCase):
 
 
 class ValidatePipelinePreset(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_validate_pipeline_presets(self):
         for path in walker(DATA_DIR_PRESETS, json_filter):
             f = _to_assertion(path, validate_presets)
@@ -70,6 +80,7 @@ class ValidatePipelinePreset(unittest.TestCase):
 
 
 class ValidateDataStoreViewRules(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_validate_pipeline_datastore_view_rules(self):
         for path in walker(DATA_DIR_DSVIEW, json_filter):
             f = _to_assertion(path, validate_datastore_view_rules)
@@ -80,6 +91,7 @@ class ValidateDataStoreViewRules(unittest.TestCase):
 
 
 class ValidateReportSpec(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_validate_report_spec(self):
         for path in walker(DATA_DIR_REPORT_SPECS, json_filter):
             if os.path.basename(path).startswith("report-specs"):

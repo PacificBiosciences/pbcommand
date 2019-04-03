@@ -208,8 +208,9 @@ def get_parsed_args_log_level(pargs, default_level=logging.INFO):
     level = default_level
     if isinstance(level, basestring):
         level = logging.getLevelName(level)
-    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
-        if pargs.verbosity >= 2:
+    verbosity = getattr(pargs, 'verbosity', None)
+    if verbosity is not None and verbosity > 0:
+        if verbosity >= 2:
             level = logging.DEBUG
         else:
             level = logging.INFO
