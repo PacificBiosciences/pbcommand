@@ -1,9 +1,7 @@
 import os
-
 import functools
+import warnings
 
-import avro.schema
-from avro.io import validate
 
 SCHEMA_REGISTRY = {}
 
@@ -15,7 +13,9 @@ __all__ = ['validate_pbreport',
 
 
 def _load_schema(idx, name):
-
+    import avro.schema
+    warnings.warn("Avro support is deprecated and will be removed",
+                  DeprecationWarning)
     d = os.path.dirname(__file__)
     schema_path = os.path.join(d, name)
     with open(schema_path, 'r') as f:
@@ -34,6 +34,9 @@ REPORT_SPEC_SCHEMA = _load_schema("report_spec", "report_spec.avsc")
 
 
 def _validate(schema, msg, d):
+    from avro.io import validate
+    warnings.warn("Avro support is deprecated and will be removed",
+                  DeprecationWarning)
     """Validate a python dict against a avro schema"""
     # FIXME(mkocher)(2016-7-16) Add a better error message than "Invalid"
     if not validate(schema, d):
@@ -42,6 +45,9 @@ def _validate(schema, msg, d):
 
 
 def _is_valid(schema, d):
+    from avro.io import validate
+    warnings.warn("Avro support is deprecated and will be removed",
+                  DeprecationWarning)
     return validate(schema, d)
 
 
