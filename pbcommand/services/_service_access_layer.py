@@ -22,7 +22,7 @@ from pbcommand.models import (FileTypes,
                               DataSetFileType,
                               DataStore,
                               DataStoreFile)
-from pbcommand.utils import get_dataset_metadata, to_ascii
+from pbcommand.utils import get_dataset_metadata
 
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,

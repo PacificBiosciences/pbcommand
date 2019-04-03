@@ -23,6 +23,7 @@ from pbcommand.models.tool_contract import (ToolDriver,
                                             ResolvedGatherToolContractTask,
                                             ToolContractResolvedResource,
                                             PipelinePreset)
+from pbcommand import to_ascii
 
 log = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ def __driver_from_d(d):
 
 def __core_resolved_tool_contract_task_from_d(d):
     def _to_a(x):
-        return x.encode('ascii', 'ignore')
+        return to_ascii(x)
 
     def _get(attr_name):
         return d[Constants.RTOOL][attr_name]
@@ -153,7 +154,7 @@ def resolved_tool_contract_from_d(d):
     """Convert a dict to Resolved Tool Contract"""
 
     def _to_a(x):
-        return x.encode('ascii', 'ignore')
+        return to_ascii(x)
 
     def _get(attr_name):
         return d[Constants.RTOOL][attr_name]
@@ -203,7 +204,7 @@ def __core_tool_contract_task_from(d):
         raise MalformedResolvedToolContractError("Unable to find root key {k}. Keys {a}".format(k=Constants.TOOL, a=d.keys()))
 
     def _to_a(x_):
-        return x_.encode('ascii', 'ignore')
+        return to_ascii(x_)
 
     def _get(x_):
         # Get a Subkey within

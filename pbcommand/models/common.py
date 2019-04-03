@@ -14,6 +14,7 @@ import warnings
 import functools
 import datetime
 from collections import namedtuple, OrderedDict
+from pbcommand import to_ascii
 
 log = logging.getLogger(__name__)
 
@@ -526,7 +527,7 @@ class DataStoreFile(object):
     @staticmethod
     def from_dict(d, base_path=None):
         # FIXME. This isn't quite right.
-        to_a = lambda x: x.encode('ascii', 'ignore')
+        to_a = to_ascii
         to_k = lambda x: to_a(d[x])
         is_chunked = d.get('isChunked', False)
         return DataStoreFile(to_k('uniqueId'),

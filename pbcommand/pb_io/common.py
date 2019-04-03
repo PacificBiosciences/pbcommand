@@ -10,6 +10,7 @@ from pbcommand.models import (PipelineChunk, PipelineDataStoreViewRules,
                               PacBioFloatOption, PacBioBooleanOption,
                               PacBioIntOption)
 from pbcommand.schemas import validate_datastore_view_rules
+from pbcommand import to_ascii, to_utf8
 
 log = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ def _pacbio_choice_option_from_dict(d):
 
     opt_id = d['id']
     name = d['name']
-    desc = d['description'].encode("UTF-8")
+    desc = to_utf8(d['description'])
 
     klass_map = {TaskOptionTypes.CHOICE_STR: PacBioStringChoiceOption,
                  TaskOptionTypes.CHOICE_FLOAT: PacBioFloatChoiceOption,
@@ -84,8 +85,8 @@ def _pacbio_choice_option_from_dict(d):
 
     # Sanitize Unicode hack
     if k is PacBioStringChoiceOption:
-        default_value = default_value.encode('ascii', 'ignore')
-        choices = [i.encode('ascii', 'ignore') for i in choices]
+        default_value = to_ascii(default_value)
+        choices = [to_ascii(i) for i in choices]
 
     opt = k(opt_id, name, default_value, desc, choices)
 
@@ -106,7 +107,7 @@ def __simple_option_by_type(option_id, name, default, description, option_type_i
     # This requires a hack for the unicode to ascii for string option type.
     if k is PacBioStringOption:
         # sanitize unicode
-        default = default.encode('ascii', 'ignore')
+        default = to_ascii(default)
 
     opt = k(option_id, name, default, description)
     return opt
@@ -126,7 +127,7 @@ def _pacbio_legacy_option_from_dict(d):
     name = d['pb_option']['name']
     default = d['pb_option']['default']
     desc = d['pb_option']['description']
-    option_type_id = d['pb_option']['type'].encode('ascii')
+    option_type_id = to_ascii(d['pb_option']['type'])
 
     # Hack to support "number"
     if option_type_id == "number":
@@ -139,7 +140,7 @@ def _pacbio_option_from_dict(d):
     if "pb_option" in d:
         return _pacbio_legacy_option_from_dict(d)
     else:
-        return __simple_option_by_type(d['id'], d['name'], d['default'], d['description'].encode("UTF-8"), d['optionTypeId'])
+        return __simple_option_by_type(d['id'], d['name'], d['default'], to_utf8(d['description']), d['optionTypeId'])
 
 
 def pacbio_option_from_dict(d):
