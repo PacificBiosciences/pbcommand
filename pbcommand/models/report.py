@@ -903,7 +903,7 @@ class Report(BaseReportElement):
 ########################################################################
 # SPECIFICATION MODELS
 
-FS_RE = "{([GMkp]{0,1})(:)([,]{0,1})([\.]{0,1})([0-9]*)([dfg]{1})}(.*)$"
+FS_RE = r"{([GMkp]{0,1})(:)([,]{0,1})([\.]{0,1})([0-9]*)([dfg]{1})}(.*)$"
 
 
 def validate_format(format_str):
