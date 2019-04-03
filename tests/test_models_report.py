@@ -191,10 +191,10 @@ class TestReportModel(unittest.TestCase):
         self.assertEqual('redfang.tabid2.c2', d[
                          'tables'][1]['columns'][0]['id'])
 
-        self.assertItemsEqual(d['tags'], tags)
+        self.assertEqual(list(sorted(d['tags'])), list(sorted(tags)))
 
         loaded_report = load_report_from(d)
-        self.assertItemsEqual(loaded_report.tags, tags)
+        self.assertEqual(list(sorted(loaded_report.tags)), list(sorted(tags)))
 
         log.info(repr(r))
         self.assertIsNotNone(repr(r))
