@@ -22,6 +22,7 @@ def to_ascii(s):
     else:
         return s
 
+
 def to_utf8(s):
     if python2:
         return s.encode('utf8')
