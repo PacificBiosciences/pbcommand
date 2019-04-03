@@ -15,6 +15,8 @@ from contextlib import contextmanager
 import xml.etree.ElementTree as ET
 
 from pbcommand.models import FileTypes, DataSetMetaData
+from pbcommand import to_ascii
+
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
@@ -502,15 +504,6 @@ def walker(root_dir, file_filter_func):
             path = os.path.join(root, fname)
             if file_filter_func(path):
                 yield path
-
-if sys.version_info[0] < 3:
-    python2 == True
-
-def to_ascii(s):
-    if python2:
-        return s.encode('ascii', 'ignore')
-    else:
-        return s
 
 
 def pool_map(func, args, nproc):
