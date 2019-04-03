@@ -398,7 +398,7 @@ class TestReportSpec(unittest.TestCase):
         r = self.spec.validate_report(rpt)
         self.assertTrue(isinstance(r, Report))
         rpt.attributes.append(Attribute("attribute5", value=12345))
-        error_len = lambda e: len(e.message.split("\n"))
+        error_len = lambda e: len(str(e).split("\n"))
         try:
             self.spec.validate_report(rpt)
         except ValueError as e:
