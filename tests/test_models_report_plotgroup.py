@@ -41,11 +41,11 @@ class TestPlotGroup(unittest.TestCase):
         d = a.to_dict()
         log.debug(pformat(d))
 
-        self.assertEquals('123', d['id'])
-        self.assertEquals('foo title', d['title'])
-        self.assertEquals('foo legend', d['legend'])
-        self.assertEquals('foo thumbnail', d['thumbnail'])
-        self.assertEquals(1, len(d['plots']))
+        self.assertEqual('123', d['id'])
+        self.assertEqual('foo title', d['title'])
+        self.assertEqual('foo legend', d['legend'])
+        self.assertEqual('foo thumbnail', d['thumbnail'])
+        self.assertEqual(1, len(d['plots']))
         log.info(a)
         self.assertIsNotNone(repr(a))
 

@@ -28,9 +28,9 @@ class TestAttribute(unittest.TestCase):
         """
         a = Attribute('bob', 123, "Bob is the name")
         d = a.to_dict()
-        self.assertEquals('bob', d['id'])
-        self.assertEquals(123, d['value'])
-        self.assertEquals('Bob is the name', d['name'])
+        self.assertEqual('bob', d['id'])
+        self.assertEqual(123, d['value'])
+        self.assertEqual('Bob is the name', d['name'])
 
     def test_eq(self):
         a = Attribute('a', 1234, "My Attribute")
