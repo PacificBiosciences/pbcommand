@@ -18,6 +18,13 @@ from .base_utils import get_data_file_from_subdir, DATA_DIR
 
 log = logging.getLogger(__name__)
 
+try:
+    import avro
+except ImportError:
+    avro = None
+
+skip_unless_avro_installed = unittest.skipUnless(avro is not None,
+                                                 "avro not installed")
 
 def _to_report(name):
     file_name = get_data_file_from_subdir(_SERIALIZED_JSON_DIR, name)
@@ -393,6 +400,7 @@ class TestReportSpec(unittest.TestCase):
         self.spec = load_report_spec_from_json(
             os.path.join(DATA_DIR, "report-specs", "report_spec.json"))
 
+    @skip_unless_avro_installed
     def test_report_validation(self):
         rpt = _to_report("test_report.json")
         r = self.spec.validate_report(rpt)
@@ -416,6 +424,7 @@ class TestReportSpec(unittest.TestCase):
             self.fail("Expected exception")
         self.assertFalse(self.spec.is_valid_report(rpt))
 
+    @skip_unless_avro_installed
     def test_format_metric(self):
         s = format_metric("{:,d}", 123456789)
         self.assertEqual(s, "123,456,789")
@@ -430,6 +439,7 @@ class TestReportSpec(unittest.TestCase):
         s = format_metric("{:,.3f}", 1000000.2345678)
         self.assertEqual(s, "1,000,000.235")
 
+    @skip_unless_avro_installed
     def test_apply_view(self):
         rpt = _to_report("test_report2.json")
         rpt = self.spec.apply_view(rpt)
