@@ -1,3 +1,4 @@
+from builtins import str
 import unittest
 import logging
 
@@ -110,7 +111,7 @@ class TestPacBioStringOptionTest(TestPacBioBasicOptionTest):
     def test_bad_not_supported_unicode(self):
         """Test that unicode values are not Supported"""
         with self.assertRaises(TypeError):
-            _ = self._to_opt(v=unicode('abcdef'))
+            _ = self._to_opt(v=str('abcdef'))
 
 
 class TestPacBioBasicChoiceTest(TestPacBioBasicOptionTest):
