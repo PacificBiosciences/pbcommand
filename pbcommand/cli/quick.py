@@ -1,4 +1,6 @@
 from __future__ import print_function
+from past.builtins import basestring
+from builtins import object
 import argparse
 import json
 import logging
@@ -182,7 +184,7 @@ class Registry(object):
             if options is None:
                 tool_options = []
             else:
-                tool_options = [_convert_to_raw_option(self.namespace, key, value) for key, value in options.iteritems()]
+                tool_options = [_convert_to_raw_option(self.namespace, key, value) for key, value in options.items()]
 
             resource_types = []
             task = ToolContractTask(global_id, display_name, desc, version, is_distributed,
@@ -198,7 +200,7 @@ class Registry(object):
         xs = []
         x = xs.append
         x("Registry namespace:{n} driverbase:{d}".format(n=self.namespace, d=self.driver_base))
-        for tc, func in self.rtc_runners.iteritems():
+        for tc, func in self.rtc_runners.items():
             x(str(tc))
 
         return "\n".join(xs)
@@ -266,11 +268,11 @@ def __args_rtc_runner(registry, default_log_level):
         log.debug("args {a}".format(a=args))
         log.info("loading RTC from {i}".format(i=args.rtc_path))
         rtc = load_resolved_tool_contract_from(args.rtc_path)
-        id_funcs = {t.task.task_id: func for t, func in registry.rtc_runners.iteritems()}
+        id_funcs = {t.task.task_id: func for t, func in registry.rtc_runners.items()}
         func = id_funcs.get(rtc.task.task_id, None)
         if func is None:
             rcode = 1
-            log.error("Unknown tool contract id '{x}' Registered TC ids {i}".format(x=rtc.task.task_id, i=id_funcs.keys()))
+            log.error("Unknown tool contract id '{x}' Registered TC ids {i}".format(x=rtc.task.task_id, i=list(id_funcs.keys())))
             log.error(exit_msg(rcode))
             return rcode
         else:
@@ -308,7 +310,7 @@ def __args_emit_all_tcs_runner(registry):
         log.info("Registry {r}".format(r=registry))
         log.info(registry.to_summary())
         log.info("Emitting TCs to {i}".format(i=args.output_dir))
-        tcs = registry.rtc_runners.keys()
+        tcs = list(registry.rtc_runners.keys())
         for tc in tcs:
             output_file = os.path.join(args.output_dir, tc.task.task_id + "_tool_contract.json")
             write_tool_contract(tc, output_file)

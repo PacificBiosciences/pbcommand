@@ -1,4 +1,6 @@
 """IO Layer for creating models from files"""
+from past.builtins import basestring
+from builtins import object
 import json
 import logging
 import warnings
@@ -171,7 +173,7 @@ def resolved_tool_contract_from_d(d):
     if tool_type in dispatch_funcs:
         return dispatch_funcs[tool_type](d)
     else:
-        raise ValueError("Unsupported task type '{x}' Supported task types {t}".format(x=tool_type, t=dispatch_funcs.keys()))
+        raise ValueError("Unsupported task type '{x}' Supported task types {t}".format(x=tool_type, t=list(dispatch_funcs.keys())))
 
 
 def json_path_or_d(value):
@@ -201,7 +203,7 @@ def load_resolved_tool_contract_from(path_or_d):
 def __core_tool_contract_task_from(d):
 
     if Constants.TOOL not in d:
-        raise MalformedResolvedToolContractError("Unable to find root key {k}. Keys {a}".format(k=Constants.TOOL, a=d.keys()))
+        raise MalformedResolvedToolContractError("Unable to find root key {k}. Keys {a}".format(k=Constants.TOOL, a=list(d.keys())))
 
     def _to_a(x_):
         return to_ascii(x_)

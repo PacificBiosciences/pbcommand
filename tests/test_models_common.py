@@ -47,4 +47,4 @@ class TestDataStore(unittest.TestCase):
             d = json.loads(json_in.read())
             self.assertFalse(os.path.isabs(d['files'][0]['path']))
         ds = DataStore.load_from_json(tmp_ds)
-        self.assertEqual(ds.files.values()[0].path, tmpfile)
+        self.assertEqual(list(ds.files.values())[0].path, tmpfile)

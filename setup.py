@@ -1,4 +1,5 @@
 import os
+import sys
 
 try:
     from setuptools import setup, find_packages
@@ -25,6 +26,9 @@ def _get_local_file(file_name):
 def _get_requirements(file_name):
     with open(file_name, 'r') as f:
         reqs = [line for line in f if not line.startswith("#")]
+    # Skip avro for py3, though avro-python3 could be ok.
+    if sys.version_info[0] >= 3:
+        reqs = [req for req in reqs if req.strip() != 'avro']
     return reqs
 
 

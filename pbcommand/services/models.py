@@ -1,4 +1,6 @@
 """Services Specific Data Models"""
+from __future__ import division
+from builtins import object
 from collections import namedtuple
 import json
 import uuid
@@ -139,7 +141,7 @@ class ServiceJob(object):
             if n_seconds >= 60:
                 # for most cases, you don't really don't
                 # care about the seconds
-                return "{m} min ".format(m=int(n_seconds / 60))
+                return "{m} min ".format(m=int(n_seconds // 60))
             else:
                 return "{s:.2f} sec".format(s=n_seconds)
 

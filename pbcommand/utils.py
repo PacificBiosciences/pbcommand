@@ -1,4 +1,7 @@
 """Utils for common funcs, such as setting up a log, composing functions."""
+from builtins import map
+from past.builtins import basestring
+from builtins import object
 import multiprocessing
 import functools
 import os
@@ -145,7 +148,7 @@ def _get_console_and_file_logging_config_dict(console_level, console_formatter, 
          'formatters': formatters,
          'handlers': handlers,
          'loggers': loggers,
-         'root': {'handlers': handlers.keys(), 'level': logging.DEBUG}
+         'root': {'handlers': list(handlers.keys()), 'level': logging.DEBUG}
          }
 
     # print pprint.pformat(d)
@@ -521,5 +524,5 @@ def pool_map(func, args, nproc):
         pool.join()
     else:
         log.debug("computed_nproc=1, running serially")
-        result = map(func, args)
+        result = list(map(func, args))
     return result

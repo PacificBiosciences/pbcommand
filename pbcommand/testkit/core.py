@@ -116,7 +116,7 @@ class PbTestApp(unittest.TestCase):
         self.assertIsInstance(loaded_rtc, ResolvedToolContract)
 
         # Test Resolved options if specified.
-        for opt, resolved_value in self.RESOLVED_TASK_OPTIONS.iteritems():
+        for opt, resolved_value in self.RESOLVED_TASK_OPTIONS.items():
             self.assertTrue(opt in rtc.task.options, "Resolved option {x} not in RTC options.".format(x=opt))
             # this needs to support polymorphic equals (i.e., almostEquals
             if not isinstance(resolved_value, float):

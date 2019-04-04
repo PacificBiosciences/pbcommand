@@ -1,3 +1,4 @@
+from builtins import range
 import logging
 import unittest
 import tempfile
@@ -48,7 +49,7 @@ class TestBasicTable(unittest.TestCase):
                         Column('three', header="Three")]
         self.table = Table('my_table_with_values', columns=self.columns)
         datum = [
-            ('one', list(xrange(3))),
+            ('one', list(range(3))),
             ('two', list('abc')),
             ('three', 'file1 file2 file3'.split())
         ]
@@ -124,7 +125,7 @@ class TestTable(unittest.TestCase):
 
         datum = {'one': 12.0, 'two': 1234.0}
 
-        for k, v in datum.iteritems():
+        for k, v in datum.items():
             table.add_data_by_column_id(k, v)
 
         self.assertTrue(12.0 in table.columns[0].values)
