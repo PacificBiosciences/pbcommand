@@ -892,7 +892,7 @@ def _strict_validate_float_or_raise(value):
 
 
 def _strict_validate_string_or_raise(value):
-    # Not supporting unicode in any way
+    # Not supporting unicode in python2.
     if isinstance(value, str):
         return value
     raise TypeError(_type_error_msg(value, str))
