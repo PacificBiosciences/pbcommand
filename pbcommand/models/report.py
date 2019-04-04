@@ -555,7 +555,7 @@ class Table(BaseReportElement):
                 raise ValueError("Column lengths differ ({i} versus {j}".format(
                                  i=len(column.values),
                                  j=len(self.columns[0].values)))
-        with open(file_name, "wb") as csv_out:
+        with open(file_name, "w") as csv_out:
             writer = csv.writer(csv_out, delimiter=delimiter, lineterminator="\n")
             writer.writerow([c.header for c in self.columns])
             for i in range(len(self.columns[0].values)):

@@ -4,6 +4,7 @@ https://gist.github.com/mpkocher/347f9ae9092c24888e1c702a916276c2
 
 """
 from collections import namedtuple
+from pbcommand import to_ascii
 
 
 class ReseqCondition(namedtuple("ReseqCondition", "cond_id subreadset alignmentset referenceset")):
@@ -18,7 +19,7 @@ class ReseqCondition(namedtuple("ReseqCondition", "cond_id subreadset alignments
     def from_dict(d):
         def _f(k):
             # sloppy
-            return d[k].encode('ascii', 'ignore')
+            return to_ascii(d[k])
 
         return ReseqCondition(_f('condId'), _f('subreadset'), _f('alignmentset'), _f('referenceset'))
 

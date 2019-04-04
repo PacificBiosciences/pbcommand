@@ -10,10 +10,13 @@ import traceback
 import time
 import types
 import subprocess
+import sys
 from contextlib import contextmanager
 import xml.etree.ElementTree as ET
 
 from pbcommand.models import FileTypes, DataSetMetaData
+from pbcommand import to_ascii
+
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
@@ -501,11 +504,6 @@ def walker(root_dir, file_filter_func):
             path = os.path.join(root, fname)
             if file_filter_func(path):
                 yield path
-
-
-def to_ascii(s):
-    # This is not awesome
-    return s.encode('ascii', 'ignore')
 
 
 def pool_map(func, args, nproc):

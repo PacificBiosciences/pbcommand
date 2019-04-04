@@ -88,7 +88,7 @@ class TestTable(unittest.TestCase):
         """Can't create an Table without an id."""
         def none_table():
                 t = Table(None)
-        self.assertRaises(none_table)
+        self.assertRaises(Exception, none_table)
 
     def test_add_column(self):
         """Cannot add column with duplicate id."""
