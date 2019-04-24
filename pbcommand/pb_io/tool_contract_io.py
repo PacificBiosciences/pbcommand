@@ -1,11 +1,11 @@
 """IO Layer for creating models from files"""
+from past.builtins import basestring
+from builtins import object
 import json
 import logging
-from avro.datafile import DataFileWriter
-from avro.io import DatumWriter
+import warnings
 
 import pbcommand
-
 from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA, validate_presets
 from pbcommand.models import (TaskTypes,
                               GatherToolContractTask,
@@ -25,6 +25,7 @@ from pbcommand.models.tool_contract import (ToolDriver,
                                             ResolvedGatherToolContractTask,
                                             ToolContractResolvedResource,
                                             PipelinePreset)
+from pbcommand import to_ascii
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ def load_or_raise(ex_type):
             try:
                 return func(path)
             except Exception as e:
-                msg = msg + " {e} {m}".format(m=e.message, e=e)
+                msg = msg + " {e} {m}".format(m=str(e), e=e)
                 log.error(msg, exc_info=True)
                 raise ex_type(msg)
         return _wrapper
@@ -80,7 +81,7 @@ def __driver_from_d(d):
 
 def __core_resolved_tool_contract_task_from_d(d):
     def _to_a(x):
-        return x.encode('ascii', 'ignore')
+        return to_ascii(x)
 
     def _get(attr_name):
         return d[Constants.RTOOL][attr_name]
@@ -155,7 +156,7 @@ def resolved_tool_contract_from_d(d):
     """Convert a dict to Resolved Tool Contract"""
 
     def _to_a(x):
-        return x.encode('ascii', 'ignore')
+        return to_ascii(x)
 
     def _get(attr_name):
         return d[Constants.RTOOL][attr_name]
@@ -172,7 +173,7 @@ def resolved_tool_contract_from_d(d):
     if tool_type in dispatch_funcs:
         return dispatch_funcs[tool_type](d)
     else:
-        raise ValueError("Unsupported task type '{x}' Supported task types {t}".format(x=tool_type, t=dispatch_funcs.keys()))
+        raise ValueError("Unsupported task type '{x}' Supported task types {t}".format(x=tool_type, t=list(dispatch_funcs.keys())))
 
 
 def json_path_or_d(value):
@@ -202,10 +203,10 @@ def load_resolved_tool_contract_from(path_or_d):
 def __core_tool_contract_task_from(d):
 
     if Constants.TOOL not in d:
-        raise MalformedResolvedToolContractError("Unable to find root key {k}. Keys {a}".format(k=Constants.TOOL, a=d.keys()))
+        raise MalformedResolvedToolContractError("Unable to find root key {k}. Keys {a}".format(k=Constants.TOOL, a=list(d.keys())))
 
     def _to_a(x_):
-        return x_.encode('ascii', 'ignore')
+        return to_ascii(x_)
 
     def _get(x_):
         # Get a Subkey within
@@ -377,6 +378,9 @@ def write_resolved_tool_contract(rtc, output_json_file):
 
 
 def _write_records_to_avro(schema, _d_or_ds, output_file):
+    from avro.datafile import DataFileWriter
+    from avro.io import DatumWriter
+    warnings.warn("Avro support is deprecated and will be removed", DeprecationWarning)
     # FIXME. There's only one record being written here,
     # why does this not support a single item
     if isinstance(_d_or_ds, dict):

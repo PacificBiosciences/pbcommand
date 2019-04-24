@@ -1,4 +1,6 @@
 """Services Specific Data Models"""
+from __future__ import division
+from builtins import object
 from collections import namedtuple
 import json
 import uuid
@@ -139,7 +141,7 @@ class ServiceJob(object):
             if n_seconds >= 60:
                 # for most cases, you don't really don't
                 # care about the seconds
-                return "{m} min ".format(m=int(n_seconds / 60))
+                return "{m} min ".format(m=int(n_seconds // 60))
             else:
                 return "{s:.2f} sec".format(s=n_seconds)
 
@@ -382,6 +384,7 @@ class JobTypes(object):
     IMPORT_DSTORE = "import-datastore"
     MERGE_DS = "merge-datasets"
     PB_PIPE = "pbsmrtpipe"
+    CROMWELL = "cromwell"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
     CONVERT_FASTA = 'convert-fasta-reference'
 
@@ -389,7 +392,7 @@ class JobTypes(object):
     def ALL(cls):
         """ALL allowed SL Analysis Job Types"""
         return (cls.IMPORT_DS, cls.IMPORT_DSTORE, cls.MERGE_DS,
-                cls.PB_PIPE, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
+                cls.PB_PIPE, cls.CROMWELL, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
 
 
 class ServiceResourceTypes(object):

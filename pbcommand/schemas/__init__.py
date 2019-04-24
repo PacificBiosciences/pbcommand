@@ -1,9 +1,6 @@
 import os
-
 import functools
-
-import avro.schema
-from avro.io import validate
+import warnings
 
 SCHEMA_REGISTRY = {}
 
@@ -15,13 +12,21 @@ __all__ = ['validate_pbreport',
 
 
 def _load_schema(idx, name):
-
-    d = os.path.dirname(__file__)
-    schema_path = os.path.join(d, name)
-    with open(schema_path, 'r') as f:
-        schema = avro.schema.parse(f.read())
-    SCHEMA_REGISTRY[idx] = schema
-    return schema
+    try:
+        try:
+            from avro.schema import Parse as parse
+        except ImportError:
+            from avro.schema import parse
+        #warnings.warn("Avro support is deprecated and will be removed",
+        #              DeprecationWarning)
+        d = os.path.dirname(__file__)
+        schema_path = os.path.join(d, name)
+        with open(schema_path, 'r') as f:
+            schema = parse(f.read())
+        SCHEMA_REGISTRY[idx] = schema
+        return schema
+    except ImportError:
+        return None
 
 
 RTC_SCHEMA = _load_schema("resolved_tool_contract", "resolved_tool_contract.avsc")
@@ -34,14 +39,29 @@ REPORT_SPEC_SCHEMA = _load_schema("report_spec", "report_spec.avsc")
 
 
 def _validate(schema, msg, d):
-    """Validate a python dict against a avro schema"""
-    # FIXME(mkocher)(2016-7-16) Add a better error message than "Invalid"
-    if not validate(schema, d):
+    try:
+        """Validate a python dict against a avro schema"""
+        try:
+            from avro.io import Validate as validate
+        except ImportError:
+            from avro.io import validate
+        #warnings.warn("Avro support is deprecated and will be removed",
+        #              DeprecationWarning)
+        # FIXME(mkocher)(2016-7-16) Add a better error message than "Invalid"
+        if not validate(schema, d):
+            raise IOError("Invalid {m} ".format(m=msg))
+        return True
+    except ImportError:
         raise IOError("Invalid {m} ".format(m=msg))
-    return True
 
 
 def _is_valid(schema, d):
+    try:
+        from avro.io import Validate as validate
+    except ImportError:
+        from avro.io import validate
+    #warnings.warn("Avro support is deprecated and will be removed",
+    #              DeprecationWarning)
     return validate(schema, d)
 
 

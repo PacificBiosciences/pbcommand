@@ -2,3 +2,4 @@ avro
 requests
 iso8601
 pytz
+future

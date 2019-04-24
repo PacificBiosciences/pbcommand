@@ -5,6 +5,7 @@ Large parts of this are pulled from pbsmrtpipe.
 
 Author: Michael Kocher
 """
+from builtins import object
 import json
 import logging
 import os
@@ -14,6 +15,8 @@ import warnings
 import functools
 import datetime
 from collections import namedtuple, OrderedDict
+from pbcommand import to_ascii
+from future.utils import with_metaclass
 
 log = logging.getLogger(__name__)
 
@@ -227,9 +230,7 @@ class _RegisteredFileType(type):
         return file_type
 
 
-class FileType(object):
-    __metaclass__ = _RegisteredFileType
-
+class FileType(with_metaclass(_RegisteredFileType, object)):
     def __init__(self, file_type_id, base_name, ext, mime_type):
         """
         Core File Type data model
@@ -434,7 +435,7 @@ class FileTypes(object):
 
     @staticmethod
     def ALL_DATASET_TYPES():
-        return {i: f for i, f in REGISTERED_FILE_TYPES.iteritems() if isinstance(f, DataSetFileType)}
+        return {i: f for i, f in REGISTERED_FILE_TYPES.items() if isinstance(f, DataSetFileType)}
 
     @staticmethod
     def ALL():
@@ -526,7 +527,7 @@ class DataStoreFile(object):
     @staticmethod
     def from_dict(d, base_path=None):
         # FIXME. This isn't quite right.
-        to_a = lambda x: x.encode('ascii', 'ignore')
+        to_a = to_ascii
         to_k = lambda x: to_a(d[x])
         is_chunked = d.get('isChunked', False)
         return DataStoreFile(to_k('uniqueId'),
@@ -571,7 +572,7 @@ class DataStore(object):
             raise TypeError("DataStoreFile expected. Got type {t} for {d}".format(t=type(ds_file), d=ds_file))
 
     def to_dict(self):
-        fs = [f.to_dict() for i, f in self.files.iteritems()]
+        fs = [f.to_dict() for i, f in self.files.items()]
         _d = dict(version=self.version,
                   createdAt=_datetime_to_string(self.created_at),
                   updatedAt=_datetime_to_string(self.updated_at), files=fs)
@@ -659,15 +660,15 @@ class PipelineChunk(object):
 
     @property
     def chunk_d(self):
-        return {k: v for k, v in self._datum.iteritems() if _is_chunk_key(k)}
+        return {k: v for k, v in self._datum.items() if _is_chunk_key(k)}
 
     @property
     def chunk_keys(self):
-        return self.chunk_d.keys()
+        return list(self.chunk_d.keys())
 
     @property
     def chunk_metadata(self):
-        return {k: v for k, v in self._datum.iteritems() if not _is_chunk_key(k)}
+        return {k: v for k, v in self._datum.items() if not _is_chunk_key(k)}
 
     def to_dict(self):
         return {'chunk_id': self.chunk_id, 'chunk': self._datum}
@@ -865,8 +866,8 @@ def _strict_validate_int_or_raise(value):
         raise TypeError(_to_msg(bool))
     elif isinstance(value, float):
         raise TypeError(_to_msg(float))
-    elif isinstance(value, bytes):
-        raise TypeError(_to_msg(bytes))
+    elif isinstance(value, str):
+        raise TypeError(_to_msg(str))
     else:
         return int(value)
 
@@ -884,14 +885,14 @@ def _strict_validate_float_or_raise(value):
 
     if isinstance(value, bool):
         raise TypeError(_to_msg(bool))
-    elif isinstance(value, bytes):
-        raise TypeError(_to_msg(bytes))
+    elif isinstance(value, str):
+        raise TypeError(_to_msg(str))
     else:
         return float(value)
 
 
 def _strict_validate_string_or_raise(value):
-    # Not supporting unicode in any way
+    # Not supporting unicode in python2.
     if isinstance(value, str):
         return value
     raise TypeError(_type_error_msg(value, str))

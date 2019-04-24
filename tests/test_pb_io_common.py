@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from builtins import range
 import unittest
 import logging
 from pbcommand.testkit.base_utils import get_temp_dir
@@ -23,7 +24,7 @@ class TestWriteChunk(unittest.TestCase):
         to_p = lambda i: PipelineChunk(to_i(i), **f(i))
 
         nchunks = 5
-        pipeline_chunks = [to_p(i) for i in xrange(nchunks)]
+        pipeline_chunks = [to_p(i) for i in range(nchunks)]
         log.debug(pipeline_chunks)
         tmp_dir = get_temp_dir("pipeline-chunks")
         tmp_name = get_temp_file("_chunk.json", tmp_dir)
@@ -31,4 +32,4 @@ class TestWriteChunk(unittest.TestCase):
         write_pipeline_chunks(pipeline_chunks, tmp_name, "Example chunk file")
 
         pchunks = load_pipeline_chunks_from_json(tmp_name)
-        self.assertEquals(len(pchunks), nchunks)
+        self.assertEqual(len(pchunks), nchunks)

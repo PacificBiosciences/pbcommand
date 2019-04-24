@@ -28,4 +28,4 @@ class RunnerSmokeTest(unittest.TestCase):
                 result = run_cmd(exe, fo, fe)
 
         emgs = "Command {e} failed".format(e=exe)
-        self.assertEquals(result.exit_code, 0, emgs)
+        self.assertEqual(result.exit_code, 0, emgs)

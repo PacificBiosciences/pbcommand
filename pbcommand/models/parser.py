@@ -2,6 +2,8 @@
 
 # Author: Michael Kocher
 """
+from past.builtins import basestring
+from builtins import object
 import abc
 import os
 import logging
@@ -18,6 +20,7 @@ from .tool_contract import (ToolDriver,
                             InputFileType, OutputFileType,
                             ToolContract, ToolContractTask,
                             ScatterToolContractTask, GatherToolContractTask)
+from future.utils import with_metaclass
 
 log = logging.getLogger(__name__)
 
@@ -68,9 +71,7 @@ def _validate_option(dtype, dvalue):
                         "expected".format(a=dvalue, e=dtype))
 
 
-class PbParserBase(object):
-
-    __metaclass__ = abc.ABCMeta
+class PbParserBase(with_metaclass(abc.ABCMeta, object)):
 
     def __init__(self, tool_id, version, name, description):
         self.tool_id = validate_task_id(tool_id)

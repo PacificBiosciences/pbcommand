@@ -3,6 +3,7 @@
 
 Author: Michael Kocher
 """
+from builtins import object
 import abc
 from collections import OrderedDict
 import types
@@ -11,6 +12,7 @@ import datetime
 import pbcommand
 
 from .common import TaskTypes, ResourceTypes, REGISTERED_FILE_TYPES
+from future.utils import with_metaclass
 
 __version__ = pbcommand.get_version()
 
@@ -72,9 +74,7 @@ def validate_tool_contract(tc):
     return tc
 
 
-class _IOFileType(object):
-    __metaclass__ = abc.ABCMeta
-
+class _IOFileType(with_metaclass(abc.ABCMeta, object)):
     def __init__(self, file_type_id, label, display_name, description):
         self.file_type_id = file_type_id
         self.label = label

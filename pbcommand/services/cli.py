@@ -18,6 +18,7 @@ pbservice run-merge-dataset path/to/file.json
 This program is largely replaced by the Scala version in 'smrtflow'.
 """
 from __future__ import print_function
+from builtins import object
 import argparse
 import json
 
@@ -45,8 +46,7 @@ from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
                              walker, setup_log, compose, setup_logger,
                              get_parsed_args_log_level)
-
-from .utils import to_ascii
+from pbcommand import cmp_to_key, to_ascii
 
 __version__ = "0.3.0"
 
@@ -424,7 +424,7 @@ def run_job_list_summary(host, port, max_items, sort_by=None):
 
     jobs = sal.get_analysis_jobs()
 
-    jobs_list = jobs if sort_by is None else sorted(jobs, cmp=sort_by)
+    jobs_list = jobs if sort_by is None else sorted(jobs, key=cmp_to_key(sort_by))
 
     printer(jobs_list[:max_items])
 
@@ -501,11 +501,11 @@ def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=No
     f = fs.get(dataset_type)
 
     if f is None:
-        raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=fs.keys()))
+        raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=list(fs.keys())))
     else:
         datasets = f()
         # this needs to be improved
-        sorted_datasets = datasets if sort_by is None else sorted(datasets, cmp=sort_by)
+        sorted_datasets = datasets if sort_by is None else sorted(datasets, key=cmp_to_key(sort_by))
 
         print("Number of {t} Datasets {n}".format(t=dataset_type, n=len(datasets)))
         list_dict_printer(sorted_datasets[:max_items])
