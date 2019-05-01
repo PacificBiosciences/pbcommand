@@ -837,7 +837,11 @@ class ServiceAccessLayer(object):  # pragma: no cover
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
 
-        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
+        job_type = JobTypes.PB_PIPE
+        if pipeline_template_id.startswith("cromwell"):
+            job_type = JobTypes.PB_CROMWELL
+
+        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
     def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), time_out=JOB_DEFAULT_TIMEOUT, tags=()):
@@ -864,6 +868,16 @@ class ServiceAccessLayer(object):  # pragma: no cover
             d['tags'] = tags_str
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.CROMWELL, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
+
+    # this should work for both 'cromwell' and 'pbcromwell' job types
+    def terminate_cromwell_job(self, job_id):
+        return _process_rpost(
+            _to_url(self.uri, "{r}/{p}/{i}/terminate".format(
+                p=JobTypes.CROMWELL,
+                r=ServiceAccessLayer.ROOT_JOBS,
+                i=job_id)),
+            {},
+            headers=self._get_headers())
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
