@@ -216,7 +216,8 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
     return job
 
 
-def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2):
+def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
+                               abort_on_interrupt=True):
     """
     Waits for job to complete
 
@@ -230,39 +231,48 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2):
     if the job fails during the polling process or times out
     """
 
-    time.sleep(sleep_time)
-    job = _get_job_by_id_or_raise(sal, job_id, KeyError)
-
-    log.debug("time_out = {t}".format(t=time_out))
-
-    error_msg = ""
-    job_result = JobResult(job, 0, error_msg)
-    started_at = time.time()
-
-    # number of polling steps
-    i = 0
-    while True:
-        run_time = time.time() - started_at
-
-        if job.state in JobStates.ALL_COMPLETED:
-            break
-
-        i += 1
+    try:
+        external_job_id = None
         time.sleep(sleep_time)
+        job = _get_job_by_id_or_raise(sal, job_id, KeyError)
+        log.info("SMRT Link job {i} ({u})".format(i=job.id, u=job.uuid))
+        log.debug("time_out = {t}".format(t=time_out))
 
-        msg = "Running pipeline {n} state: {s} runtime:{r:.2f} sec {i} iteration".format(n=job.name, s=job.state, r=run_time, i=i)
-        log.debug(msg)
-        # making the exceptions different to distinguish between an initial
-        # error and a "polling" error. Adding some msg details
-        job = _get_job_by_id_or_raise(sal, job_id, JobExeError, error_messge_extras=msg)
+        error_msg = ""
+        job_result = JobResult(job, 0, error_msg)
+        started_at = time.time()
 
-        # FIXME, there's currently not a good way to get errors for jobs
-        job_result = JobResult(job, run_time, "")
-        if time_out is not None:
-            if run_time > time_out:
-                raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
+        # number of polling steps
+        i = 0
+        while True:
+            run_time = time.time() - started_at
+            if external_job_id is None and job.external_job_id is not None:
+                external_job_id = job.external_job_id
+                log.info("Cromwell workflow ID is %s", external_job_id)
 
-    return job_result
+            if job.state in JobStates.ALL_COMPLETED:
+                break
+
+            i += 1
+            time.sleep(sleep_time)
+
+            msg = "Running pipeline {n} (job {j}) state: {s} runtime:{r:.2f} sec {i} iteration".format(n=job.name, j=job.id, s=job.state, r=run_time, i=i)
+            log.debug(msg)
+            # making the exceptions different to distinguish between an initial
+            # error and a "polling" error. Adding some msg details
+            job = _get_job_by_id_or_raise(sal, job_id, JobExeError, error_messge_extras=msg)
+
+            # FIXME, there's currently not a good way to get errors for jobs
+            job_result = JobResult(job, run_time, "")
+            if time_out is not None:
+                if run_time > time_out:
+                    raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
+
+        return job_result
+    except KeyboardInterrupt:
+        if abort_on_interrupt:
+            sal.terminate_job_id(job_id)
+        raise
 
 
 # Make this consistent somehow. Maybe defined 'shortname' in the core model?
@@ -807,7 +817,13 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_pipeline_template_by_id(self, pipeline_template_id):
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
 
-    def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), tags=()):
+    def create_by_pipeline_template_id(self,
+                                       name,
+                                       pipeline_template_id,
+                                       epoints,
+                                       task_options=(),
+                                       workflow_options=(),
+                                       tags=()):
         """Creates and runs a pbsmrtpipe pipeline by pipeline template id
 
 
@@ -822,10 +838,6 @@ class ServiceAccessLayer(object):  # pragma: no cover
             return dict(optionId=opt_id, value=opt_value, optionTypeId=option_type_id)
 
         task_options = list(task_options)
-
-        # FIXME. Need to define this in the scenario IO layer.
-        # workflow_options = [_to_o("woption_01", "value_01")]
-        workflow_options = []
         d = dict(name=name,
                  pipelineId=pipeline_template_id,
                  entryPoints=seps,
@@ -844,19 +856,42 @@ class ServiceAccessLayer(object):  # pragma: no cover
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
-    def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), time_out=JOB_DEFAULT_TIMEOUT, tags=()):
+    def run_by_pipeline_template_id(self,
+                                    name,
+                                    pipeline_template_id,
+                                    epoints,
+                                    task_options=(),
+                                    workflow_options=(),
+                                    time_out=JOB_DEFAULT_TIMEOUT,
+                                    tags=(),
+                                    abort_on_interrupt=True):
         """Blocks and runs a job with a timeout"""
 
-        job_or_error = self.create_by_pipeline_template_id(name, pipeline_template_id, epoints, task_options=task_options, tags=tags)
+        job_or_error = self.create_by_pipeline_template_id(
+            name,
+            pipeline_template_id,
+            epoints,
+            task_options=task_options,
+            workflow_options=workflow_options,
+            tags=tags)
 
         _d = dict(name=name, p=pipeline_template_id, eps=epoints)
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
-                                          sleep_time=self._sleep_time)
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
 
-    def run_cromwell_workflow(self, name, workflow_source, inputs_json, engine_options, dependencies_zip, time_out=JOB_DEFAULT_TIMEOUT, tags=()):
+    def run_cromwell_workflow(self,
+                              name,
+                              workflow_source,
+                              inputs_json,
+                              engine_options,
+                              dependencies_zip,
+                              time_out=JOB_DEFAULT_TIMEOUT,
+                              tags=(),
+                              abort_on_interrupt=True):
         d = dict(
             name=name,
             workflowSource=workflow_source,
@@ -867,17 +902,41 @@ class ServiceAccessLayer(object):  # pragma: no cover
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.CROMWELL, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
-        return ServiceJob.from_d(raw_d)
+        job = ServiceJob.from_d(raw_d)
+        return _block_for_job_to_complete(self, job.id, time_out=time_out,
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
 
-    # this should work for both 'cromwell' and 'pbcromwell' job types
-    def terminate_cromwell_job(self, job_id):
+    def terminate_job(self, job):
+        """
+        POST a terminate request appropriate to the job type.  Currently only
+        supported for pbsmrtpipe, cromwell, and pbcromwell job types.
+        """
+        log.warn("Terminating job {i} ({u})".format(i=job.id, u=job.uuid))
+        if job.external_job_id is not None:
+            log.warn("Will abort Cromwell workflow %s", job.external_job_id)
         return _process_rpost(
             _to_url(self.uri, "{r}/{p}/{i}/terminate".format(
-                p=JobTypes.CROMWELL,
+                p=job.job_type,
                 r=ServiceAccessLayer.ROOT_JOBS,
-                i=job_id)),
+                i=job.id)),
             {},
             headers=self._get_headers())
+
+    def terminate_job_id(self, job_id):
+        job = _get_job_by_id_or_raise(self, job_id, KeyError)
+        return self.terminate_job(job)
+
+    def resume_job(self,
+                   job_id,
+                   time_out=JOB_DEFAULT_TIMEOUT,
+                   abort_on_interrupt=True):
+        job = _get_job_by_id_or_raise(self, job_id, KeyError)
+        if job.state in JobStates.ALL_COMPLETED:
+            return JobResult(job, 0, "")
+        return _block_for_job_to_complete(self, job.id, time_out=time_out,
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""

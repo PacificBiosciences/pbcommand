@@ -1,6 +1,6 @@
 import sys
 
-VERSION = (1, 8, 4)
+VERSION = (1, 8, 5)
 
 
 def get_version():
