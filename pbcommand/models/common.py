@@ -155,6 +155,16 @@ class TaskOptionTypes(object):
         else:
             cls._raise_value_error(sx, cls.ALL(), "")
 
+    @classmethod
+    def from_any(cls, val):
+        if isinstance(val, bool):
+            return cls.BOOL
+        elif isinstance(val, int):
+            return cls.INT
+        elif isinstance(val, float):
+            return cls.FLOAT
+        return cls.STR
+
 
 class SymbolTypes(object):
     """

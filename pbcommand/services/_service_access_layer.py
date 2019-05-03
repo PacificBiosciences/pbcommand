@@ -235,7 +235,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
         external_job_id = None
         time.sleep(sleep_time)
         job = _get_job_by_id_or_raise(sal, job_id, KeyError)
-
+        log.info("SMRT Link job {i} ({u})".format(i=job.id, u=job.uuid))
         log.debug("time_out = {t}".format(t=time_out))
 
         error_msg = ""
@@ -817,7 +817,13 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_pipeline_template_by_id(self, pipeline_template_id):
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
 
-    def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), tags=()):
+    def create_by_pipeline_template_id(self,
+                                       name,
+                                       pipeline_template_id,
+                                       epoints,
+                                       task_options=(),
+                                       workflow_options=(),
+                                       tags=()):
         """Creates and runs a pbsmrtpipe pipeline by pipeline template id
 
 
@@ -832,10 +838,6 @@ class ServiceAccessLayer(object):  # pragma: no cover
             return dict(optionId=opt_id, value=opt_value, optionTypeId=option_type_id)
 
         task_options = list(task_options)
-
-        # FIXME. Need to define this in the scenario IO layer.
-        # workflow_options = [_to_o("woption_01", "value_01")]
-        workflow_options = []
         d = dict(name=name,
                  pipelineId=pipeline_template_id,
                  entryPoints=seps,
@@ -859,12 +861,19 @@ class ServiceAccessLayer(object):  # pragma: no cover
                                     pipeline_template_id,
                                     epoints,
                                     task_options=(),
+                                    workflow_options=(),
                                     time_out=JOB_DEFAULT_TIMEOUT,
                                     tags=(),
                                     abort_on_interrupt=True):
         """Blocks and runs a job with a timeout"""
 
-        job_or_error = self.create_by_pipeline_template_id(name, pipeline_template_id, epoints, task_options=task_options, tags=tags)
+        job_or_error = self.create_by_pipeline_template_id(
+            name,
+            pipeline_template_id,
+            epoints,
+            task_options=task_options,
+            workflow_options=workflow_options,
+            tags=tags)
 
         _d = dict(name=name, p=pipeline_template_id, eps=epoints)
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
@@ -917,6 +926,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def terminate_job_id(self, job_id):
         job = _get_job_by_id_or_raise(self, job_id, KeyError)
         return self.terminate_job(job)
+
+    def resume_job(self,
+                   job_id,
+                   time_out=JOB_DEFAULT_TIMEOUT,
+                   abort_on_interrupt=True):
+        job = _get_job_by_id_or_raise(self, job_id, KeyError)
+        if job.state in JobStates.ALL_COMPLETED:
+            return JobResult(job, 0, "")
+        return _block_for_job_to_complete(self, job.id, time_out=time_out,
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
