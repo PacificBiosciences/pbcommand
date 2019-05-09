@@ -44,10 +44,24 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
 class ServiceJob(object):
 
     def __init__(self, ix, job_uuid, name, state, path, job_type, created_at,
-                 settings, is_active=True, smrtlink_version=None,
-                 created_by=None, updated_at=None, error_message=None, imported_at=None, job_updated_at=None,
-                 created_by_email=None, is_multi_job=False, tags="", parent_multi_job_id=None, workflow=None,
-                 project_id=1, job_started_at=None, job_completed_at=None, sub_job_type_id=None):
+                 settings,
+                 is_active=True,
+                 smrtlink_version=None,
+                 created_by=None,
+                 updated_at=None,
+                 error_message=None,
+                 imported_at=None,
+                 job_updated_at=None,
+                 created_by_email=None,
+                 is_multi_job=False,
+                 tags="",
+                 parent_multi_job_id=None,
+                 workflow=None,
+                 project_id=1,
+                 job_started_at=None,
+                 job_completed_at=None,
+                 sub_job_type_id=None,
+                 external_job_id=None):
         """
 
         :param ix: Job Integer Id
@@ -112,6 +126,7 @@ class ServiceJob(object):
         self.workflow = {} if workflow is None else workflow
         self.project_id = project_id
         self.sub_job_type_id = sub_job_type_id
+        self.external_job_id = external_job_id
 
         # Prior to SL 6.0.X, there was a lack of clear mechanism of communication of the
         # job start and completed at time stamps, the job created at was used.
@@ -239,6 +254,7 @@ class ServiceJob(object):
         is_active = d.get('isActive', True)
         settings = to_d('jsonSettings')
         sub_job_type_id = se_or("subJobTypeId")
+        external_job_id = se_or("externalJobId")
 
         is_multi_job = d.get("isMultiJob", False)
         parent_multi_job_id = s_or("parentMultiJobId")
@@ -269,7 +285,8 @@ class ServiceJob(object):
                           workflow=workflow,
                           job_started_at=job_started_at,
                           job_completed_at=job_completed_at,
-                          sub_job_type_id=sub_job_type_id)
+                          sub_job_type_id=sub_job_type_id,
+                          external_job_id=external_job_id)
 
     def was_successful(self):
         """ :rtype: bool """
@@ -385,6 +402,7 @@ class JobTypes(object):
     MERGE_DS = "merge-datasets"
     PB_PIPE = "pbsmrtpipe"
     CROMWELL = "cromwell"
+    PB_CROMWELL = "pbcromwell"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
     CONVERT_FASTA = 'convert-fasta-reference'
 

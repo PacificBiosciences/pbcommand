@@ -90,23 +90,23 @@ def validate_nonempty_file(resource):
 
 
 def fofn_to_files(fofn):
-    """Util func to convert a bas/bax fofn file to a list of bas/bax files."""
+    """Util func to convert a fofn file to a list of files."""
 
     _ = nfs_exists_check(fofn)
 
     if os.path.exists(fofn):
         with open(fofn, 'r') as f:
-            bas_files = {line.strip() for line in f.readlines()}
+            files = [line.strip() for line in f.readlines() if len(line.strip()) > 0]
 
-        for bas_file in bas_files:
-            if not os.path.isfile(bas_file):
+        for _file in files:
+            if not os.path.isfile(_file):
                 # try one more time to find the file by
                 # performing an NFS refresh
-                found = nfs_exists_check(bas_file)
+                found = nfs_exists_check(_file)
                 if not found:
-                    raise IOError("Unable to find bas/bax file '{f}'".format(f=bas_file))
+                    raise IOError("Unable to find file '{f}'".format(f=_file))
 
-        return list(bas_files)
+        return list(files)
     else:
         raise IOError("Unable to find FOFN {f}".format(f=fofn))
 
