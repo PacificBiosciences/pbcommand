@@ -1088,7 +1088,7 @@ class PacBioAlarm(object):
             "name": self.name,
             "severity": self.severity,
             "owner": self.owner,
-            "id": self.id
+            "id": str(self.id)
         }
 
     def to_json(self, file_name):
