@@ -49,7 +49,11 @@ class SimpleTest(unittest.TestCase):
 
     def setUp(self):
         tmpdir = tempfile.mkdtemp()
+        self._cwd = os.getcwd()
         os.chdir(tmpdir)
+
+    def tearDown(self):
+        os.chdir(self._cwd)
 
     def test_01(self):
         args = "--debug /path/to/my_fake_file.txt"
