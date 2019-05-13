@@ -154,7 +154,7 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
                 file_name=os.path.join(base_dir, "alarms.json"),
                 exception=e,
                 info=traceback.format_exc(),
-                message=e.message,
+                message=str(message),
                 name=e.__class__.__name__,
                 severity=logging.ERROR)
 
