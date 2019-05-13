@@ -5,18 +5,23 @@ Large parts of this are pulled from pbsmrtpipe.
 
 Author: Michael Kocher
 """
+
+from collections import namedtuple, OrderedDict
 from builtins import object
-import json
-import logging
-import os
-import re
-import types
-import warnings
+import traceback
 import functools
 import datetime
-from collections import namedtuple, OrderedDict
-from pbcommand import to_ascii
+import warnings
+import logging
+import types
+import json
+import uuid
+import os
+import re
+
 from future.utils import with_metaclass
+
+from pbcommand import to_ascii
 
 log = logging.getLogger(__name__)
 
@@ -1020,3 +1025,99 @@ class PacBioFloatChoiceOption(BaseChoiceType):
     @classmethod
     def validate_core_type_with_choices(cls, value, choices):
         return _strict_validate_float_choices(value, choices)
+
+
+def _get_exception_name(e):
+    if isinstance(e, Exception):
+        return e.__class__.__name__
+    else:
+        return str(e)
+
+
+def _get_level_name(l):
+    if isinstance(l, int):
+        return logging.getLevelName(l)
+    else:
+        return l
+
+
+class PacBioAlarm(object):
+    """
+    Simple container for alarms that need to be passed between components in
+    SMRT Link.  This mimics the interface in the instrument control code; note
+    that not all fields will necessarily be used by SMRT Link.  The JSON I/O
+    format is always a list to support the possibility of multiple alarms
+    created by the same task, but we mostly only need to work with one at a
+    time.
+    """
+    def __init__(self,
+                 exception,
+                 info,
+                 message,
+                 name,
+                 severity=logging.ERROR,
+                 owner=None,
+                 id_=None):
+        self.exception = exception
+        self.info = info
+        self.message = message
+        self.name = name
+        self.severity = _get_level_name(severity)
+        self.owner = owner
+        self.id = id_ if id_ is not None else str(uuid.uuid4())
+
+    @staticmethod
+    def from_dict(d):
+        return PacBioAlarm(d["exception"],
+                           d["info"],
+                           d["message"],
+                           d["name"],
+                           d["severity"],
+                           d.get("owner", None),
+                           d.get("id", None))
+
+    @property
+    def log_level(self):
+        return getattr(logging, self.severity)
+
+    def to_dict(self):
+        return {
+            "exception": _get_exception_name(self.exception),
+            "info": self.info,
+            "message": self.message,
+            "name": self.name,
+            "severity": self.severity,
+            "owner": self.owner,
+            "id": str(self.id)
+        }
+
+    def to_json(self, file_name):
+        with open(file_name, "w") as json_out:
+            json_out.write(json.dumps([self.to_dict()],
+                                      indent=2,
+                                      separators=(',', ': '),
+                                      sort_keys=True))
+        return self
+
+    @staticmethod
+    def from_json(file_name):
+        with open(file_name, "r") as json_in:
+            return PacBioAlarm.from_dict(json.loads(json_in.read())[0])
+
+    def raise_exception(self):
+        raise self.exception(self.message)
+
+    @staticmethod
+    def dump_error(file_name,
+                   exception,
+                   info,
+                   message,
+                   name,
+                   severity):
+        return PacBioAlarm(
+            exception,
+            info,
+            message,
+            name,
+            severity,
+            owner="python").to_json(file_name)
