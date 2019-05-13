@@ -122,7 +122,9 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     # more required commandline options in base parser (e.g., --log-file, --log-formatter)
     log_options = dict(level=level, file_name=log_file)
 
-    dump_alarm_on_error = kwargs.get("dump_alarm_on_error", True)
+    dump_alarm_on_error = False
+    if "dump_alarm_on_error" in kwargs:
+        dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
     base_dir = os.getcwd()
 
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
