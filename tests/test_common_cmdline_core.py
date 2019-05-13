@@ -1,6 +1,9 @@
+import tempfile
 import unittest
 import logging
 import shlex
+import json
+import os.path
 
 import pbcommand.common_options as CU
 from pbcommand.cli.core import pacbio_args_runner
@@ -30,9 +33,35 @@ def _example_main(cmdline_args):
     return rcode
 
 
+def args_runner_fail(*args, **kwargs):
+    raise RuntimeError("Oops, something crashed")
+
+
+def _example_main_fail(cmdline_args):
+    """Example func for testing."""
+    p = _example_parser()
+    argv = shlex.split(cmdline_args)
+    rcode = pacbio_args_runner(argv, p, args_runner_fail, log, setup_log)
+    return rcode
+
+
 class SimpleTest(unittest.TestCase):
+
+    def setUp(self):
+        tmpdir = tempfile.mkdtemp()
+        os.chdir(tmpdir)
 
     def test_01(self):
         args = "--debug /path/to/my_fake_file.txt"
         rcode = _example_main(args)
         self.assertEqual(rcode, 0)
+        self.assertTrue(not os.path.isfile("alarms.json"))
+
+    def test_dump_alarm_on_error(self):
+        args = "--debug /path/to/my_fake_file.txt"
+        rcode = _example_main_fail(args)
+        self.assertEqual(rcode, 2)
+        self.assertTrue(os.path.isfile("alarms.json"))
+        with open("alarms.json", "r") as json_in:
+            d = json.loads(json_in.read())[0]
+            self.assertEqual(d["severity"], "ERROR")
