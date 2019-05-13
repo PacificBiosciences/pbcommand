@@ -1034,10 +1034,10 @@ def _get_exception_name(e):
 
 
 def _get_level_name(l):
-    if isinstance(l, str):
-        return l
-    else:
+    if isinstance(l, int):
         return logging.getLevelName(l)
+    else:
+        return l
 
 
 class PacBioAlarm(object):
