@@ -1034,7 +1034,7 @@ def _get_exception_name(e):
 
 
 def _get_level_name(l):
-    if isinstance(l, basestring):
+    if isinstance(l, str):
         return l
     else:
         return logging.getLevelName(l)
