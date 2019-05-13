@@ -1095,7 +1095,8 @@ class PacBioAlarm(object):
         with open(file_name, "w") as json_out:
             json_out.write(json.dumps([self.to_dict()],
                                       indent=2,
-                                      separators=(',', ': ')))
+                                      separators=(',', ': '),
+                                      sort_keys=True))
         return self
 
     @staticmethod
