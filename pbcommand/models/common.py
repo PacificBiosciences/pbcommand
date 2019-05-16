@@ -1051,30 +1051,32 @@ class PacBioAlarm(object):
     time.
     """
     def __init__(self,
-                 exception,
-                 info,
-                 message,
                  name,
+                 message,
+                 exception=None,
+                 info=None,
                  severity=logging.ERROR,
+                 created_at=None,
                  owner=None,
                  id_=None):
-        self.exception = exception
-        self.info = info
         self.message = message
         self.name = name
+        self.exception = exception
+        self.info = info
         self.severity = _get_level_name(severity)
         self.owner = owner
         self.id = id_ if id_ is not None else str(uuid.uuid4())
+        self.created_at = created_at if created_at is not None else datetime.datetime.now()
 
     @staticmethod
     def from_dict(d):
-        return PacBioAlarm(d["exception"],
-                           d["info"],
+        return PacBioAlarm(d["name"],
                            d["message"],
-                           d["name"],
+                           d["exception"],
+                           d["info"],
                            d["severity"],
-                           d.get("owner", None),
-                           d.get("id", None))
+                           owner=d.get("owner", None),
+                           id_=d.get("id", None))
 
     @property
     def log_level(self):
@@ -1088,6 +1090,7 @@ class PacBioAlarm(object):
             "name": self.name,
             "severity": self.severity,
             "owner": self.owner,
+            "createdAt": _datetime_to_string(self.created_at),
             "id": str(self.id)
         }
 
@@ -1115,9 +1118,9 @@ class PacBioAlarm(object):
                    name,
                    severity):
         return PacBioAlarm(
+            name,
+            message,
             exception,
             info,
-            message,
-            name,
             severity,
             owner="python").to_json(file_name)

@@ -1,3 +1,4 @@
+import datetime
 import unittest
 import tempfile
 import logging
@@ -7,6 +8,7 @@ import copy
 import os.path
 
 from pbcommand.models import FileTypes, DataStore, DataStoreFile, PacBioAlarm
+from pbcommand.models.common import _datetime_to_string
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +63,7 @@ class TestAlarm(unittest.TestCase):
             "name": "IOError",
             "severity": "ERROR",
             "owner": "python",
+            "createdAt": _datetime_to_string(datetime.datetime.now()),
             "id": str(uuid.uuid4())
         }
         a = PacBioAlarm.from_dict(d)
