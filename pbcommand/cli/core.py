@@ -28,7 +28,7 @@ import errno
 
 import pbcommand
 
-from pbcommand.models import PbParser, ResourceTypes
+from pbcommand.models import PbParser, ResourceTypes, PacBioAlarm
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
                                       EMIT_TOOL_CONTRACT_OPTION,
                                       add_resolved_tool_contract_option,
@@ -122,6 +122,13 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     # more required commandline options in base parser (e.g., --log-file, --log-formatter)
     log_options = dict(level=level, file_name=log_file)
 
+    dump_alarm_on_error = False
+    if "dump_alarm_on_error" in kwargs:
+        dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
+    dump_alarm_on_error = dump_alarm_on_error and bool(os.environ.get(
+        "SMRT_CROMWELL_ENVIRONMENT", None))
+    base_dir = os.getcwd()
+
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
     # signature
     # FIXME. This should use the more concrete F(file_name_or_name, level, formatter)
@@ -144,6 +151,14 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
             alog.error(e, exc_info=True)
         else:
             traceback.print_exc(sys.stderr)
+        if dump_alarm_on_error:
+            PacBioAlarm.dump_error(
+                file_name=os.path.join(base_dir, "alarms.json"),
+                exception=e,
+                info="".join(traceback.format_exc()),
+                message=str(e),
+                name=e.__class__.__name__,
+                severity=logging.ERROR)
 
         # We should have a standard map of exit codes to Int
         if isinstance(e, IOError):
@@ -157,10 +172,12 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     return return_code
 
 
-def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func):
+def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func,
+                       dump_alarm_on_error=True):
     # For tools that haven't yet implemented the ToolContract API
     args = parser.parse_args(argv)
-    return _pacbio_main_runner(alog, setup_log_func, args_runner_func, args)
+    return _pacbio_main_runner(alog, setup_log_func, args_runner_func, args,
+                               dump_alarm_on_error=dump_alarm_on_error)
 
 
 class TemporaryResourcesManager(object):

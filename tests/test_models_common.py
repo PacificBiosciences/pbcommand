@@ -1,3 +1,4 @@
+import datetime
 import unittest
 import tempfile
 import logging
@@ -6,7 +7,8 @@ import json
 import copy
 import os.path
 
-from pbcommand.models import FileTypes, DataStore, DataStoreFile
+from pbcommand.models import FileTypes, DataStore, DataStoreFile, PacBioAlarm
+from pbcommand.models.common import _datetime_to_string
 
 log = logging.getLogger(__name__)
 
@@ -48,3 +50,24 @@ class TestDataStore(unittest.TestCase):
             self.assertFalse(os.path.isabs(d['files'][0]['path']))
         ds = DataStore.load_from_json(tmp_ds)
         self.assertEqual(list(ds.files.values())[0].path, tmpfile)
+
+
+class TestAlarm(unittest.TestCase):
+
+    def test_pacbio_alarm(self):
+        json_tmp = tempfile.NamedTemporaryFile(suffix=".json").name
+        d = {
+            "exception": "IOError",
+            "info": "this would usually be a Python traceback",
+            "message": "Something broke!",
+            "name": "IOError",
+            "severity": "ERROR",
+            "owner": "python",
+            "createdAt": _datetime_to_string(datetime.datetime.now()),
+            "id": str(uuid.uuid4())
+        }
+        a = PacBioAlarm.from_dict(d)
+        self.assertEqual(a.log_level, logging.ERROR)
+        a.to_json(json_tmp)
+        a = PacBioAlarm.from_json(json_tmp)
+        self.assertEqual(a.log_level, logging.ERROR)
