@@ -133,17 +133,17 @@ class Resolver(object):
 def run_args(args):
     resolver = Resolver(args.host, args.port, args.user, args.password)
     if args.resource_type == ResourceTypes.JOB_PATH:
-        print("JOB PATH: {p}".format(p=resolver.resolve_job(args.job_id)))
+        print(resolver.resolve_job(args.job_id))
     elif args.resource_type == ResourceTypes.ALIGNMENTS:
-        print("ALIGNMENTS: {p}".format(p=resolver.resolve_alignments(args.job_id)))
+        print(resolver.resolve_alignments(args.job_id))
     elif args.resource_type == ResourceTypes.PREASSEMBLY:
-        print("PREASSEMBLY REPORT: {p}".format(p=resolver.resolve_preassembly_stats(args.job_id)))
+        print(resolver.resolve_preassembly_stats(args.job_id))
     elif args.resource_type == ResourceTypes.POLISHED_ASSEMBLY:
-        print("POLISHED ASSEMBLY REPORT: {p}".format(p=resolver.resolve_polished_assembly_stats(args.job_id)))
+        print(resolver.resolve_polished_assembly_stats(args.job_id))
     elif args.resource_type == ResourceTypes.MAPPING_STATS:
-        print("MAPPING STATS: {p}".format(p=resolver.resolve_mapping_stats(args.job_id)))
+        print(resolver.resolve_mapping_stats(args.job_id))
     elif args.resource_type == ResourceTypes.SUBREADS_ENTRY:
-        print("SUBREADS INPUT: {p}".format(p=resolver.resolve_input_subreads(args.job_id)))
+        print(resolver.resolve_input_subreads(args.job_id))
     else:
         raise NotImplementedError("Can't retrieve resource type '%s'" % args.resource_type)
 
