@@ -149,7 +149,9 @@ def run_args(args):
 
 
 def _get_parser():
-    p = get_default_argparser_with_base_opts(__version__, __doc__,
+    p = get_default_argparser_with_base_opts(
+        __version__,
+        __doc__,
         default_level=logging.WARN)
     p.add_argument("job_id", help="SMRT Link analysis job ID")
     p.add_argument("resource_type", nargs="?",
