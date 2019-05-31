@@ -851,7 +851,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         if tags:
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
-        job_type = JobTypes.PB_PIPE
+        job_type = JobTypes.ANALYSIS
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 

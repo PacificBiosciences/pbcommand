@@ -402,7 +402,7 @@ class JobTypes(object):
     MERGE_DS = "merge-datasets"
     PB_PIPE = "pbsmrtpipe"
     CROMWELL = "cromwell"
-    ANALYSIS = "analysis"
+    ANALYSIS = "pbcromwell"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
     CONVERT_FASTA = 'convert-fasta-reference'
 
