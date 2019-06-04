@@ -17,7 +17,7 @@ from pbcommand.utils import setup_log
 from pbcommand.cli import get_default_argparser_with_base_opts, pacbio_args_runner
 
 log = logging.getLogger(__name__)
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 class ResolverFailure(Exception):
@@ -132,20 +132,27 @@ class Resolver(object):
 
 def run_args(args):
     resolver = Resolver(args.host, args.port, args.user, args.password)
+    resource = None
     if args.resource_type == ResourceTypes.JOB_PATH:
-        print(resolver.resolve_job(args.job_id))
+        resource = resolver.resolve_job(args.job_id)
     elif args.resource_type == ResourceTypes.ALIGNMENTS:
-        print(resolver.resolve_alignments(args.job_id))
+        resource = resolver.resolve_alignments(args.job_id)
     elif args.resource_type == ResourceTypes.PREASSEMBLY:
-        print(resolver.resolve_preassembly_stats(args.job_id))
+        resource = resolver.resolve_preassembly_stats(args.job_id)
     elif args.resource_type == ResourceTypes.POLISHED_ASSEMBLY:
-        print(resolver.resolve_polished_assembly_stats(args.job_id))
+        resource = resolver.resolve_polished_assembly_stats(args.job_id)
     elif args.resource_type == ResourceTypes.MAPPING_STATS:
-        print(resolver.resolve_mapping_stats(args.job_id))
+        resource = resolver.resolve_mapping_stats(args.job_id)
     elif args.resource_type == ResourceTypes.SUBREADS_ENTRY:
-        print(resolver.resolve_input_subreads(args.job_id))
+        resource = resolver.resolve_input_subreads(args.job_id)
     else:
         raise NotImplementedError("Can't retrieve resource type '%s'" % args.resource_type)
+    print(resource)
+    if args.make_symlink is not None:
+        if op.exists(args.make_symlink):
+            os.remove(args.make_symlink)
+        os.symlink(resource, args.make_symlink)
+    return 0
 
 
 def _get_parser():
@@ -171,6 +178,9 @@ def _get_parser():
     p.add_argument("--password", dest="password", action="store",
                    default=os.environ.get("PB_SERVICE_AUTH_PASSWORD", None),
                    help="Password to authenticate with (if using HTTPS)")
+    p.add_argument("--symlink", dest="make_symlink", action="store",
+                   default=None,
+                   help="If defined, will create a symlink to the retrieved file")
     return p
 
 
