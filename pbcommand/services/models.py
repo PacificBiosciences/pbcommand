@@ -252,7 +252,7 @@ class ServiceJob(object):
         created_by = se_or("createdBy")
         created_by_email = se_or('createdByEmail')
         is_active = d.get('isActive', True)
-        settings = to_d('jsonSettings')
+        settings = se_or('jsonSettings')
         sub_job_type_id = se_or("subJobTypeId")
         external_job_id = se_or("externalJobId")
 
