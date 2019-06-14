@@ -453,8 +453,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
         _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
         return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
-    def _get_jobs_by_job_type(self, job_type):
-        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
+    def _get_jobs_by_job_type(self, job_type, query=None):
+        base_url = "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)
+        if query is not None:
+            base_url = "".join([base_url, "?", query])
+        return _process_rget_with_jobs_transform(_to_url(self.uri, base_url),
+                                                 headers=self._get_headers())
 
     def get_multi_analysis_jobs(self):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
@@ -473,14 +477,13 @@ class ServiceAccessLayer(object):  # pragma: no cover
                 p=ServiceAccessLayer.ROOT_JM)),
             headers=self._get_headers())
 
-    def get_analysis_jobs(self):
-        return self.get_pbsmrtpipe_jobs()
+    def get_analysis_jobs(self, query=None):
+        return self._get_jobs_by_job_type(JobTypes.ANALYSIS, query=query)
 
-    # FIXME deprecated
-    def get_pbsmrtpipe_jobs(self):
+    def get_pbsmrtpipe_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
         _show_deprecation_warning("Please use get_analysis_jobs() instead")
-        return self._get_jobs_by_job_type(JobTypes.ANALYSIS)
+        return self.get_analysis_jobs(query=query)
 
     def get_cromwell_jobs(self):
         """:rtype: list[ServiceJob]"""
