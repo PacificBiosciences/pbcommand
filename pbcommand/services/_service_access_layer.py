@@ -453,8 +453,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
         _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
         return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
-    def _get_jobs_by_job_type(self, job_type):
-        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
+    def _get_jobs_by_job_type(self, job_type, query=None):
+        base_url = "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)
+        if query is not None:
+            base_url = "".join([base_url, "?", query])
+        return _process_rget_with_jobs_transform(_to_url(self.uri, base_url),
+                                                 headers=self._get_headers())
 
     def get_multi_analysis_jobs(self):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
@@ -473,14 +477,13 @@ class ServiceAccessLayer(object):  # pragma: no cover
                 p=ServiceAccessLayer.ROOT_JM)),
             headers=self._get_headers())
 
-    # FIXME deprecated
-    def get_analysis_jobs(self):
-        _show_deprecation_warning("Please use get_pbsmrtpipe_jobs() instead")
-        return self.get_pbsmrtpipe_jobs()
+    def get_analysis_jobs(self, query=None):
+        return self._get_jobs_by_job_type(JobTypes.ANALYSIS, query=query)
 
-    def get_pbsmrtpipe_jobs(self):
+    def get_pbsmrtpipe_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
-        return self._get_jobs_by_job_type(JobTypes.PB_PIPE)
+        _show_deprecation_warning("Please use get_analysis_jobs() instead")
+        return self.get_analysis_jobs(query=query)
 
     def get_cromwell_jobs(self):
         """:rtype: list[ServiceJob]"""
@@ -503,7 +506,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
         :rtype: ServiceJob
         """
-        return self.get_job_by_type_and_id(JobTypes.PB_PIPE, job_id)
+        return self.get_job_by_type_and_id(JobTypes.ANALYSIS, job_id)
 
     def get_import_job_by_id(self, job_id):
         return self.get_job_by_type_and_id(JobTypes.IMPORT_DS, job_id)
@@ -511,7 +514,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def _to_dsf_id_url(self, job_id, dsf_uuid):
         u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
@@ -559,7 +562,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
     def get_analysis_job_reports(self, job_id):
         """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
+        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
     def get_analysis_job_reports_objs(self, job_id):
         """
@@ -573,7 +576,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         return [self.get_analysis_job_report_obj(job_id, x['dataStoreFile'].uuid) for x in job_reports]
 
     def __get_report_d(self, job_id, report_uuid, processor_func):
-        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
+        _d = dict(t=JobTypes.ANALYSIS, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
                   u=report_uuid)
         u = "{p}/{t}/{i}/{r}/{u}".format(**_d)
         return _process_rget_or_none(processor_func)(_to_url(self.uri, u), headers=self._get_headers())
@@ -607,7 +610,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         return _get_all_report_attributes(self.get_import_job_reports, self.get_import_job_report_details, job_id)
 
     def get_analysis_job_entry_points(self, job_id):
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
+        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
 
     def get_import_dataset_job_datastore(self, job_id):
         """Get a List of Service DataStore files from an import DataSet job"""
@@ -829,6 +832,9 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
         :param tags: Tags should be a set of strings
         """
+        if pipeline_template_id.startswith("pbsmrtpipe"):
+            raise NotImplementedError("pbsmrtpipe is no longer supported")
+
         # sanity checking to see if pipeline is valid
         _ = self.get_pipeline_template_by_id(pipeline_template_id)
 
@@ -848,11 +854,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         if tags:
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
-
-        job_type = JobTypes.PB_PIPE
-        if pipeline_template_id.startswith("cromwell"):
-            job_type = JobTypes.PB_CROMWELL
-
+        job_type = JobTypes.ANALYSIS
         raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
@@ -910,7 +912,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def terminate_job(self, job):
         """
         POST a terminate request appropriate to the job type.  Currently only
-        supported for pbsmrtpipe, cromwell, and pbcromwell job types.
+        supported for pbsmrtpipe, cromwell, and analysis job types.
         """
         log.warn("Terminating job {i} ({u})".format(i=job.id, u=job.uuid))
         if job.external_job_id is not None:
@@ -940,7 +942,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
-        job_url = self._to_url(_to_relative_tasks_url(JobTypes.PB_PIPE)(job_id_or_uuid))
+        job_url = self._to_url(_to_relative_tasks_url(JobTypes.ANALYSIS)(job_id_or_uuid))
         return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
 
     def get_import_job_tasks(self, job_id_or_uuid):

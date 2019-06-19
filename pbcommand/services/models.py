@@ -252,7 +252,7 @@ class ServiceJob(object):
         created_by = se_or("createdBy")
         created_by_email = se_or('createdByEmail')
         is_active = d.get('isActive', True)
-        settings = to_d('jsonSettings')
+        settings = se_or('jsonSettings')
         sub_job_type_id = se_or("subJobTypeId")
         external_job_id = se_or("externalJobId")
 
@@ -402,7 +402,7 @@ class JobTypes(object):
     MERGE_DS = "merge-datasets"
     PB_PIPE = "pbsmrtpipe"
     CROMWELL = "cromwell"
-    PB_CROMWELL = "pbcromwell"
+    ANALYSIS = "analysis"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
     CONVERT_FASTA = 'convert-fasta-reference'
 
