@@ -29,10 +29,12 @@ import errno
 import pbcommand
 
 from pbcommand.models import PbParser, ResourceTypes, PacBioAlarm
+from pbcommand.models.report import Report, Attribute
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
                                       EMIT_TOOL_CONTRACT_OPTION,
                                       add_resolved_tool_contract_option,
-                                      add_base_options)
+                                      add_base_options,
+                                      add_nproc_option)
 from pbcommand.utils import get_parsed_args_log_level
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
@@ -63,7 +65,7 @@ def get_default_argparser(version, description):
     return _add_version(p, version)
 
 
-def get_default_argparser_with_base_opts(version, description, default_level="INFO"):
+def get_default_argparser_with_base_opts(version, description, default_level="INFO", nproc=None):
     """Return a parser with the default log related options
 
     If you don't want the default log behavior to go to stdout, then set
@@ -85,7 +87,25 @@ def get_default_argparser_with_base_opts(version, description, default_level="IN
     my-tool --my-opt=1234 --log-level=DEBUG --log-file=file.log file_in.txt
 
     """
-    return add_base_options(get_default_argparser(version, description), default_level=default_level)
+    p = add_base_options(get_default_argparser(version, description), default_level=default_level)
+    if nproc is not None:
+        p = add_nproc_option(p)
+    return p
+
+
+def write_task_report(run_time, nproc, exit_code):
+    attributes = [
+        Attribute("host", value=os.uname()[1]),
+        Attribute("system", value=os.uname()[0]),
+        Attribute("nproc", value=nproc),
+        Attribute("run_time", value=run_time),
+        Attribute("exit_code", value=exit_code)
+    ]
+    report = Report("workflow_task",
+                    title="Workflow Task Report",
+                    attributes=attributes,
+                    tags=("internal",))
+    report.write_json("task-report.json")
 
 
 def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
@@ -125,8 +145,8 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     dump_alarm_on_error = False
     if "dump_alarm_on_error" in kwargs:
         dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
-    dump_alarm_on_error = dump_alarm_on_error and bool(os.environ.get(
-        "SMRT_CROMWELL_ENVIRONMENT", None))
+    is_cromwell_environment = bool(os.environ.get("CROMWELL_PATH", None))
+    dump_alarm_on_error = dump_alarm_on_error and is_cromwell_environment
     base_dir = os.getcwd()
 
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
@@ -167,6 +187,9 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
             return_code = 2
 
     _d = dict(r=return_code, s=run_time)
+    if is_cromwell_environment:
+        alog.info("Writing task report to task-report.json")
+        write_task_report(run_time, getattr(pargs, "nproc", 1), return_code)
     if alog is not None:
         alog.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
     return return_code
