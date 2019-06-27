@@ -22,6 +22,27 @@ from pbcommand.pb_io.tool_contract_io import write_resolved_tool_contract
 log = logging.getLogger(__name__)
 
 
+class PbIntegrationBase(unittest.TestCase):
+
+    def setUp(self):
+        self._cwd = os.getcwd()
+        self._tmp_dir = tempfile.mkdtemp()
+        os.chdir(self._tmp_dir)
+
+    def tearDown(self):
+        os.chdir(self._cwd)
+
+    def _check_call(self, args):
+        log.info("Writing logs to subprocess.std* in %s", self._tmp_dir)
+        with open("subprocess.stdout", "w") as stdout:
+            with open("subprocess.stderr", "w") as stderr:
+                try:
+                    return subprocess.check_call(args, stdout=stdout, stderr=stderr)
+                except Exception as e:
+                    log.error(e)
+                    log.error("Console outputs are in %s", self._tmp_dir)
+
+
 class PbTestApp(unittest.TestCase):
 
     """Generic Harness for running tool contracts end-to-end"""
