@@ -65,6 +65,12 @@ def add_emit_tool_contract_option(p):
     return p
 
 
+def add_nproc_option(p, default=1):
+    p.add_argument("-j", "--nproc", type=int, default=default,
+                   help="Number of processors to use")
+    return p
+
+
 def add_base_options(p, default_level='INFO'):
     """Add the core logging options to the parser and set the default log level
 

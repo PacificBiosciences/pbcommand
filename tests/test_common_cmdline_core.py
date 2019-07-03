@@ -63,10 +63,15 @@ class SimpleTest(unittest.TestCase):
 
     def test_dump_alarm_on_error(self):
         args = "--debug /path/to/my_fake_file.txt"
-        os.environ["SMRT_CROMWELL_ENVIRONMENT"] = "true"
+        os.environ["CROMWELL_PATH"] = "true"
         rcode = _example_main_fail(args)
         self.assertEqual(rcode, 2)
         self.assertTrue(os.path.isfile("alarms.json"))
         with open("alarms.json", "r") as json_in:
             d = json.loads(json_in.read())[0]
             self.assertEqual(d["severity"], "ERROR")
+        with open("task-report.json", "r") as rpt_in:
+            d = json.loads(rpt_in.read())
+            a = {a["id"]:a["value"] for a in d["attributes"]}
+            self.assertEqual(a["workflow_task.exit_code"], 2)
+            self.assertEqual(a["workflow_task.nproc"], 1)
