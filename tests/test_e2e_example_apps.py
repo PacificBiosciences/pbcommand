@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import logging
 
-from .base_utils import get_data_file
+from base_utils import get_data_file
 from pbcommand.testkit import PbTestApp
 from pbcommand.resolver import ToolContractError
 

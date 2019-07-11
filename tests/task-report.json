@@ -1,0 +1,40 @@
+{
+    "_comment": "Generated with pbcommand version 1.9.0 at 2019-07-11T13:38:27.831173",
+    "attributes": [
+        {
+            "id": "workflow_task.host",
+            "name": null,
+            "value": "mp0709-sge"
+        },
+        {
+            "id": "workflow_task.system",
+            "name": null,
+            "value": "Linux"
+        },
+        {
+            "id": "workflow_task.nproc",
+            "name": null,
+            "value": 1
+        },
+        {
+            "id": "workflow_task.run_time",
+            "name": null,
+            "value": 0.007643938064575195
+        },
+        {
+            "id": "workflow_task.exit_code",
+            "name": null,
+            "value": 0
+        }
+    ],
+    "dataset_uuids": [],
+    "id": "workflow_task",
+    "plotGroups": [],
+    "tables": [],
+    "tags": [
+        "internal"
+    ],
+    "title": "Workflow Task Report",
+    "uuid": "7fcaa081-3657-4190-9ef3-f89abf3e5a0f",
+    "version": "1.0.1"
+}
