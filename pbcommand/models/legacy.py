@@ -84,7 +84,7 @@ class Pipeline(object):
 
     @staticmethod
     def from_dict(d):
-        bindings = {} # obsolete
+        bindings = {}  # obsolete
         epoints = [(e["entryId"], e["fileTypeId"]) for e in d["entryPoints"]]
         # The pipeline instance only needs to the key-value pair
         task_options = {o["id"]: o["default"] for o in d['taskOptions']}
