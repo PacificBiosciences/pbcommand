@@ -38,11 +38,11 @@ $PIP_INSTALL --user -r  REQUIREMENTS_TEST.txt
 $PIP_INSTALL --user pbtestdata pbcore
 #nosetests -s --verbose --with-xunit --xunit-file=nosetests.xml --with-coverage --cover-xml --cover-xml-file=coverage.xml --logging-config \
 #    log_nose.cfg tests/test_*.py
-which py.test
-py.test --version
+which pytest
+pytest --version
 ls -l ./pbcommand/
-py.test -v --durations=12 --junitxml=nosetests.xml --cov=./pbcommand --cov-report=xml:coverage.xml tests/test_*.py
-#py.test -v --durations=12 --junitxml=nosetests.xml tests/test_*.py
+pytest -v --durations=12 --junitxml=nosetests.xml --cov=./pbcommand --cov-report=xml:coverage.xml tests/test_*.py
+#pytest -v --durations=12 --junitxml=nosetests.xml tests/test_*.py
 sed -i -e 's@filename="@filename="./@g' coverage.xml
 which pylint
 pylint --version
@@ -66,9 +66,9 @@ pip3 install --user -e ./
 #pip3 install --user -r  REQUIREMENTS_TEST.txt
 pip3 install --user nose xmlbuilder
 pip3 install --user --upgrade pytest
-# --upgrade b/c bin/py.test was python2
+# --upgrade b/c bin/pytest was python2
 #pip3 install --user pbtestdata pbcore
-py.test -v --durations=12 tests/test_*.py
+pytest -v --durations=12 tests/test_*.py
 ##########################################################################
 
 bash bamboo_wheel.sh

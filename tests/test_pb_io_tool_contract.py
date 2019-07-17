@@ -2,8 +2,8 @@ from __future__ import absolute_import
 import unittest
 import logging
 
-from .base_utils import get_temp_file, get_temp_dir
-from .base_utils import get_tool_contract, get_resolved_tool_contract, get_pipeline_preset
+from base_utils import get_temp_file, get_temp_dir
+from base_utils import get_tool_contract, get_resolved_tool_contract, get_pipeline_preset
 
 from pbcommand.models import (ToolContract,
                               ResolvedToolContract,

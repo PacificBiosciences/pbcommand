@@ -14,7 +14,7 @@ from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from .base_utils import get_data_file_from_subdir, DATA_DIR
+from base_utils import get_data_file_from_subdir, DATA_DIR
 
 log = logging.getLogger(__name__)
 

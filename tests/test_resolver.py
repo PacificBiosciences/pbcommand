@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import logging
 import unittest
 
-from .base_utils import (get_temp_dir, get_tool_contract, get_resolved_tool_contract)
+from base_utils import (get_temp_dir, get_tool_contract, get_resolved_tool_contract)
 from pbcommand.models import ResolvedToolContract, ResolvedToolContractTask, ResolvedScatteredToolContractTask, ResolvedGatherToolContractTask
 
 from pbcommand.pb_io import load_tool_contract_from
