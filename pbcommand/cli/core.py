@@ -145,7 +145,7 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     dump_alarm_on_error = False
     if "dump_alarm_on_error" in kwargs:
         dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
-    is_cromwell_environment = bool(os.environ.get("CROMWELL_PATH", None))
+    is_cromwell_environment = bool(os.environ.get("SMRT_PIPELINE_BUNDLE_DIR", None))
     dump_alarm_on_error = dump_alarm_on_error and is_cromwell_environment
     base_dir = os.getcwd()
 
