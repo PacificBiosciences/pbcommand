@@ -161,8 +161,8 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
         alog.info("log opts {d}".format(d=log_options))
 
     if dump_alarm_on_error:
-        log.info("This command appears to be running as part of a Cromwell workflow")
-        log.info("Additional output files may be generated")
+        alog.info("This command appears to be running as part of a Cromwell workflow")
+        alog.info("Additional output files may be generated")
 
     try:
         # the code in func should catch any exceptions. The try/catch
