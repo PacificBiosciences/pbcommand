@@ -142,12 +142,13 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     # more required commandline options in base parser (e.g., --log-file, --log-formatter)
     log_options = dict(level=level, file_name=log_file)
 
+    base_dir = os.getcwd()
+
     dump_alarm_on_error = False
     if "dump_alarm_on_error" in kwargs:
         dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
-    is_cromwell_environment = bool(os.environ.get("SMRT_PIPELINE_BUNDLE_DIR", None))
+    is_cromwell_environment = bool(os.environ.get("SMRT_PIPELINE_BUNDLE_DIR", None)) and "cromwell-executions" in base_dir
     dump_alarm_on_error = dump_alarm_on_error and is_cromwell_environment
-    base_dir = os.getcwd()
 
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
     # signature
@@ -158,6 +159,10 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
         alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
         alog.info("completed setting up logger with {f}".format(f=setup_log_func))
         alog.info("log opts {d}".format(d=log_options))
+
+    if dump_alarm_on_error:
+        alog.info("This command appears to be running as part of a Cromwell workflow")
+        alog.info("Additional output files may be generated")
 
     try:
         # the code in func should catch any exceptions. The try/catch

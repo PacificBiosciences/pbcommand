@@ -48,7 +48,7 @@ def _example_main_fail(cmdline_args):
 class SimpleTest(unittest.TestCase):
 
     def setUp(self):
-        tmpdir = tempfile.mkdtemp()
+        tmpdir = tempfile.mkdtemp(suffix="cromwell-executions")
         self._cwd = os.getcwd()
         os.chdir(tmpdir)
 
