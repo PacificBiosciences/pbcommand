@@ -357,7 +357,7 @@ def _to_relative_tasks_url(job_type):
 
 
 def _show_deprecation_warning(msg):
-    if not "PB_TEST_MODE" in os.environ:
+    if "PB_TEST_MODE" not in os.environ:
         warnings.simplefilter('once', DeprecationWarning)
         warnings.warn(msg, DeprecationWarning)
         warnings.simplefilter('default', DeprecationWarning)  # reset filte
@@ -1346,7 +1346,7 @@ def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):  # 
     the appropriate client class given the input parameters.  Unlike the client
     itself this hardcodes 8243 as the WSO2 port number.
     """
-    if host != "localhost" or not None in [user, password]:
+    if host != "localhost" or None not in [user, password]:
         return SmrtLinkAuthClient(host, user, password, sleep_time=sleep_time)
     else:
         return ServiceAccessLayer(host, port, sleep_time=sleep_time)
