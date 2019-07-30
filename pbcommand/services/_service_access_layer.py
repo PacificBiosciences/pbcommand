@@ -516,7 +516,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
-        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+        return self._get_job_resource_type_with_transform("pbsmrtpipe", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def _to_dsf_id_url(self, job_id, dsf_uuid):
         u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
