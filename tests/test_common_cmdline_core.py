@@ -48,7 +48,7 @@ def _example_main_fail(cmdline_args):
 class SimpleTest(unittest.TestCase):
 
     def setUp(self):
-        tmpdir = tempfile.mkdtemp()
+        tmpdir = tempfile.mkdtemp(suffix="cromwell-executions")
         self._cwd = os.getcwd()
         os.chdir(tmpdir)
 
@@ -63,7 +63,7 @@ class SimpleTest(unittest.TestCase):
 
     def test_dump_alarm_on_error(self):
         args = "--debug /path/to/my_fake_file.txt"
-        os.environ["CROMWELL_PATH"] = "true"
+        os.environ["SMRT_PIPELINE_BUNDLE_DIR"] = "true"
         rcode = _example_main_fail(args)
         self.assertEqual(rcode, 2)
         self.assertTrue(os.path.isfile("alarms.json"))

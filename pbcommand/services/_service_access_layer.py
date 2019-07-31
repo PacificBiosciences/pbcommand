@@ -10,6 +10,7 @@ import pprint
 import time
 import datetime
 import warnings
+import os
 
 import pytz
 
@@ -356,9 +357,10 @@ def _to_relative_tasks_url(job_type):
 
 
 def _show_deprecation_warning(msg):
-    warnings.simplefilter('once', DeprecationWarning)
-    warnings.warn(msg, DeprecationWarning)
-    warnings.simplefilter('default', DeprecationWarning)  # reset filte
+    if "PB_TEST_MODE" not in os.environ:
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn(msg, DeprecationWarning)
+        warnings.simplefilter('default', DeprecationWarning)  # reset filte
 
 
 class ServiceAccessLayer(object):  # pragma: no cover
@@ -514,7 +516,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
-        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+        return self._get_job_resource_type_with_transform("pbsmrtpipe", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def _to_dsf_id_url(self, job_id, dsf_uuid):
         u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
@@ -1344,7 +1346,7 @@ def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):  # 
     the appropriate client class given the input parameters.  Unlike the client
     itself this hardcodes 8243 as the WSO2 port number.
     """
-    if host != "localhost":
+    if host != "localhost" or None not in [user, password]:
         return SmrtLinkAuthClient(host, user, password, sleep_time=sleep_time)
     else:
         return ServiceAccessLayer(host, port, sleep_time=sleep_time)
