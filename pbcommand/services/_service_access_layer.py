@@ -630,7 +630,9 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
     def run_import_dataset_by_type(self, dataset_type, path_to_xml,
                                    avoid_duplicate_import=False):
-        job_or_error = self._import_dataset(dataset_type, path_to_xml,
+        job_or_error = self._import_dataset(
+            dataset_type,
+            path_to_xml,
             avoid_duplicate_import=avoid_duplicate_import)
         custom_err_msg = "Import {d} {p}".format(p=path_to_xml, d=dataset_type)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
