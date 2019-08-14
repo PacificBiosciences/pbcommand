@@ -198,8 +198,10 @@ def _import_dataset_by_type(dataset_type_or_id):
     else:
         ds_type_id = dataset_type_or_id
 
-    def wrapper(total_url, path, headers):
-        _d = dict(datasetType=ds_type_id, path=path)
+    def wrapper(total_url, path, headers, avoid_duplicate_import=False):
+        _d = dict(datasetType=ds_type_id,
+                  path=path,
+                  avoidDuplicateImport=avoid_duplicate_import)
         return _process_rpost_with_transform(ServiceJob.from_d)(total_url, _d, headers)
 
     return wrapper
@@ -621,13 +623,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_merge_dataset_job_datastore(self, job_id):
         return self._get_job_resource_type(JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
 
-    def _import_dataset(self, dataset_type, path):
+    def _import_dataset(self, dataset_type, path, avoid_duplicate_import=False):
         # This returns a job resource
         url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
-        return _import_dataset_by_type(dataset_type)(url, path, headers=self._get_headers())
+        return _import_dataset_by_type(dataset_type)(url, path, headers=self._get_headers(), avoid_duplicate_import=avoid_duplicate_import)
 
-    def run_import_dataset_by_type(self, dataset_type, path_to_xml):
-        job_or_error = self._import_dataset(dataset_type, path_to_xml)
+    def run_import_dataset_by_type(self, dataset_type, path_to_xml,
+                                   avoid_duplicate_import=False):
+        job_or_error = self._import_dataset(
+            dataset_type,
+            path_to_xml,
+            avoid_duplicate_import=avoid_duplicate_import)
         custom_err_msg = "Import {d} {p}".format(p=path_to_xml, d=dataset_type)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, sleep_time=self._sleep_time)
@@ -664,7 +670,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def run_import_dataset_barcode(self, path, time_out=10):
         return self._run_import_and_block(self.import_dataset_barcode, path, time_out=time_out)
 
-    def run_import_local_dataset(self, path):
+    def run_import_local_dataset(self, path, avoid_duplicate_import=False):
         """Import a file from FS that is local to where the services are running
 
         Returns a JobResult instance
@@ -677,7 +683,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
                                           ignore_errors=True)
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
-            job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
+            job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path, avoid_duplicate_import=avoid_duplicate_import)
             log.info("Confirming database update")
             # validation 1: attempt to retrieve dataset info
             result_new = self.get_dataset_by_uuid(dataset_meta_type.uuid)
