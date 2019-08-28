@@ -1,6 +1,8 @@
+from builtins import str
 import unittest
 import logging
 
+import pbcommand
 from pbcommand.models.common import (PacBioFloatChoiceOption, PacBioIntOption,
                                      PacBioStringOption,
                                      PacBioStringChoiceOption,
@@ -109,8 +111,9 @@ class TestPacBioStringOptionTest(TestPacBioBasicOptionTest):
 
     def test_bad_not_supported_unicode(self):
         """Test that unicode values are not Supported"""
-        with self.assertRaises(TypeError):
-            _ = self._to_opt(v=unicode('abcdef'))
+        if pbcommand.python2:
+            with self.assertRaises(TypeError):
+                _ = self._to_opt(v=unicode('abcdef'))
 
 
 class TestPacBioBasicChoiceTest(TestPacBioBasicOptionTest):
@@ -163,5 +166,3 @@ class TestPacBioFloatChoiceOptionTest(TestPacBioBasicChoiceTest):
         choices = (1, 2.0, "bad-value")
         with self.assertRaises(TypeError):
             _ = self._to_opt(c=choices)
-
-

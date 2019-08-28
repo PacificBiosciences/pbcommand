@@ -43,7 +43,7 @@ def to_jobs_summary(jobs, header=None):
     x = outs.append
     states_counts = jobs_summary(xjobs)
     x("{h} {n}".format(n=len(xjobs), h=header))
-    for state, c in states_counts.iteritems():
+    for state, c in states_counts.items():
         x("State {s} {c}".format(c=c, s=state))
 
     return "\n".join(outs)

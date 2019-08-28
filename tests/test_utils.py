@@ -1,3 +1,4 @@
+from builtins import object
 import pytest
 import functools
 import tempfile
@@ -7,14 +8,13 @@ import logging
 
 from pbcommand.utils import (Singleton, compose, get_parsed_args_log_level,
     get_dataset_metadata)
+from future.utils import with_metaclass
 
 
 class TestSingleton(unittest.TestCase):
 
     def test_basic(self):
-        class Lithium(object):
-            __metaclass__ = Singleton
-
+        class Lithium(with_metaclass(Singleton, object)):
             def __init__(self):
                 self.name = 'Lithium'
                 self.number = 3
@@ -31,7 +31,7 @@ class TestCompose(unittest.TestCase):
 
         h = compose(f, g)
         value = h(7)
-        self.assertEquals(value, 18)
+        self.assertEqual(value, 18)
 
     def test_no_args_list(self):
 
@@ -56,7 +56,7 @@ class TestCompose(unittest.TestCase):
 
         f = compose(add_five, add_two)
         value = f(5)
-        self.assertEquals(value, 12)
+        self.assertEqual(value, 12)
 
 
 class TestLogging(unittest.TestCase):

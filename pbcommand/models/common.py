@@ -5,15 +5,23 @@ Large parts of this are pulled from pbsmrtpipe.
 
 Author: Michael Kocher
 """
-import json
-import logging
-import os
-import re
-import types
-import warnings
+
+from collections import namedtuple, OrderedDict
+from builtins import object
+import traceback
 import functools
 import datetime
-from collections import namedtuple, OrderedDict
+import warnings
+import logging
+import types
+import json
+import uuid
+import os
+import re
+
+from future.utils import with_metaclass
+
+from pbcommand import to_ascii
 
 log = logging.getLogger(__name__)
 
@@ -152,6 +160,16 @@ class TaskOptionTypes(object):
         else:
             cls._raise_value_error(sx, cls.ALL(), "")
 
+    @classmethod
+    def from_any(cls, val):
+        if isinstance(val, bool):
+            return cls.BOOL
+        elif isinstance(val, int):
+            return cls.INT
+        elif isinstance(val, float):
+            return cls.FLOAT
+        return cls.STR
+
 
 class SymbolTypes(object):
     """
@@ -227,9 +245,7 @@ class _RegisteredFileType(type):
         return file_type
 
 
-class FileType(object):
-    __metaclass__ = _RegisteredFileType
-
+class FileType(with_metaclass(_RegisteredFileType, object)):
     def __init__(self, file_type_id, base_name, ext, mime_type):
         """
         Core File Type data model
@@ -434,7 +450,7 @@ class FileTypes(object):
 
     @staticmethod
     def ALL_DATASET_TYPES():
-        return {i: f for i, f in REGISTERED_FILE_TYPES.iteritems() if isinstance(f, DataSetFileType)}
+        return {i: f for i, f in REGISTERED_FILE_TYPES.items() if isinstance(f, DataSetFileType)}
 
     @staticmethod
     def ALL():
@@ -526,7 +542,7 @@ class DataStoreFile(object):
     @staticmethod
     def from_dict(d, base_path=None):
         # FIXME. This isn't quite right.
-        to_a = lambda x: x.encode('ascii', 'ignore')
+        to_a = to_ascii
         to_k = lambda x: to_a(d[x])
         is_chunked = d.get('isChunked', False)
         return DataStoreFile(to_k('uniqueId'),
@@ -571,7 +587,7 @@ class DataStore(object):
             raise TypeError("DataStoreFile expected. Got type {t} for {d}".format(t=type(ds_file), d=ds_file))
 
     def to_dict(self):
-        fs = [f.to_dict() for i, f in self.files.iteritems()]
+        fs = [f.to_dict() for i, f in self.files.items()]
         _d = dict(version=self.version,
                   createdAt=_datetime_to_string(self.created_at),
                   updatedAt=_datetime_to_string(self.updated_at), files=fs)
@@ -659,15 +675,15 @@ class PipelineChunk(object):
 
     @property
     def chunk_d(self):
-        return {k: v for k, v in self._datum.iteritems() if _is_chunk_key(k)}
+        return {k: v for k, v in self._datum.items() if _is_chunk_key(k)}
 
     @property
     def chunk_keys(self):
-        return self.chunk_d.keys()
+        return list(self.chunk_d.keys())
 
     @property
     def chunk_metadata(self):
-        return {k: v for k, v in self._datum.iteritems() if not _is_chunk_key(k)}
+        return {k: v for k, v in self._datum.items() if not _is_chunk_key(k)}
 
     def to_dict(self):
         return {'chunk_id': self.chunk_id, 'chunk': self._datum}
@@ -865,8 +881,8 @@ def _strict_validate_int_or_raise(value):
         raise TypeError(_to_msg(bool))
     elif isinstance(value, float):
         raise TypeError(_to_msg(float))
-    elif isinstance(value, bytes):
-        raise TypeError(_to_msg(bytes))
+    elif isinstance(value, str):
+        raise TypeError(_to_msg(str))
     else:
         return int(value)
 
@@ -884,14 +900,14 @@ def _strict_validate_float_or_raise(value):
 
     if isinstance(value, bool):
         raise TypeError(_to_msg(bool))
-    elif isinstance(value, bytes):
-        raise TypeError(_to_msg(bytes))
+    elif isinstance(value, str):
+        raise TypeError(_to_msg(str))
     else:
         return float(value)
 
 
 def _strict_validate_string_or_raise(value):
-    # Not supporting unicode in any way
+    # Not supporting unicode in python2.
     if isinstance(value, str):
         return value
     raise TypeError(_type_error_msg(value, str))
@@ -1009,3 +1025,102 @@ class PacBioFloatChoiceOption(BaseChoiceType):
     @classmethod
     def validate_core_type_with_choices(cls, value, choices):
         return _strict_validate_float_choices(value, choices)
+
+
+def _get_exception_name(e):
+    if isinstance(e, Exception):
+        return e.__class__.__name__
+    else:
+        return str(e)
+
+
+def _get_level_name(l):
+    if isinstance(l, int):
+        return logging.getLevelName(l)
+    else:
+        return l
+
+
+class PacBioAlarm(object):
+    """
+    Simple container for alarms that need to be passed between components in
+    SMRT Link.  This mimics the interface in the instrument control code; note
+    that not all fields will necessarily be used by SMRT Link.  The JSON I/O
+    format is always a list to support the possibility of multiple alarms
+    created by the same task, but we mostly only need to work with one at a
+    time.
+    """
+    def __init__(self,
+                 name,
+                 message,
+                 exception=None,
+                 info=None,
+                 severity=logging.ERROR,
+                 created_at=None,
+                 owner=None,
+                 id_=None):
+        self.message = message
+        self.name = name
+        self.exception = exception
+        self.info = info
+        self.severity = _get_level_name(severity)
+        self.owner = owner
+        self.id = id_ if id_ is not None else str(uuid.uuid4())
+        self.created_at = created_at if created_at is not None else datetime.datetime.now()
+
+    @staticmethod
+    def from_dict(d):
+        return PacBioAlarm(d["name"],
+                           d["message"],
+                           d["exception"],
+                           d["info"],
+                           d["severity"],
+                           owner=d.get("owner", None),
+                           id_=d.get("id", None))
+
+    @property
+    def log_level(self):
+        return getattr(logging, self.severity)
+
+    def to_dict(self):
+        return {
+            "exception": _get_exception_name(self.exception),
+            "info": self.info,
+            "message": self.message,
+            "name": self.name,
+            "severity": self.severity,
+            "owner": self.owner,
+            "createdAt": _datetime_to_string(self.created_at),
+            "id": str(self.id)
+        }
+
+    def to_json(self, file_name):
+        with open(file_name, "w") as json_out:
+            json_out.write(json.dumps([self.to_dict()],
+                                      indent=2,
+                                      separators=(',', ': '),
+                                      sort_keys=True))
+        return self
+
+    @staticmethod
+    def from_json(file_name):
+        with open(file_name, "r") as json_in:
+            return PacBioAlarm.from_dict(json.loads(json_in.read())[0])
+
+    def raise_exception(self):
+        raise self.exception(self.message)
+
+    @staticmethod
+    def dump_error(file_name,
+                   exception,
+                   info,
+                   message,
+                   name,
+                   severity):
+        return PacBioAlarm(
+            name,
+            message,
+            exception,
+            info,
+            severity,
+            owner="python").to_json(file_name)

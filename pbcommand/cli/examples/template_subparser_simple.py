@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import logging
 
@@ -13,7 +14,7 @@ __version__ = "0.1.0"
 
 def _alpha_main(a, b):
     # Core main func, should be imported from lib code
-    print "Running {} {}".format(a, b)
+    print("Running {} {}".format(a, b))
     return 0
 
 
@@ -34,7 +35,7 @@ def _alpha_add_options_with_base_options(p):
 
 
 def _beta_main(name):
-    print "Hello {}".format(name)
+    print("Hello {}".format(name))
     return 0
 
 

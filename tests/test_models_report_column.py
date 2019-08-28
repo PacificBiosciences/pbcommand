@@ -1,3 +1,4 @@
+from builtins import range
 import logging
 import unittest
 
@@ -13,10 +14,10 @@ class TestColumn(unittest.TestCase):
         def none_col():
             c = Column(None)
 
-        self.assertRaises(none_col)
+        self.assertRaises(Exception, none_col)
 
     def test_repr(self):
-        c = Column('my_column', header="My Column", values=list(xrange(5)))
+        c = Column('my_column', header="My Column", values=list(range(5)))
         self.assertIsNotNone(repr(c))
 
 #    def test_plotgroup_add_duplicate_plot(self):
@@ -63,11 +64,11 @@ class TestColumn(unittest.TestCase):
 #            a.add_plot( Plot('id', 'i1') )
 #
 #            d = a.to_dict()
-#            self.assertEquals( 123, d['id'] )
-#            self.assertEquals( 'foo title', d['title'] )
-#            self.assertEquals( 'foo legend', d['legend'] )
-#            self.assertEquals( 'foo thumbnail', d['thumbnail'] )
-#            self.assertEquals( 1, len(d['plots']) )
+#            self.assertEqual( 123, d['id'] )
+#            self.assertEqual( 'foo title', d['title'] )
+#            self.assertEqual( 'foo legend', d['legend'] )
+#            self.assertEqual( 'foo thumbnail', d['thumbnail'] )
+#            self.assertEqual( 1, len(d['plots']) )
 #        except:
 #            log.error(traceback.format_exc())
 #            raise

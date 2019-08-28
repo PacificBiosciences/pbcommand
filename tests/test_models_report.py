@@ -14,10 +14,17 @@ from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from .base_utils import get_data_file_from_subdir, DATA_DIR
+from base_utils import get_data_file_from_subdir, DATA_DIR
 
 log = logging.getLogger(__name__)
 
+try:
+    import avro
+except ImportError:
+    avro = None
+
+skip_unless_avro_installed = unittest.skipUnless(avro is not None,
+                                                 "avro not installed")
 
 def _to_report(name):
     file_name = get_data_file_from_subdir(_SERIALIZED_JSON_DIR, name)
@@ -191,10 +198,10 @@ class TestReportModel(unittest.TestCase):
         self.assertEqual('redfang.tabid2.c2', d[
                          'tables'][1]['columns'][0]['id'])
 
-        self.assertItemsEqual(d['tags'], tags)
+        self.assertEqual(list(sorted(d['tags'])), list(sorted(tags)))
 
         loaded_report = load_report_from(d)
-        self.assertItemsEqual(loaded_report.tags, tags)
+        self.assertEqual(list(sorted(loaded_report.tags)), list(sorted(tags)))
 
         log.info(repr(r))
         self.assertIsNotNone(repr(r))
@@ -393,12 +400,13 @@ class TestReportSpec(unittest.TestCase):
         self.spec = load_report_spec_from_json(
             os.path.join(DATA_DIR, "report-specs", "report_spec.json"))
 
+    @skip_unless_avro_installed
     def test_report_validation(self):
         rpt = _to_report("test_report.json")
         r = self.spec.validate_report(rpt)
         self.assertTrue(isinstance(r, Report))
         rpt.attributes.append(Attribute("attribute5", value=12345))
-        error_len = lambda e: len(e.message.split("\n"))
+        error_len = lambda e: len(str(e).split("\n"))
         try:
             self.spec.validate_report(rpt)
         except ValueError as e:
@@ -416,6 +424,7 @@ class TestReportSpec(unittest.TestCase):
             self.fail("Expected exception")
         self.assertFalse(self.spec.is_valid_report(rpt))
 
+    @skip_unless_avro_installed
     def test_format_metric(self):
         s = format_metric("{:,d}", 123456789)
         self.assertEqual(s, "123,456,789")
@@ -430,6 +439,7 @@ class TestReportSpec(unittest.TestCase):
         s = format_metric("{:,.3f}", 1000000.2345678)
         self.assertEqual(s, "1,000,000.235")
 
+    @skip_unless_avro_installed
     def test_apply_view(self):
         rpt = _to_report("test_report2.json")
         rpt = self.spec.apply_view(rpt)

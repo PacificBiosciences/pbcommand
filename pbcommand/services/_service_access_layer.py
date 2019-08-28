@@ -2,6 +2,7 @@
 
 
 """
+from builtins import object
 import base64
 import json
 import logging
@@ -9,6 +10,7 @@ import pprint
 import time
 import datetime
 import warnings
+import os
 
 import pytz
 
@@ -22,7 +24,7 @@ from pbcommand.models import (FileTypes,
                               DataSetFileType,
                               DataStore,
                               DataStoreFile)
-from pbcommand.utils import get_dataset_metadata, to_ascii
+from pbcommand.utils import get_dataset_metadata
 
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,
@@ -196,8 +198,10 @@ def _import_dataset_by_type(dataset_type_or_id):
     else:
         ds_type_id = dataset_type_or_id
 
-    def wrapper(total_url, path, headers):
-        _d = dict(datasetType=ds_type_id, path=path)
+    def wrapper(total_url, path, headers, avoid_duplicate_import=False):
+        _d = dict(datasetType=ds_type_id,
+                  path=path,
+                  avoidDuplicateImport=avoid_duplicate_import)
         return _process_rpost_with_transform(ServiceJob.from_d)(total_url, _d, headers)
 
     return wrapper
@@ -215,7 +219,8 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
     return job
 
 
-def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2):
+def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
+                               abort_on_interrupt=True):
     """
     Waits for job to complete
 
@@ -229,39 +234,48 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2):
     if the job fails during the polling process or times out
     """
 
-    time.sleep(sleep_time)
-    job = _get_job_by_id_or_raise(sal, job_id, KeyError)
-
-    log.debug("time_out = {t}".format(t=time_out))
-
-    error_msg = ""
-    job_result = JobResult(job, 0, error_msg)
-    started_at = time.time()
-
-    # number of polling steps
-    i = 0
-    while True:
-        run_time = time.time() - started_at
-
-        if job.state in JobStates.ALL_COMPLETED:
-            break
-
-        i += 1
+    try:
+        external_job_id = None
         time.sleep(sleep_time)
+        job = _get_job_by_id_or_raise(sal, job_id, KeyError)
+        log.info("SMRT Link job {i} ({u})".format(i=job.id, u=job.uuid))
+        log.debug("time_out = {t}".format(t=time_out))
 
-        msg = "Running pipeline {n} state: {s} runtime:{r:.2f} sec {i} iteration".format(n=job.name, s=job.state, r=run_time, i=i)
-        log.debug(msg)
-        # making the exceptions different to distinguish between an initial
-        # error and a "polling" error. Adding some msg details
-        job = _get_job_by_id_or_raise(sal, job_id, JobExeError, error_messge_extras=msg)
+        error_msg = ""
+        job_result = JobResult(job, 0, error_msg)
+        started_at = time.time()
 
-        # FIXME, there's currently not a good way to get errors for jobs
-        job_result = JobResult(job, run_time, "")
-        if time_out is not None:
-            if run_time > time_out:
-                raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
+        # number of polling steps
+        i = 0
+        while True:
+            run_time = time.time() - started_at
+            if external_job_id is None and job.external_job_id is not None:
+                external_job_id = job.external_job_id
+                log.info("Cromwell workflow ID is %s", external_job_id)
 
-    return job_result
+            if job.state in JobStates.ALL_COMPLETED:
+                break
+
+            i += 1
+            time.sleep(sleep_time)
+
+            msg = "Running pipeline {n} (job {j}) state: {s} runtime:{r:.2f} sec {i} iteration".format(n=job.name, j=job.id, s=job.state, r=run_time, i=i)
+            log.debug(msg)
+            # making the exceptions different to distinguish between an initial
+            # error and a "polling" error. Adding some msg details
+            job = _get_job_by_id_or_raise(sal, job_id, JobExeError, error_messge_extras=msg)
+
+            # FIXME, there's currently not a good way to get errors for jobs
+            job_result = JobResult(job, run_time, "")
+            if time_out is not None:
+                if run_time > time_out:
+                    raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
+
+        return job_result
+    except KeyboardInterrupt:
+        if abort_on_interrupt:
+            sal.terminate_job_id(job_id)
+        raise
 
 
 # Make this consistent somehow. Maybe defined 'shortname' in the core model?
@@ -281,7 +295,7 @@ DATASET_METATYPES_TO_ENDPOINTS = {
 def _get_endpoint_or_raise(ds_type):
     if ds_type in DATASET_METATYPES_TO_ENDPOINTS:
         return DATASET_METATYPES_TO_ENDPOINTS[ds_type]
-    raise KeyError("Unsupported datasettype {t}. Supported values {v}".format(t=ds_type, v=DATASET_METATYPES_TO_ENDPOINTS.keys()))
+    raise KeyError("Unsupported datasettype {t}. Supported values {v}".format(t=ds_type, v=list(DATASET_METATYPES_TO_ENDPOINTS.keys())))
 
 
 def _job_id_or_error(job_or_error, custom_err_msg=None):
@@ -327,7 +341,7 @@ def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_fun
     probably not a great idea. Should re-evaluate this.
     """
     report_datafiles = sal_get_reports_func(job_id)
-    report_uuids = [r.values()[0].uuid for r in report_datafiles]
+    report_uuids = [list(r.values())[0].uuid for r in report_datafiles]
     reports = [sal_get_reports_details_func(job_id, r_uuid) for r_uuid in report_uuids]
     all_report_attributes = {}
 
@@ -342,6 +356,13 @@ def _to_relative_tasks_url(job_type):
     def wrapper(job_id_or_uuid):
         return "/".join([ServiceAccessLayer.ROOT_JOBS, job_type, str(job_id_or_uuid), "tasks"])
     return wrapper
+
+
+def _show_deprecation_warning(msg):
+    if "PB_TEST_MODE" not in os.environ:
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn(msg, DeprecationWarning)
+        warnings.simplefilter('default', DeprecationWarning)  # reset filte
 
 
 class ServiceAccessLayer(object):  # pragma: no cover
@@ -381,10 +402,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         self._sleep_time = sleep_time
 
         if self.__class__.__name__ == "ServiceAccessLayer":
-            warnings.simplefilter('once', DeprecationWarning)
-            warnings.warn("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported",
-                          DeprecationWarning)
-            warnings.simplefilter('default', DeprecationWarning)  # reset filter
+            _show_deprecation_warning("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported")
 
     def _get_headers(self):
         return Constants.HEADERS
@@ -439,8 +457,12 @@ class ServiceAccessLayer(object):  # pragma: no cover
         _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
         return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
-    def _get_jobs_by_job_type(self, job_type):
-        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
+    def _get_jobs_by_job_type(self, job_type, query=None):
+        base_url = "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)
+        if query is not None:
+            base_url = "".join([base_url, "?", query])
+        return _process_rget_with_jobs_transform(_to_url(self.uri, base_url),
+                                                 headers=self._get_headers())
 
     def get_multi_analysis_jobs(self):
         return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
@@ -453,9 +475,23 @@ class ServiceAccessLayer(object):  # pragma: no cover
             _to_url(self.uri, "{p}/{t}/{i}/jobs".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=multi_job_int_or_uuid)),
             headers=self._get_headers())
 
-    def get_analysis_jobs(self):
+    def get_all_analysis_jobs(self):
+        return _process_rget_with_jobs_transform(
+            _to_url(self.uri, "{p}/analysis-jobs".format(
+                p=ServiceAccessLayer.ROOT_JM)),
+            headers=self._get_headers())
+
+    def get_analysis_jobs(self, query=None):
+        return self._get_jobs_by_job_type(JobTypes.ANALYSIS, query=query)
+
+    def get_pbsmrtpipe_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
-        return self._get_jobs_by_job_type(JobTypes.PB_PIPE)
+        _show_deprecation_warning("Please use get_analysis_jobs() instead")
+        return self.get_analysis_jobs(query=query)
+
+    def get_cromwell_jobs(self):
+        """:rtype: list[ServiceJob]"""
+        return self._get_jobs_by_job_type(JobTypes.CROMWELL)
 
     def get_import_dataset_jobs(self):
         """:rtype: list[ServiceJob]"""
@@ -474,7 +510,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
         :rtype: ServiceJob
         """
-        return self.get_job_by_type_and_id(JobTypes.PB_PIPE, job_id)
+        return self.get_job_by_type_and_id(JobTypes.ANALYSIS, job_id)
 
     def get_import_job_by_id(self, job_id):
         return self.get_job_by_type_and_id(JobTypes.IMPORT_DS, job_id)
@@ -482,7 +518,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+        return self._get_job_resource_type_with_transform("pbsmrtpipe", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def _to_dsf_id_url(self, job_id, dsf_uuid):
         u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
@@ -530,7 +566,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
 
     def get_analysis_job_reports(self, job_id):
         """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
+        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
     def get_analysis_job_reports_objs(self, job_id):
         """
@@ -544,7 +580,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         return [self.get_analysis_job_report_obj(job_id, x['dataStoreFile'].uuid) for x in job_reports]
 
     def __get_report_d(self, job_id, report_uuid, processor_func):
-        _d = dict(t=JobTypes.PB_PIPE, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
+        _d = dict(t=JobTypes.ANALYSIS, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
                   u=report_uuid)
         u = "{p}/{t}/{i}/{r}/{u}".format(**_d)
         return _process_rget_or_none(processor_func)(_to_url(self.uri, u), headers=self._get_headers())
@@ -578,7 +614,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
         return _get_all_report_attributes(self.get_import_job_reports, self.get_import_job_report_details, job_id)
 
     def get_analysis_job_entry_points(self, job_id):
-        return self._get_job_resource_type_with_transform(JobTypes.PB_PIPE, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
+        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
 
     def get_import_dataset_job_datastore(self, job_id):
         """Get a List of Service DataStore files from an import DataSet job"""
@@ -587,13 +623,17 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_merge_dataset_job_datastore(self, job_id):
         return self._get_job_resource_type(JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
 
-    def _import_dataset(self, dataset_type, path):
+    def _import_dataset(self, dataset_type, path, avoid_duplicate_import=False):
         # This returns a job resource
         url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
-        return _import_dataset_by_type(dataset_type)(url, path, headers=self._get_headers())
+        return _import_dataset_by_type(dataset_type)(url, path, headers=self._get_headers(), avoid_duplicate_import=avoid_duplicate_import)
 
-    def run_import_dataset_by_type(self, dataset_type, path_to_xml):
-        job_or_error = self._import_dataset(dataset_type, path_to_xml)
+    def run_import_dataset_by_type(self, dataset_type, path_to_xml,
+                                   avoid_duplicate_import=False):
+        job_or_error = self._import_dataset(
+            dataset_type,
+            path_to_xml,
+            avoid_duplicate_import=avoid_duplicate_import)
         custom_err_msg = "Import {d} {p}".format(p=path_to_xml, d=dataset_type)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, sleep_time=self._sleep_time)
@@ -630,7 +670,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def run_import_dataset_barcode(self, path, time_out=10):
         return self._run_import_and_block(self.import_dataset_barcode, path, time_out=time_out)
 
-    def run_import_local_dataset(self, path):
+    def run_import_local_dataset(self, path, avoid_duplicate_import=False):
         """Import a file from FS that is local to where the services are running
 
         Returns a JobResult instance
@@ -643,7 +683,7 @@ class ServiceAccessLayer(object):  # pragma: no cover
                                           ignore_errors=True)
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
-            job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path)
+            job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path, avoid_duplicate_import=avoid_duplicate_import)
             log.info("Confirming database update")
             # validation 1: attempt to retrieve dataset info
             result_new = self.get_dataset_by_uuid(dataset_meta_type.uuid)
@@ -788,12 +828,21 @@ class ServiceAccessLayer(object):  # pragma: no cover
     def get_pipeline_template_by_id(self, pipeline_template_id):
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
 
-    def create_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), tags=()):
+    def create_by_pipeline_template_id(self,
+                                       name,
+                                       pipeline_template_id,
+                                       epoints,
+                                       task_options=(),
+                                       workflow_options=(),
+                                       tags=()):
         """Creates and runs a pbsmrtpipe pipeline by pipeline template id
 
 
         :param tags: Tags should be a set of strings
         """
+        if pipeline_template_id.startswith("pbsmrtpipe"):
+            raise NotImplementedError("pbsmrtpipe is no longer supported")
+
         # sanity checking to see if pipeline is valid
         _ = self.get_pipeline_template_by_id(pipeline_template_id)
 
@@ -803,10 +852,6 @@ class ServiceAccessLayer(object):  # pragma: no cover
             return dict(optionId=opt_id, value=opt_value, optionTypeId=option_type_id)
 
         task_options = list(task_options)
-
-        # FIXME. Need to define this in the scenario IO layer.
-        # workflow_options = [_to_o("woption_01", "value_01")]
-        workflow_options = []
         d = dict(name=name,
                  pipelineId=pipeline_template_id,
                  entryPoints=seps,
@@ -817,25 +862,95 @@ class ServiceAccessLayer(object):  # pragma: no cover
         if tags:
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
-
-        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.PB_PIPE, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
+        job_type = JobTypes.ANALYSIS
+        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
-    def run_by_pipeline_template_id(self, name, pipeline_template_id, epoints, task_options=(), time_out=JOB_DEFAULT_TIMEOUT, tags=()):
+    def run_by_pipeline_template_id(self,
+                                    name,
+                                    pipeline_template_id,
+                                    epoints,
+                                    task_options=(),
+                                    workflow_options=(),
+                                    time_out=JOB_DEFAULT_TIMEOUT,
+                                    tags=(),
+                                    abort_on_interrupt=True):
         """Blocks and runs a job with a timeout"""
 
-        job_or_error = self.create_by_pipeline_template_id(name, pipeline_template_id, epoints, task_options=task_options, tags=tags)
+        job_or_error = self.create_by_pipeline_template_id(
+            name,
+            pipeline_template_id,
+            epoints,
+            task_options=task_options,
+            workflow_options=workflow_options,
+            tags=tags)
 
         _d = dict(name=name, p=pipeline_template_id, eps=epoints)
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
-                                          sleep_time=self._sleep_time)
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
+
+    def run_cromwell_workflow(self,
+                              name,
+                              workflow_source,
+                              inputs_json,
+                              engine_options,
+                              dependencies_zip,
+                              time_out=JOB_DEFAULT_TIMEOUT,
+                              tags=(),
+                              abort_on_interrupt=True):
+        d = dict(
+            name=name,
+            workflowSource=workflow_source,
+            inputsJson=inputs_json,
+            engineOptions=engine_options,
+            dependenciesZip=dependencies_zip)
+        if tags:
+            tags_str = ",".join(list(tags))
+            d['tags'] = tags_str
+        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.CROMWELL, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
+        job = ServiceJob.from_d(raw_d)
+        return _block_for_job_to_complete(self, job.id, time_out=time_out,
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
+
+    def terminate_job(self, job):
+        """
+        POST a terminate request appropriate to the job type.  Currently only
+        supported for pbsmrtpipe, cromwell, and analysis job types.
+        """
+        log.warn("Terminating job {i} ({u})".format(i=job.id, u=job.uuid))
+        if job.external_job_id is not None:
+            log.warn("Will abort Cromwell workflow %s", job.external_job_id)
+        return _process_rpost(
+            _to_url(self.uri, "{r}/{p}/{i}/terminate".format(
+                p=job.job_type,
+                r=ServiceAccessLayer.ROOT_JOBS,
+                i=job.id)),
+            {},
+            headers=self._get_headers())
+
+    def terminate_job_id(self, job_id):
+        job = _get_job_by_id_or_raise(self, job_id, KeyError)
+        return self.terminate_job(job)
+
+    def resume_job(self,
+                   job_id,
+                   time_out=JOB_DEFAULT_TIMEOUT,
+                   abort_on_interrupt=True):
+        job = _get_job_by_id_or_raise(self, job_id, KeyError)
+        if job.state in JobStates.ALL_COMPLETED:
+            return JobResult(job, 0, "")
+        return _block_for_job_to_complete(self, job.id, time_out=time_out,
+                                          sleep_time=self._sleep_time,
+                                          abort_on_interrupt=abort_on_interrupt)
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
-        job_url = self._to_url(_to_relative_tasks_url(JobTypes.PB_PIPE)(job_id_or_uuid))
+        job_url = self._to_url(_to_relative_tasks_url(JobTypes.ANALYSIS)(job_id_or_uuid))
         return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
 
     def get_import_job_tasks(self, job_id_or_uuid):
@@ -1237,7 +1352,7 @@ def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):  # 
     the appropriate client class given the input parameters.  Unlike the client
     itself this hardcodes 8243 as the WSO2 port number.
     """
-    if host != "localhost":
+    if host != "localhost" or None not in [user, password]:
         return SmrtLinkAuthClient(host, user, password, sleep_time=sleep_time)
     else:
         return ServiceAccessLayer(host, port, sleep_time=sleep_time)

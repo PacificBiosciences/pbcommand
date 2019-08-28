@@ -2,8 +2,8 @@ from __future__ import absolute_import
 import unittest
 import logging
 
-from .base_utils import get_temp_file, get_temp_dir
-from .base_utils import get_tool_contract, get_resolved_tool_contract, get_pipeline_preset
+from base_utils import get_temp_file, get_temp_dir
+from base_utils import get_tool_contract, get_resolved_tool_contract, get_pipeline_preset
 
 from pbcommand.models import (ToolContract,
                               ResolvedToolContract,
@@ -16,6 +16,13 @@ from pbcommand.pb_io.tool_contract_io import (load_tool_contract_from,
 
 import pbcommand.cli.examples.dev_app
 
+try:
+    import avro
+except ImportError:
+    avro = None
+
+skip_unless_avro_installed = unittest.skipUnless(avro is not None,
+                                                 "avro not installed")
 log = logging.getLogger(__name__)
 
 
@@ -43,6 +50,7 @@ class TestMalformedToolContract(unittest.TestCase):
 
 
 class TestWriteResolvedToolContractAvro(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_01(self):
         file_name = "resolved_tool_contract_dev_app.json"
         rtc = load_resolved_tool_contract_from(get_resolved_tool_contract(file_name))
@@ -54,12 +62,14 @@ class TestWriteResolvedToolContractAvro(unittest.TestCase):
 
 
 class TestLoadPipelinePresets(unittest.TestCase):
+    @skip_unless_avro_installed
     def test_full_schema(self):
         file_name = "example-pipeline-presets-typed.json"
         p = load_pipeline_presets_from(get_pipeline_preset(file_name))
         self.assertEqual(len(p.options), 2)
         self.assertEqual(len(p.task_options), 7)
 
+    @skip_unless_avro_installed
     def test_shorthand_options(self):
         file_name = "example-pipeline-presets.json"
         p = load_pipeline_presets_from(get_pipeline_preset(file_name))

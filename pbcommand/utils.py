@@ -1,4 +1,7 @@
 """Utils for common funcs, such as setting up a log, composing functions."""
+from builtins import map
+from past.builtins import basestring
+from builtins import object
 import multiprocessing
 import functools
 import os
@@ -10,10 +13,13 @@ import traceback
 import time
 import types
 import subprocess
+import sys
 from contextlib import contextmanager
 import xml.etree.ElementTree as ET
 
 from pbcommand.models import FileTypes, DataSetMetaData
+from pbcommand import to_ascii
+
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
@@ -142,7 +148,7 @@ def _get_console_and_file_logging_config_dict(console_level, console_formatter, 
          'formatters': formatters,
          'handlers': handlers,
          'loggers': loggers,
-         'root': {'handlers': handlers.keys(), 'level': logging.DEBUG}
+         'root': {'handlers': list(handlers.keys()), 'level': logging.DEBUG}
          }
 
     # print pprint.pformat(d)
@@ -208,8 +214,9 @@ def get_parsed_args_log_level(pargs, default_level=logging.INFO):
     level = default_level
     if isinstance(level, basestring):
         level = logging.getLevelName(level)
-    if hasattr(pargs, 'verbosity') and pargs.verbosity > 0:
-        if pargs.verbosity >= 2:
+    verbosity = getattr(pargs, 'verbosity', None)
+    if verbosity is not None and verbosity > 0:
+        if verbosity >= 2:
             level = logging.DEBUG
         else:
             level = logging.INFO
@@ -502,11 +509,6 @@ def walker(root_dir, file_filter_func):
                 yield path
 
 
-def to_ascii(s):
-    # This is not awesome
-    return s.encode('ascii', 'ignore')
-
-
 def pool_map(func, args, nproc):
     """
     Wrapper for calling a function in parallel using the multiprocessing
@@ -522,5 +524,5 @@ def pool_map(func, args, nproc):
         pool.join()
     else:
         log.debug("computed_nproc=1, running serially")
-        result = map(func, args)
+        result = list(map(func, args))
     return result

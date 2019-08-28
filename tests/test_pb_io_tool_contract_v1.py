@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import unittest
 import logging
 
-from .base_utils import get_tool_contract_v1
+from base_utils import get_tool_contract_v1
 
 from pbcommand.models import (ToolContract,
                               MalformedToolContractError)

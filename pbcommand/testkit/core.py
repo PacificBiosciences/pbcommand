@@ -22,6 +22,27 @@ from pbcommand.pb_io.tool_contract_io import write_resolved_tool_contract
 log = logging.getLogger(__name__)
 
 
+class PbIntegrationBase(unittest.TestCase):
+
+    def setUp(self):
+        self._cwd = os.getcwd()
+        self._tmp_dir = tempfile.mkdtemp()
+        os.chdir(self._tmp_dir)
+
+    def tearDown(self):
+        os.chdir(self._cwd)
+
+    def _check_call(self, args):
+        log.info("Writing logs to subprocess.std* in %s", self._tmp_dir)
+        with open("subprocess.stdout", "w") as stdout:
+            with open("subprocess.stderr", "w") as stderr:
+                try:
+                    return subprocess.check_call(args, stdout=stdout, stderr=stderr)
+                except Exception as e:
+                    log.error(e)
+                    log.error("Console outputs are in %s", self._tmp_dir)
+
+
 class PbTestApp(unittest.TestCase):
 
     """Generic Harness for running tool contracts end-to-end"""
@@ -68,7 +89,7 @@ class PbTestApp(unittest.TestCase):
         # the output files should all have unique paths, otherwise the resolver
         # has failed
         emsg = "Non-unique outputs. {o}".format(o=rtc.task.output_files)
-        self.assertEquals(len(rtc.task.output_files), len(set(rtc.task.output_files)), emsg)
+        self.assertEqual(len(rtc.task.output_files), len(set(rtc.task.output_files)), emsg)
 
         for i, output_file in enumerate(rtc.task.output_files):
             msg = "Unable to find {i}-th output file {p}".format(i=i, p=output_file)
@@ -98,7 +119,7 @@ class PbTestApp(unittest.TestCase):
         output_tc = get_temp_file("-{n}-tool_contract.json".format(n=self.__class__.__name__), output_dir)
         emit_tc_exe = "{e} > {o}".format(e=self.DRIVER_EMIT, o=output_tc)
         rcode = subprocess.call([emit_tc_exe], shell=True)
-        self.assertEquals(rcode, 0, "Emitting tool contract failed (exit-code {r}) for '{e}'".format(e=emit_tc_exe, r=rcode))
+        self.assertEqual(rcode, 0, "Emitting tool contract failed (exit-code {r}) for '{e}'".format(e=emit_tc_exe, r=rcode))
 
         # sanity marshall-unmashalling
         log.debug("Loading tool-contract from {p}".format(p=output_tc))
@@ -116,16 +137,16 @@ class PbTestApp(unittest.TestCase):
         self.assertIsInstance(loaded_rtc, ResolvedToolContract)
 
         # Test Resolved options if specified.
-        for opt, resolved_value in self.RESOLVED_TASK_OPTIONS.iteritems():
+        for opt, resolved_value in self.RESOLVED_TASK_OPTIONS.items():
             self.assertTrue(opt in rtc.task.options, "Resolved option {x} not in RTC options.".format(x=opt))
             # this needs to support polymorphic equals (i.e., almostEquals
             if not isinstance(resolved_value, float):
                 emsg = "Resolved option {o} are not equal. Expected '{a}', got '{b}'".format(o=opt, b=rtc.task.options[opt], a=resolved_value)
-                self.assertEquals(rtc.task.options[opt], resolved_value, emsg)
+                self.assertEqual(rtc.task.options[opt], resolved_value, emsg)
 
         # Resolved NPROC
-        self.assertEquals(rtc.task.nproc, self.RESOLVED_NPROC)
-        self.assertEquals(rtc.task.is_distributed, self.RESOLVED_IS_DISTRIBUTED)
+        self.assertEqual(rtc.task.nproc, self.RESOLVED_NPROC)
+        self.assertEqual(rtc.task.is_distributed, self.RESOLVED_IS_DISTRIBUTED)
 
         log.info("running resolved contract {r}".format(r=output_json_rtc))
 
@@ -138,7 +159,7 @@ class PbTestApp(unittest.TestCase):
 
         with open(stdout_f, 'w') as stdout, open(stderr_f, 'w') as stderr:
             rcode = subprocess.call([exe], shell=True, stdout=stdout, stderr=stderr)
-            self.assertEquals(rcode, 0, "Running from resolved tool contract failed (exit-code {r}) from {x}\nSee stderr in {s}".format(x=exe, r=rcode, s=stderr_f))
+            self.assertEqual(rcode, 0, "Running from resolved tool contract failed (exit-code {r}) from {x}\nSee stderr in {s}".format(x=exe, r=rcode, s=stderr_f))
         log.info("Successfully completed running e2e for {d}".format(d=self.DRIVER_EMIT))
 
         self._test_outputs_exists(rtc)

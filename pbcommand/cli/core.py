@@ -15,6 +15,7 @@ Going to do this in a new steps.
 
 """
 from __future__ import print_function
+from builtins import object
 import argparse
 import json
 import logging
@@ -27,11 +28,13 @@ import errno
 
 import pbcommand
 
-from pbcommand.models import PbParser, ResourceTypes
+from pbcommand.models import PbParser, ResourceTypes, PacBioAlarm
+from pbcommand.models.report import Report, Attribute
 from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
                                       EMIT_TOOL_CONTRACT_OPTION,
                                       add_resolved_tool_contract_option,
-                                      add_base_options)
+                                      add_base_options,
+                                      add_nproc_option)
 from pbcommand.utils import get_parsed_args_log_level
 from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
@@ -62,7 +65,7 @@ def get_default_argparser(version, description):
     return _add_version(p, version)
 
 
-def get_default_argparser_with_base_opts(version, description, default_level="INFO"):
+def get_default_argparser_with_base_opts(version, description, default_level="INFO", nproc=None):
     """Return a parser with the default log related options
 
     If you don't want the default log behavior to go to stdout, then set
@@ -84,7 +87,25 @@ def get_default_argparser_with_base_opts(version, description, default_level="IN
     my-tool --my-opt=1234 --log-level=DEBUG --log-file=file.log file_in.txt
 
     """
-    return add_base_options(get_default_argparser(version, description), default_level=default_level)
+    p = add_base_options(get_default_argparser(version, description), default_level=default_level)
+    if nproc is not None:
+        p = add_nproc_option(p)
+    return p
+
+
+def write_task_report(run_time, nproc, exit_code):
+    attributes = [
+        Attribute("host", value=os.uname()[1]),
+        Attribute("system", value=os.uname()[0]),
+        Attribute("nproc", value=nproc),
+        Attribute("run_time", value=run_time),
+        Attribute("exit_code", value=exit_code)
+    ]
+    report = Report("workflow_task",
+                    title="Workflow Task Report",
+                    attributes=attributes,
+                    tags=("internal",))
+    report.write_json("task-report.json")
 
 
 def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
@@ -121,6 +142,14 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     # more required commandline options in base parser (e.g., --log-file, --log-formatter)
     log_options = dict(level=level, file_name=log_file)
 
+    base_dir = os.getcwd()
+
+    dump_alarm_on_error = False
+    if "dump_alarm_on_error" in kwargs:
+        dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
+    is_cromwell_environment = bool(os.environ.get("SMRT_PIPELINE_BUNDLE_DIR", None)) and "cromwell-executions" in base_dir
+    dump_alarm_on_error = dump_alarm_on_error and is_cromwell_environment
+
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
     # signature
     # FIXME. This should use the more concrete F(file_name_or_name, level, formatter)
@@ -130,6 +159,10 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
         alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
         alog.info("completed setting up logger with {f}".format(f=setup_log_func))
         alog.info("log opts {d}".format(d=log_options))
+
+    if dump_alarm_on_error:
+        alog.info("This command appears to be running as part of a Cromwell workflow")
+        alog.info("Additional output files may be generated")
 
     try:
         # the code in func should catch any exceptions. The try/catch
@@ -143,6 +176,14 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
             alog.error(e, exc_info=True)
         else:
             traceback.print_exc(sys.stderr)
+        if dump_alarm_on_error:
+            PacBioAlarm.dump_error(
+                file_name=os.path.join(base_dir, "alarms.json"),
+                exception=e,
+                info="".join(traceback.format_exc()),
+                message=str(e),
+                name=e.__class__.__name__,
+                severity=logging.ERROR)
 
         # We should have a standard map of exit codes to Int
         if isinstance(e, IOError):
@@ -151,15 +192,20 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
             return_code = 2
 
     _d = dict(r=return_code, s=run_time)
+    if is_cromwell_environment:
+        alog.info("Writing task report to task-report.json")
+        write_task_report(run_time, getattr(pargs, "nproc", 1), return_code)
     if alog is not None:
         alog.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
     return return_code
 
 
-def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func):
+def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func,
+                       dump_alarm_on_error=True):
     # For tools that haven't yet implemented the ToolContract API
     args = parser.parse_args(argv)
-    return _pacbio_main_runner(alog, setup_log_func, args_runner_func, args)
+    return _pacbio_main_runner(alog, setup_log_func, args_runner_func, args,
+                               dump_alarm_on_error=dump_alarm_on_error)
 
 
 class TemporaryResourcesManager(object):

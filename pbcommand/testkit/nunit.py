@@ -6,6 +6,8 @@ for importing into JIRA/X-ray
 """
 
 # NOTE: deliberately avoiding any dependencies outside the standard library!
+from builtins import zip
+from builtins import object
 from xml.dom import minidom
 import logging
 import argparse
