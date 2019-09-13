@@ -5,6 +5,7 @@ module purge
 module load gcc
 module load ccache
 module load python/2
+module load htslib  # since pysam was built against this
 #module load make
 
 set -vex
