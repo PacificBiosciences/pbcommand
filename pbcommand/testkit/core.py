@@ -41,6 +41,7 @@ class PbIntegrationBase(unittest.TestCase):
                 except Exception as e:
                     log.error(e)
                     log.error("Console outputs are in %s", self._tmp_dir)
+                    self.fail("Subprocess call failed: %s" % e)
 
 
 class PbTestApp(unittest.TestCase):
