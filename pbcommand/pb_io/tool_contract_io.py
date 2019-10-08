@@ -6,7 +6,7 @@ import logging
 import warnings
 
 import pbcommand
-from pbcommand.schemas import RTC_SCHEMA, TC_SCHEMA, validate_presets
+from pbcommand.schemas import validate_presets
 from pbcommand.models import (TaskTypes,
                               GatherToolContractTask,
                               ScatterToolContractTask,
@@ -375,27 +375,3 @@ def write_resolved_tool_contract(rtc, output_json_file):
     """
     d = rtc.to_dict()
     return _write_json(d, output_json_file)
-
-
-def _write_records_to_avro(schema, _d_or_ds, output_file):
-    from avro.datafile import DataFileWriter
-    from avro.io import DatumWriter
-    warnings.warn("Avro support is deprecated and will be removed", DeprecationWarning)
-    # FIXME. There's only one record being written here,
-    # why does this not support a single item
-    if isinstance(_d_or_ds, dict):
-        _d_or_ds = [_d_or_ds]
-    with open(output_file, 'w') as outs:
-        with DataFileWriter(outs, DatumWriter(), schema) as writer:
-            for record in _d_or_ds:
-                writer.append(record)
-    log.debug("Write avro file to {p}".format(p=output_file))
-    return _d_or_ds
-
-
-def write_tool_contract_avro(tc, avro_output):
-    return _write_records_to_avro(TC_SCHEMA, tc.to_dict(), avro_output)
-
-
-def write_resolved_tool_contract_avro(rtc, avro_output):
-    return _write_records_to_avro(RTC_SCHEMA, rtc.to_dict(), avro_output)

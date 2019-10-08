@@ -295,6 +295,7 @@ def pacbio_args_or_contract_runner(argv,
                                   setup_log_func)
 
 
+# FIXME deprecated, please remove
 def pbparser_runner(argv,
                     parser,
                     args_runner_func,

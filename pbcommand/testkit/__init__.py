@@ -1,2 +1,2 @@
-from .core import PbTestApp, PbIntegrationBase
+from .core import PbIntegrationBase
 from .base_utils import pb_requirements
