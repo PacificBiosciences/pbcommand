@@ -5,6 +5,7 @@
 from past.builtins import basestring
 from builtins import object
 import abc
+import sys
 import os
 import logging
 import argparse
@@ -537,6 +538,10 @@ def _factory(tool_id, version, name, description, subcomponents, default_level):
     return _f
 
 
+def _show_deprecation_warning():
+    sys.stderr.write("WARNING: tool contract support is deprecated, please update this code to use the simpler argparse model.")
+
+
 def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed=True, nproc=1,
                  resource_types=(), subcomponents=(), serialization='json',
                  default_level="INFO"):
@@ -546,6 +551,7 @@ def get_pbparser(tool_id, version, name, description, driver_exe, is_distributed
 
     :returns: PbParser object
     """
+    _show_deprecation_warning()
     driver = ToolDriver(driver_exe, serialization=serialization)
     tc_parser = ToolContractParser(tool_id, version, name, description, is_distributed, driver,
                                    nproc, resource_types)
@@ -556,6 +562,7 @@ def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_
                          is_distributed=True, nproc=1, nchunks=SymbolTypes.MAX_NCHUNKS, resource_types=(),
                          subcomponents=(), serialization='json', default_level="INFO"):
     """Create a Scatter Tool"""
+    _show_deprecation_warning()
     driver = ToolDriver(driver_exe, serialization=serialization)
     tc_parser = ScatterToolContractParser(tool_id, version, name, description, is_distributed,
                                           driver, nproc, resource_types, chunk_keys,
@@ -566,6 +573,7 @@ def get_scatter_pbparser(tool_id, version, name, description, driver_exe, chunk_
 def get_gather_pbparser(tool_id, version, name, description, driver_exe,
                         is_distributed=True, nproc=1, resource_types=(), subcomponents=(), serialization='json', default_level="INFO"):
     """Create a Gather tool"""
+    _show_deprecation_warning()
     driver = ToolDriver(driver_exe, serialization=serialization)
     tc_parser = GatherToolContractParser(tool_id, version, name, description,
                                          is_distributed, driver, nproc, resource_types)

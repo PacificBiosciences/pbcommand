@@ -41,7 +41,7 @@ setup(
     version=version,
     license='BSD',
     author='mpkocher natechols',
-    author_email='mkocher@pacificbiosciences.com',
+    author_email='nechols@pacificbiosciences.com',
     url="https://github.com/PacificBiosciences/pbcommand",
     download_url='https://github.com/PacificBiosciences/pbcommand/tarball/{v}'.format(v=version),
     description='Library and Tools for interfacing to PacBio pbsmrtpipe workflow engine.',
