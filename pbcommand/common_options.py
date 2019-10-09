@@ -5,10 +5,6 @@ import argparse
 import sys
 
 
-RESOLVED_TOOL_CONTRACT_OPTION = "--resolved-tool-contract"
-EMIT_TOOL_CONTRACT_OPTION = "--emit-tool-contract"
-
-
 def add_debug_option(p):
     p.add_argument("--pdb", action="store_true", default=False,
                    help="Enable Python debugger")
@@ -52,19 +48,6 @@ def add_log_file_option(p):
     return p
 
 
-def add_resolved_tool_contract_option(p):
-    p.add_argument(RESOLVED_TOOL_CONTRACT_OPTION, type=str,
-                   help="Run Tool directly from a PacBio Resolved tool contract")
-    return p
-
-
-def add_emit_tool_contract_option(p):
-    p.add_argument(EMIT_TOOL_CONTRACT_OPTION, action="store_true",
-                   default=False,
-                   help="Emit Tool Contract to stdout")
-    return p
-
-
 def add_nproc_option(p, default=1):
     p.add_argument("-j", "--nproc", type=int, default=default,
                    help="Number of processors to use")
@@ -105,11 +88,6 @@ def add_common_options(p, default_level='INFO'):
     New model for 3.1 release. This should replace add_base_options
     """
     return add_log_quiet_option(add_log_debug_option(add_log_level_option(add_log_file_option(p), default_level=default_level)))
-
-
-def add_base_options_with_emit_tool_contract(p, default_level='INFO'):
-    # can't use compose here because of circular imports via parser
-    return add_base_options(add_resolved_tool_contract_option(add_emit_tool_contract_option(p)), default_level=default_level)
 
 
 def _to_print_message_action(msg):

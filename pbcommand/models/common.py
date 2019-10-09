@@ -1124,3 +1124,28 @@ class PacBioAlarm(object):
             info,
             severity,
             owner="python").to_json(file_name)
+
+
+class PipelinePreset(object):
+
+    def __init__(self, options, task_options, pipeline_id,
+                 preset_id, name, description):
+        self.options = options
+        self.task_options = task_options
+        self.pipeline_id = pipeline_id
+        self.preset_id = preset_id
+        self.name = name
+        self.description = description
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__)  # self.to_dict()
+        return "<{k} >".format(**_d)
+
+    def to_dict(self):
+        return OrderedDict([
+            ("pipelineId", self.pipeline_id),
+            ("presetId", self.preset_id),
+            ("name", self.name),
+            ("description", self.description),
+            ("options", dict(self.options)),
+            ("taskOptions", dict(self.task_options))])

@@ -8,11 +8,28 @@ from pbcommand.models import (PipelineChunk, PipelineDataStoreViewRules,
                               PacBioStringChoiceOption,
                               PacBioIntChoiceOption, PacBioStringOption,
                               PacBioFloatOption, PacBioBooleanOption,
-                              PacBioIntOption)
-from pbcommand.schemas import validate_datastore_view_rules
+                              PacBioIntOption, PipelinePreset)
+from pbcommand.schemas import validate_datastore_view_rules, validate_presets
 from pbcommand import to_ascii, to_utf8
 
 log = logging.getLogger(__name__)
+
+
+def json_path_or_d(value):
+    if isinstance(value, dict):
+        return value
+    elif isinstance(value, ("""s""".__class__, u"""s""".__class__)):
+        with open(value, 'r') as f:
+            d = json.loads(f.read())
+        return d
+    else:
+        raise ValueError("Unsupported value. Expected dict, or string")
+
+
+def _json_path_or_d(func):
+    def _wrapper(value):
+        return func(json_path_or_d(value))
+    return _wrapper
 
 
 def write_pipeline_chunks(chunks, output_json_file, comment):
@@ -154,3 +171,28 @@ def pacbio_option_from_dict(d):
         return _pacbio_choice_option_from_dict(d)
     else:
         return _pacbio_option_from_dict(d)
+
+
+# XXX this could probably be more robust
+@_json_path_or_d
+def load_pipeline_presets_from(d):
+    """
+    Load pipeline presets from dictionary.  This expects a schema where the
+    options are arrays of type (id,value,optionTypeId), but it will also accept
+    a shorthand where the options are dictionaries.
+    """
+    validate_presets(d)
+    options = d['options']
+    if isinstance(options, list):
+        options = {o['id']: o['value'] for o in options}
+    taskOptions = d['taskOptions']
+    if isinstance(taskOptions, list):
+        taskOptions = {o['id']: o['value'] for o in taskOptions}
+    presets = PipelinePreset(
+        options=options,
+        task_options=taskOptions,
+        pipeline_id=d['pipelineId'],
+        preset_id=d['presetId'],
+        name=d.get('name', None),
+        description=d.get('description', None))
+    return presets
