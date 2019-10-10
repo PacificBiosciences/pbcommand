@@ -8,10 +8,6 @@ from .common import (FileType, FileTypes, TaskOptionTypes,
                      PacBioStringOption, PacBioFloatOption,
                      PacBioIntChoiceOption,
                      PacBioFloatChoiceOption, PacBioStringChoiceOption,
-                     PacBioAlarm)
-from .tool_contract import *
-from .parser import (get_pbparser,
-                     get_gather_pbparser,
-                     get_scatter_pbparser, PbParser)
+                     PacBioAlarm, PipelinePreset)
 
 from .conditions import (ReseqCondition, ReseqConditions)
