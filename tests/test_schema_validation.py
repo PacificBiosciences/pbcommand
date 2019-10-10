@@ -4,21 +4,18 @@ import os
 import logging
 import unittest
 
-from pbcommand.models import (ToolContract, ResolvedToolContract,
-                              PipelinePreset, PipelineDataStoreViewRules)
+from pbcommand.models import PipelinePreset, PipelineDataStoreViewRules
 from pbcommand.models.report import Report, ReportSpec
 
-from pbcommand.pb_io import (load_tool_contract_from,
-                             load_resolved_tool_contract_from,
-                             load_pipeline_presets_from,
+from pbcommand.pb_io import (load_pipeline_presets_from,
                              load_pipeline_datastore_view_rules_from_json,
                              load_report_spec_from_json)
-from pbcommand.schemas import (validate_rtc, validate_tc, validate_presets,
+from pbcommand.schemas import (validate_presets,
                                validate_datastore_view_rules,
                                validate_report_spec)
 from pbcommand.utils import walker
 
-from base_utils import DATA_DIR_RTC, DATA_DIR_TC, DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
+from base_utils import DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
 
 try:
     import avro
@@ -50,24 +47,6 @@ def _to_assertion(path, schema_validate_func):
         log.info(" is-valid? {i} {p}".format(i=is_valid, p=path))
         self.assertTrue(is_valid, "{p} is not valid with the avro schema".format(p=path))
     return test_is_validate
-
-
-class ValidateResolvedToolContracts(unittest.TestCase):
-    @skip_unless_avro_installed
-    def test_validate_resolved_tool_contracts(self):
-        for path in walker(DATA_DIR_RTC, json_filter):
-            f = _to_assertion(path, validate_rtc)
-            f(self)
-            self.assertIsInstance(load_resolved_tool_contract_from(path), ResolvedToolContract)
-
-
-class ValidateToolContracts(unittest.TestCase):
-    @skip_unless_avro_installed
-    def test_validate_tool_contracts(self):
-        for path in walker(DATA_DIR_TC, json_filter):
-            f = _to_assertion(path, validate_tc)
-            f(self)
-            self.assertIsInstance(load_tool_contract_from(path), ToolContract)
 
 
 class ValidatePipelinePreset(unittest.TestCase):
