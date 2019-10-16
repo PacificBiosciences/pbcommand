@@ -164,7 +164,7 @@ class TaskOptionTypes(object):
             return cls.INT
         elif isinstance(val, float):
             return cls.FLOAT
-        elif isinstance(val, None):  # XXX special case
+        elif val is None:  # XXX special case
             return cls.FILE
         return cls.STR
 
