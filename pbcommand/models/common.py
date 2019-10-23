@@ -84,16 +84,12 @@ class TaskTypes(object):
 
 class TaskOptionTypes(object):
     """Core Task Option type id type"""
-    # FIXME(mpkocher)(2016-7-16) This should be more well defined, e.g., int32 and use the same id format of
-    # For example, pacbio.option_types.int32
 
-    # Because of the Avro schema restrictions and to keep the keys short
-    # in name, we'll use a dot let format. The legacy format used
-    # pbsmrtpipe.option_types.* as the root namespace
     INT = "integer"
     BOOL = "boolean"
     STR = "string"
     FLOAT = "float"
+    FILE = "file"
     # Choice type Options
     CHOICE_STR = "choice_string"
     CHOICE_INT = "choice_integer"
@@ -103,7 +99,7 @@ class TaskOptionTypes(object):
     def ALL(cls):
         """Return a set of all Task Option Types"""
         return {cls.INT, cls.BOOL, cls.STR, cls.FLOAT, cls.CHOICE_STR,
-                cls.CHOICE_INT, cls.CHOICE_FLOAT}
+                cls.CHOICE_INT, cls.CHOICE_FLOAT, cls.FILE}
 
     @classmethod
     def _raise_value_error(cls, value, allowed, option_type_name):
@@ -115,7 +111,7 @@ class TaskOptionTypes(object):
     @classmethod
     def ALL_SIMPLE(cls):
         """Returns a set of 'simple' task option types (e.g., boolean, string, int, float)"""
-        return {cls.STR, cls.BOOL, cls.INT, cls.FLOAT}
+        return {cls.STR, cls.BOOL, cls.INT, cls.FLOAT, cls.FILE}
 
     @classmethod
     def from_simple_str(cls, sx):
@@ -168,6 +164,8 @@ class TaskOptionTypes(object):
             return cls.INT
         elif isinstance(val, float):
             return cls.FLOAT
+        elif val is None:  # XXX special case
+            return cls.FILE
         return cls.STR
 
 
@@ -1124,3 +1122,28 @@ class PacBioAlarm(object):
             info,
             severity,
             owner="python").to_json(file_name)
+
+
+class PipelinePreset(object):
+
+    def __init__(self, options, task_options, pipeline_id,
+                 preset_id, name, description):
+        self.options = options
+        self.task_options = task_options
+        self.pipeline_id = pipeline_id
+        self.preset_id = preset_id
+        self.name = name
+        self.description = description
+
+    def __repr__(self):
+        _d = dict(k=self.__class__.__name__)  # self.to_dict()
+        return "<{k} >".format(**_d)
+
+    def to_dict(self):
+        return OrderedDict([
+            ("pipelineId", self.pipeline_id),
+            ("presetId", self.preset_id),
+            ("name", self.name),
+            ("description", self.description),
+            ("options", dict(self.options)),
+            ("taskOptions", dict(self.task_options))])
