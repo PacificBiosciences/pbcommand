@@ -24,7 +24,7 @@ clean:
 test-nose:
 	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py
 test-pytest:
-	pytest -v --durations=12 tests/test_*.py
+	pytest -v --durations=12 --junitxml=nosetests.xml --cov=./pbcommand --cov-report=xml:coverage.xml tests/test_*.py
 
 test: test-pytest run-pylint run-pep8
 

@@ -1,8 +1,0 @@
-xmlbuilder
-pytest
-nose
-coverage
-tox
-pep8
-autopep8
-pylint
