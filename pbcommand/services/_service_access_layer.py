@@ -281,15 +281,15 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
 # Make this consistent somehow. Maybe defined 'shortname' in the core model?
 # Martin is doing this for the XML file names
 DATASET_METATYPES_TO_ENDPOINTS = {
-    FileTypes.DS_SUBREADS_H5: "hdfsubreads",
-    FileTypes.DS_SUBREADS: "subreads",
-    FileTypes.DS_ALIGN: "alignments",
-    FileTypes.DS_REF: "references",
-    FileTypes.DS_BARCODE: "barcodes",
-    FileTypes.DS_CCS: "ccsreads",
-    FileTypes.DS_CONTIG: "contigs",
-    FileTypes.DS_ALIGN_CCS: "cssalignments",
-    FileTypes.DS_GMAP_REF: "gmapreferences"}
+    FileTypes.DS_SUBREADS_H5.file_type_id: "hdfsubreads",
+    FileTypes.DS_SUBREADS.file_type_id: "subreads",
+    FileTypes.DS_ALIGN.file_type_id: "alignments",
+    FileTypes.DS_REF.file_type_id: "references",
+    FileTypes.DS_BARCODE.file_type_id: "barcodes",
+    FileTypes.DS_CCS.file_type_id: "ccsreads",
+    FileTypes.DS_CONTIG.file_type_id: "contigs",
+    FileTypes.DS_ALIGN_CCS.file_type_id: "cssalignments",
+    FileTypes.DS_GMAP_REF.file_type_id: "gmapreferences"}
 
 
 def _get_endpoint_or_raise(ds_type):
