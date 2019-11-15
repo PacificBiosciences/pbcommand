@@ -1260,11 +1260,11 @@ class Wso2Constants(object):  # pragma: no cover
 
 
 def _create_auth(secret, consumer_key):  # pragma: no cover
-    return base64.b64encode(":".join([secret, consumer_key]))
+    return base64.b64encode(":".join([secret, consumer_key]).encode("utf-8"))
 
 
 def get_token(url, user, password, scopes, secret, consumer_key):  # pragma: no cover
-    basic_auth = _create_auth(secret, consumer_key)
+    basic_auth = _create_auth(secret, consumer_key).decode("utf-8")
     # To be explicit for pedagogical purposes
     headers = {
         "Authorization": "Basic {}".format(basic_auth),
