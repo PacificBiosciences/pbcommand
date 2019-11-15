@@ -68,7 +68,7 @@ class Pipeline(object):
         f("Name       : {}".format(self.display_name))
         f("Description: {}".format(self.description))
         f("EntryPoints: {}".format(len(self.entry_bindings)))
-        _printer(self.entry_bindings)
+        _printer(sorted(self.entry_bindings, key=lambda x: x[0]))
         if self.tags:
             f("Tags       : {} ".format(", ".join(list(set(self.tags)))))
         if len(self.task_options) > 0:
