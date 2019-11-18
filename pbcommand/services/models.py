@@ -1,6 +1,5 @@
 """Services Specific Data Models"""
-from __future__ import division
-from builtins import object
+
 from collections import namedtuple
 import json
 import uuid

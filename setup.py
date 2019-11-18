@@ -1,67 +1,51 @@
-import os
-import sys
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup
-
-version = __import__('pbcommand').get_version()
-
-_REQUIREMENTS_TEST_FILE = "REQUIREMENTS_TEST.txt"
-_README = 'README.md'
-
-
-def _get_description():
-    with open(_get_local_file(_README)) as f:
-        _long_description = f.read()
-    return _long_description
-
-
-def _get_local_file(file_name):
-    return os.path.join(os.path.dirname(__file__), file_name)
-
-
-install_deps = [
-    "avro-python3",
-    "requests",
-    "iso8601",
-    "pytz",
-    "future"
-]
+from setuptools import setup, find_packages
 
 test_deps = [
-    "pytest",
-    "pytest-xdist",
-    "pytest-cov",
-    "nose",
-    "coverage",
-    "tox",
-    "pep8",
-    "autopep8",
-    "pylint"
+    'autopep8',
+    'coverage',
+    'nose',
+    'pep8',
+    'pylint',
+    'pytest',
+    'pytest-cov',
+    'pytest-xdist',
+    'tox',
 ]
-
 
 setup(
     name='pbcommand',
-    version=version,
-    license='BSD',
-    author='mpkocher natechols',
-    author_email='nechols@pacificbiosciences.com',
-    url="https://github.com/PacificBiosciences/pbcommand",
-    download_url='https://github.com/PacificBiosciences/pbcommand/tarball/{v}'.format(v=version),
-    description='Library and Tools for interfacing to PacBio pbsmrtpipe workflow engine.',
-    install_requires=install_deps,
-    tests_require=test_deps,
-    long_description=_get_description(),
-    keywords='workflow pacbio'.split(),
+    version='2.0.0',
+    author='Pacific Biosciences',
+    author_email='devnet@pacificbiosciences.com',
+    description='Library and Tools for interfacing with PacBio® data CLI tools',
+    license='BSD-3-Clause-Clear',
     packages=find_packages(),
-    package_data={"pbcommand": ["schemas/*.avsc"]},
+    include_package_data=True,
     zip_safe=False,
-    extras_require={"pbcore": ["pbcore", "ipython", "autopep8"],
-                    "interactive": ['prompt_toolkit']},
-    classifiers=['Development Status :: 4 - Beta',
-                 'Environment :: Console',
-                 'Topic :: Software Development :: Bug Tracking']
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Topic :: Software Development :: Bug Tracking',
+    ],
+    install_requires=[
+        'avro-python3',
+        'iso8601',
+        'pytz',
+        'requests',
+    ],
+    test_requires=test_deps,
+    extras_require={
+        'test': test_deps,
+        'pbcore': [
+            'pbcore',
+            'ipython',
+            'autopep8',
+        ],
+        'interactive': [
+            'prompt_toolkit',
+        ]},
+    python_requires='>=3.7',
 )

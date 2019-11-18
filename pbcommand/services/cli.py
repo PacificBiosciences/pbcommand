@@ -17,8 +17,7 @@ pbservice run-merge-dataset path/to/file.json
 
 This program is largely replaced by the Scala version in 'smrtflow'.
 """
-from __future__ import print_function
-from builtins import object
+
 import argparse
 import json
 

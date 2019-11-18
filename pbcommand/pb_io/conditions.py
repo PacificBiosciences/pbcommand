@@ -1,4 +1,3 @@
-from past.builtins import basestring
 import json
 import os
 
@@ -47,7 +46,7 @@ def load_reseq_conditions_from(json_file_or_dict):
     cs = ReseqConditions.from_dict(d)
 
     # Resolve
-    if isinstance(json_file_or_dict, basestring):
+    if isinstance(json_file_or_dict, str):
         dir_name = os.path.dirname(os.path.abspath(json_file_or_dict))
         return _resolve_conditions(cs, dir_name)
     else:

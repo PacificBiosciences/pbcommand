@@ -1,7 +1,7 @@
-"""Utils for common funcs, such as setting up a log, composing functions."""
-from builtins import map
-from past.builtins import basestring
-from builtins import object
+"""
+Utils for common funcs, such as setting up a log, composing functions.
+"""
+
 import multiprocessing
 import functools
 import os
@@ -212,7 +212,7 @@ def get_parsed_args_log_level(pargs, default_level=logging.INFO):
                           specify one
     """
     level = default_level
-    if isinstance(level, basestring):
+    if isinstance(level, str):
         level = logging.getLevelName(level)
     verbosity = getattr(pargs, 'verbosity', None)
     if verbosity is not None and verbosity > 0:

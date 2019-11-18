@@ -4,9 +4,6 @@
 Author: Johann Miller and Michael Kocher
 """
 
-from builtins import range
-from past.builtins import basestring
-from builtins import object
 from collections import defaultdict, OrderedDict
 import warnings
 import csv
@@ -20,7 +17,6 @@ from pprint import pformat
 import datetime
 
 import pbcommand
-from future.utils import with_metaclass
 
 
 log = logging.getLogger(__name__)
@@ -90,9 +86,9 @@ class PbReportError(Exception):
     pass
 
 
-class BaseReportElement(with_metaclass(abc.ABCMeta, object)):
+class BaseReportElement(metaclass=abc.ABCMeta):
     def __init__(self, id_):
-        if not isinstance(id_, basestring):
+        if not isinstance(id_, str):
             raise PbReportError(
                 "Type error. id '{i}' cannot be {t}.".format(i=id_, t=type(id_)))
 
@@ -952,7 +948,7 @@ DATA_TYPES = {
     "int": int,
     "long": int,
     "float": float,
-    "string": basestring,  # this is hacky too
+    "string": str,
     "boolean": bool
 }
 

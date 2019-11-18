@@ -1,6 +1,12 @@
+import pkg_resources
 import sys
 
-VERSION = (2, 0, 0)
+try:
+    __VERSION__ = pkg_resources.get_distribution('pbcommand').version
+except Exception:
+    __VERSION__ = 'unknown'
+
+VERSION = (int(x) for x in __VERSION__.split('.'))
 
 
 def get_version():
@@ -13,21 +19,12 @@ def get_version():
     return ".".join([str(i) for i in VERSION])
 
 
-python2 = (sys.version_info[0] < 3)
-
-
 def to_ascii(s):
-    if python2:
-        return s.encode('ascii', 'ignore')
-    else:
-        return s
+    return s
 
 
 def to_utf8(s):
-    if python2:
-        return s.encode('utf8')
-    else:
-        return s
+    return s
 
 
 # https://docs.python.org/3/howto/sorting.html
