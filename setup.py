@@ -12,7 +12,6 @@ test_deps = [
     'pytest',
     'pytest-cov',
     'pytest-xdist',
-    'tox',
 ]
 
 setup(
