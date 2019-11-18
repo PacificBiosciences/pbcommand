@@ -38,14 +38,7 @@ mkdir -p build/{bin,lib,include,share}
 # https://stackoverflow.com/questions/40732419/how-to-read-avro-files-in-python-3-5-2
 rm -rf ${PYTHONUSERBASE}/lib/python3*/site-packages/avro*
 
-#pip3 install --user -r  REQUIREMENTS.txt
-pip3 install --user requests iso8601 pytz future pylint pep8
-pip3 install --user -e ./
-#pip3 install --user -r  REQUIREMENTS_TEST.txt
-pip3 install --user nose xmlbuilder
-pip3 install --user --upgrade pytest pytest-cov pytest-xdist
-# --upgrade b/c bin/pytest was python2
-#pip3 install --user pbtestdata pbcore
+pip install --user --no-index --find-link "${WHEELHOUSE}" --no-compile -e '.[test]'
 make test
 ##########################################################################
 
