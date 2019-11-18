@@ -1,8 +1,7 @@
-"""Utils for Updating state/progress and results to WebServices
-
-
 """
-from builtins import object
+Utils for Updating state/progress and results to WebServices
+"""
+
 import base64
 import json
 import logging

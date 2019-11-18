@@ -7,7 +7,6 @@ Author: Michael Kocher
 """
 
 from collections import namedtuple, OrderedDict
-from builtins import object
 import traceback
 import functools
 import datetime
@@ -18,8 +17,6 @@ import json
 import uuid
 import os
 import re
-
-from future.utils import with_metaclass
 
 from pbcommand import to_ascii
 
@@ -243,7 +240,7 @@ class _RegisteredFileType(type):
         return file_type
 
 
-class FileType(with_metaclass(_RegisteredFileType, object)):
+class FileType(metaclass=_RegisteredFileType):
     def __init__(self, file_type_id, base_name, ext, mime_type):
         """
         Core File Type data model

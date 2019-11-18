@@ -5,7 +5,6 @@ Utility to obtain paths to important analysis files from SMRT Link jobs,
 compatible with multiple applications and versions.
 """
 
-from __future__ import print_function
 import logging
 import os.path as op
 import os

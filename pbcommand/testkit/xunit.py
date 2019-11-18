@@ -1,9 +1,8 @@
-"""IO layer for converting a TestResult instance to XUnit and an XUnit.xml
-parser"""
+"""
+IO layer for converting a TestResult instance to XUnit and an XUnit.xml
+parser
+"""
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import object
 import os
 import re
 import copy
