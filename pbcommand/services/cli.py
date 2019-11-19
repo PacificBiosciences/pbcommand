@@ -26,6 +26,7 @@ import pprint
 import sys
 import logging
 import functools
+from functools import cmp_to_key
 import time
 import traceback
 import uuid
@@ -45,7 +46,7 @@ from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
                              walker, setup_log, compose, setup_logger,
                              get_parsed_args_log_level)
-from pbcommand import cmp_to_key, to_ascii
+from pbcommand import to_ascii
 
 __version__ = "0.3.0"
 
