@@ -212,9 +212,6 @@ class Attribute(BaseReportElement):
                 return True
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __repr__(self):
         n = "" if self.name is None else self.name[:10]
         _d = dict(k=self.__class__.__name__,
