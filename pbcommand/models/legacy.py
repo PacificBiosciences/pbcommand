@@ -6,7 +6,7 @@ import itertools
 import json
 
 
-class Pipeline(object):
+class Pipeline:
 
     def __init__(self, idx, display_name, version, description, bindings, entry_bindings, parent_pipeline_ids=None, tags=(), task_options=None):
         """

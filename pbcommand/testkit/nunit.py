@@ -14,7 +14,7 @@ import sys
 log = logging.getLogger(__name__)
 
 
-class TestCase(object):
+class TestCase:
     """
     Container for the results of an executed test.
     """

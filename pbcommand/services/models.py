@@ -14,7 +14,7 @@ __all__ = ['ServiceJob', 'ServiceEntryPoint', 'JobEntryPoint', 'JobStates', 'Job
 
 
 # This are mirrored from the BaseSMRTServer
-class LogLevels(object):
+class LogLevels:
     TRACE = "TRACE"
     DEBUG = "DEBUG"
     INFO = "INFO"
@@ -40,7 +40,7 @@ PbsmrtpipeLogResource = LogResource(SERVICE_LOGGER_RESOURCE_ID, "Pbsmrtpipe",
                                     "Secondary Analysis Pbsmrtpipe Job logger")
 
 
-class ServiceJob(object):
+class ServiceJob:
 
     def __init__(self, ix, job_uuid, name, state, path, job_type, created_at,
                  settings,
@@ -341,7 +341,7 @@ def _to_resource_id(x):
         raise ValueError("Resource id '{x}' must be given as int or uuid".format(x=x))
 
 
-class ServiceEntryPoint(object):
+class ServiceEntryPoint:
     """Entry Points to initialize Pipelines"""
 
     def __init__(self, entry_id, dataset_type, path_or_uri):
@@ -380,7 +380,7 @@ class JobEntryPoint(namedtuple("JobEntryPoint", "job_id dataset_uuid dataset_met
         return JobEntryPoint(d['jobId'], d['datasetUUID'], d['datasetType'])
 
 
-class JobStates(object):
+class JobStates:
     """Allowed SMRT Link Service Job states"""
     CREATED = "CREATED"
     SUBMITTED = "SUBMITTED"
@@ -394,7 +394,7 @@ class JobStates(object):
     ALL_COMPLETED = (FAILED, SUCCESSFUL)
 
 
-class JobTypes(object):
+class JobTypes:
     """SMRT Link Analysis JOb Types"""
     IMPORT_DS = "import-dataset"
     IMPORT_DSTORE = "import-datastore"
@@ -412,7 +412,7 @@ class JobTypes(object):
                 cls.PB_PIPE, cls.CROMWELL, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
 
 
-class ServiceResourceTypes(object):
+class ServiceResourceTypes:
     REPORTS = "reports"
     DATASTORE = "datastore"
     ENTRY_POINTS = "entry-points"

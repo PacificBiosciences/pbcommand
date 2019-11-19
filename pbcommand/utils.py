@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
 
 
-class Constants(object):
+class Constants:
     """Log Level format strings"""
     LOG_FMT_ONLY_MSG = '%(message)s'
     LOG_FMT_ERR = '%(message)s'
@@ -360,7 +360,7 @@ class Singleton(type):
 
     Usage:
 
-    >>> class MyClass(object):
+    >>> class MyClass:
     >>>     __metaclass__ = Singleton
     >>>     def __init__(self):
     >>>         self.name = 'name'

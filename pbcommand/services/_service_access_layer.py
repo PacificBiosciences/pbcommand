@@ -43,7 +43,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 __all__ = ['ServiceAccessLayer', 'SmrtLinkAuthClient']
 
 
-class Constants(object):
+class Constants:
     HEADERS = {'Content-type': 'application/json'}
 
 
@@ -364,7 +364,7 @@ def _show_deprecation_warning(msg):
         warnings.simplefilter('default', DeprecationWarning)  # reset filte
 
 
-class ServiceAccessLayer(object):  # pragma: no cover
+class ServiceAccessLayer:  # pragma: no cover
     """
     General Client Access Layer for interfacing with the job types on
     SMRT Link Analysis Services.  This API only supports insecure (HTTP)
@@ -1082,7 +1082,7 @@ def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
     return _run_func(f, warn_message, ignore_errors)
 
 
-class CreateJobTaskRecord(object):
+class CreateJobTaskRecord:
 
     def __init__(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
         self.task_uuid = task_uuid
@@ -1114,7 +1114,7 @@ class CreateJobTaskRecord(object):
                     createdAt=self.created_at.isoformat())
 
 
-class UpdateJobTaskRecord(object):
+class UpdateJobTaskRecord:
 
     def __init__(self, task_uuid, state, message, error_message=None):
         """:type error_message: str | None"""
@@ -1151,7 +1151,7 @@ class UpdateJobTaskRecord(object):
         return _d
 
 
-class JobServiceClient(object):  # pragma: no cover
+class JobServiceClient:  # pragma: no cover
     # Keeping this class private. It should only be used from pbsmrtpipe
 
     def __init__(self, job_root_url, ignore_errors=False):
@@ -1251,7 +1251,7 @@ class JobServiceClient(object):  # pragma: no cover
 
 #-----------------------------------------------------------------------
 # SSL stuff
-class Wso2Constants(object):  # pragma: no cover
+class Wso2Constants:  # pragma: no cover
     SECRET = "KMLz5g7fbmx8RVFKKdu0NOrJic4a"
     CONSUMER_KEY = "6NjRXBcFfLZOwHc0Xlidiz4ywcsa"
     SCOPES = ["welcome", "run-design", "run-qc", "openid", "analysis",

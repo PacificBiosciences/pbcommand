@@ -212,9 +212,6 @@ class Attribute(BaseReportElement):
                 return True
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __repr__(self):
         n = "" if self.name is None else self.name[:10]
         _d = dict(k=self.__class__.__name__,
@@ -953,7 +950,7 @@ DATA_TYPES = {
 }
 
 
-class AttributeSpec(object):
+class AttributeSpec:
 
     def __init__(self, id_, name, description, type_, format_=None,
                  is_hidden=False):
@@ -985,7 +982,7 @@ class AttributeSpec(object):
             raise TypeError(msg)
 
 
-class ColumnSpec(object):
+class ColumnSpec:
 
     def __init__(self, id_, header, description, type_, format_=None,
                  is_hidden=False):
@@ -1021,7 +1018,7 @@ class ColumnSpec(object):
                     raise TypeError(msg)
 
 
-class TableSpec(object):
+class TableSpec:
 
     def __init__(self, id_, title, description, columns):
         self.id = id_
@@ -1039,7 +1036,7 @@ class TableSpec(object):
         return self._col_dict.get(id_, None)
 
 
-class PlotSpec(object):
+class PlotSpec:
 
     def __init__(self, id_, description, caption, title, xlabel, ylabel):
         self.id = id_
@@ -1056,7 +1053,7 @@ class PlotSpec(object):
                         d.get('xlabel', None), d.get('ylabel', None))
 
 
-class PlotGroupSpec(object):
+class PlotGroupSpec:
 
     def __init__(self, id_, title, description, legend, plots=()):
         self.id = id_
@@ -1076,7 +1073,7 @@ class PlotGroupSpec(object):
         return self._plot_dict.get(id_, None)
 
 
-class ReportSpec(object):
+class ReportSpec:
     """
     Model for a specification of the expected content of a uniquely
     identified report.  For obvious reasons this mirrors the Report model,

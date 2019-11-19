@@ -15,7 +15,7 @@ from xml.dom import minidom
 __version__ = "0.3.0"
 
 
-class Constants(object):
+class Constants:
     # there's an Id versus name issue here
     NAME = "SMRT Link Software Update"
     AUTHOR = "build"
