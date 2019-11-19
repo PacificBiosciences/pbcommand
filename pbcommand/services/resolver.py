@@ -23,7 +23,7 @@ class ResolverFailure(Exception):
     pass
 
 
-class ResourceTypes(object):
+class ResourceTypes:
     JOB_PATH = "path"
     ALIGNMENTS = "alignments"
     PREASSEMBLY = "preassembly"
@@ -79,7 +79,7 @@ def _find_alignments(datastore):
     raise ResolverFailure("Can't find alignments output for job")
 
 
-class Resolver(object):
+class Resolver:
     def __init__(self,
                  host,
                  port,

@@ -28,7 +28,7 @@ REGISTERED_FILE_TYPES = {}
 DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype')
 
 
-class PacBioNamespaces(object):
+class PacBioNamespaces:
     # File Types
     # PBSMRTPIPE_FILE_PREFIX = 'pbsmrtpipe.files'
     # NEW File Type Identifier style Prefix
@@ -71,7 +71,7 @@ to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
 to_opt_type_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_TYPE)
 
 
-class TaskTypes(object):
+class TaskTypes:
     # This is really TC types
 
     STANDARD = to_task_types_ns("standard")
@@ -79,7 +79,7 @@ class TaskTypes(object):
     GATHERED = to_task_types_ns("gathered")
 
 
-class TaskOptionTypes(object):
+class TaskOptionTypes:
     """Core Task Option type id type"""
 
     INT = "integer"
@@ -166,7 +166,7 @@ class TaskOptionTypes(object):
         return cls.STR
 
 
-class SymbolTypes(object):
+class SymbolTypes:
     """
     *Symbols* that are understood during resolving, such as max number of
     processors, Max Chunks. Used when defining a Tool Contract
@@ -181,7 +181,7 @@ class SymbolTypes(object):
     NPROC = '$nproc'
 
 
-class ResourceTypes(object):
+class ResourceTypes:
     """
     Resources such as tmp dirs and files, log files. Used when defining
     a Tool Contract
@@ -284,7 +284,7 @@ class DataSetFileType(FileType):
     pass
 
 
-class MimeTypes(object):
+class MimeTypes:
     """Supported Mime types"""
     JSON = 'application/json'
     # This might be better as 'application/svg+xml' ?
@@ -299,7 +299,7 @@ class MimeTypes(object):
     ZIP = 'application/zip'
 
 
-class FileTypes(object):
+class FileTypes:
 
     """Registry of all PacBio Files types
 
@@ -467,7 +467,7 @@ def _get_file_path(path, base_path=None):
         return os.path.join(base_path, path)
 
 
-class DataStoreFile(object):
+class DataStoreFile:
 
     def __init__(self, uuid, source_id, type_id, path, is_chunked=False,
                  name="", description=""):
@@ -550,7 +550,7 @@ def _datetime_to_string(dt):
     return dt.strftime('%Y-%m-%dT%H:%M:%S')
 
 
-class DataStore(object):
+class DataStore:
     version = "0.2.2"
 
     def __init__(self, ds_files, created_at=None):
@@ -617,7 +617,7 @@ class MalformedChunkKeyError(ValueError):
     pass
 
 
-class PipelineChunk(object):
+class PipelineChunk:
 
     CHUNK_KEY_PREFIX = "$chunk."
     RX_CHUNK_KEY = re.compile(r'^\$chunk\.([A-z0-9_]*)')
@@ -681,7 +681,7 @@ class PipelineChunk(object):
         return {'chunk_id': self.chunk_id, 'chunk': self._datum}
 
 
-class DataStoreViewRule(object):
+class DataStoreViewRule:
     """
     Rule specifying if and how the UI should display a datastore file.
     """
@@ -724,7 +724,7 @@ class DataStoreViewRule(object):
                                  d.get('typeName', None))
 
 
-class PipelineDataStoreViewRules(object):
+class PipelineDataStoreViewRules:
     """
     A collection of DataStoreViewRule objects associated with a pipeline.
     """
@@ -779,7 +779,7 @@ validate_task_option_id = functools.partial(_validate_id, RX_TASK_OPTION_ID,
                                             'task option id')
 
 
-class BasePacBioOption(object):
+class BasePacBioOption:
     # This is an abstract class. This really blurring the abstract with
     # implementation which makes the interface unclear.
 
@@ -1033,7 +1033,7 @@ def _get_level_name(l):
         return l
 
 
-class PacBioAlarm(object):
+class PacBioAlarm:
     """
     Simple container for alarms that need to be passed between components in
     SMRT Link.  This mimics the interface in the instrument control code; note
@@ -1118,7 +1118,7 @@ class PacBioAlarm(object):
             owner="python").to_json(file_name)
 
 
-class PipelinePreset(object):
+class PipelinePreset:
 
     def __init__(self, options, task_options, pipeline_id,
                  preset_id, name, description):

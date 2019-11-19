@@ -73,7 +73,7 @@ except ImportError:
     list_dict_printer = _list_dict_printer
 
 
-class Constants(object):
+class Constants:
 
     # When running from the commandline, the host and port will default to these
     # values if provided

@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 _RESULT_STATES = 'success skipped error failure'.split()
 
 
-class XunitTestSuite(object):
+class XunitTestSuite:
 
     def __init__(self, name, tests, run_time=None, pb_requirements=()):
         """
@@ -165,7 +165,7 @@ class XunitTestSuite(object):
         return d
 
 
-class XunitTestCase(object):
+class XunitTestCase:
     RESULTS = 'success skipped error failure'.split()
 
     def __init__(self, classname, name, result, etype=None, text=None,
