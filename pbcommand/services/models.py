@@ -399,7 +399,6 @@ class JobTypes:
     IMPORT_DS = "import-dataset"
     IMPORT_DSTORE = "import-datastore"
     MERGE_DS = "merge-datasets"
-    PB_PIPE = "pbsmrtpipe"
     CROMWELL = "cromwell"
     ANALYSIS = "analysis"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
@@ -409,7 +408,7 @@ class JobTypes:
     def ALL(cls):
         """ALL allowed SL Analysis Job Types"""
         return (cls.IMPORT_DS, cls.IMPORT_DSTORE, cls.MERGE_DS,
-                cls.PB_PIPE, cls.CROMWELL, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
+                cls.CROMWELL, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
 
 
 class ServiceResourceTypes:

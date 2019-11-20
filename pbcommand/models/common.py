@@ -30,53 +30,21 @@ DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype')
 
 class PacBioNamespaces:
     # File Types
-    # PBSMRTPIPE_FILE_PREFIX = 'pbsmrtpipe.files'
     # NEW File Type Identifier style Prefix
-    NEW_PBSMRTPIPE_FILE_PREFIX = "PacBio.FileTypes"
+    NEW_FILE_PREFIX = "PacBio.FileTypes"
     # New DataSet Identifier Prefix
     DATASET_FILE_PREFIX = "PacBio.DataSet"
 
     PB_INDEX = "PacBio.Index"
-
-    # Task Ids
-    PBSMRTPIPE_TASK_PREFIX = 'pbsmrtpipe.tasks'
-
-    PB_TASK_TYPES = 'pbsmrtpipe.task_types'
-
-    # Task Options
-    PBSMRTPIPE_TASK_OPTS_PREFIX = 'pbsmrtpipe.task_options'
-    # Workflow Level Options
-    PBSMRTPIPE_OPTS_PREFIX = 'pbsmrtpipe.options'
-    # Constants
-    PBSMRTPIPE_CONSTANTS_PREFIX = 'pbsmrtpipe.constants'
-    # Pipelines
-    PBSMRTPIPE_PIPELINES = "pbsmrtpipe.pipelines"
-    # Option Types
-    PBSMRTPIPE_OPTS_TYPE = "pbsmrtpipe.option_types"
 
 
 def __to_type(prefix, name):
     return ".".join([prefix, name])
 
 
-to_constant_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_CONSTANTS_PREFIX)
-to_file_ns = functools.partial(__to_type, PacBioNamespaces.NEW_PBSMRTPIPE_FILE_PREFIX)
+to_file_ns = functools.partial(__to_type, PacBioNamespaces.NEW_FILE_PREFIX)
 to_ds_ns = functools.partial(__to_type, PacBioNamespaces.DATASET_FILE_PREFIX)
-to_task_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_OPTS_PREFIX)
-to_task_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_PREFIX)
-to_task_types_ns = functools.partial(__to_type, PacBioNamespaces.PB_TASK_TYPES)
-to_workflow_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_PREFIX)
-to_pipeline_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_PIPELINES)
 to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
-to_opt_type_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_TYPE)
-
-
-class TaskTypes:
-    # This is really TC types
-
-    STANDARD = to_task_types_ns("standard")
-    SCATTERED = to_task_types_ns("scattered")
-    GATHERED = to_task_types_ns("gathered")
 
 
 class TaskOptionTypes:
@@ -1042,6 +1010,7 @@ class PacBioAlarm:
     created by the same task, but we mostly only need to work with one at a
     time.
     """
+
     def __init__(self,
                  name,
                  message,
