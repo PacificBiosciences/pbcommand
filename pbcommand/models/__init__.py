@@ -1,6 +1,6 @@
 from .common import (FileType, FileTypes, TaskOptionTypes,
                      DataSetFileType, DataSetMetaData,
-                     TaskTypes, ResourceTypes, SymbolTypes,
+                     ResourceTypes, SymbolTypes,
                      PipelineChunk, DataStoreFile, DataStore,
                      DataStoreViewRule, PipelineDataStoreViewRules,
                      BasePacBioOption,
@@ -9,5 +9,3 @@ from .common import (FileType, FileTypes, TaskOptionTypes,
                      PacBioIntChoiceOption,
                      PacBioFloatChoiceOption, PacBioStringChoiceOption,
                      PacBioAlarm, PipelinePreset)
-
-from .conditions import (ReseqCondition, ReseqConditions)

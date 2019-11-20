@@ -56,7 +56,7 @@ def to_all_job_types_summary(sal, sep="*****"):
     funcs = [(JobTypes.IMPORT_DS, sal.get_import_dataset_jobs),
              (JobTypes.MERGE_DS, sal.get_merge_dataset_jobs),
              (JobTypes.CONVERT_FASTA, sal.get_fasta_convert_jobs),
-             (JobTypes.PB_PIPE, sal.get_analysis_jobs)]
+             (JobTypes.ANALYSIS, sal.get_analysis_jobs)]
 
     outs = []
     x = outs.append
