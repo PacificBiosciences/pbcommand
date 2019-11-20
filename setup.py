@@ -6,7 +6,6 @@ from setuptools import setup, find_packages
 test_deps = [
     'autopep8',
     'coverage',
-    'nose',
     'pep8',
     'pylint',
     'pytest',
