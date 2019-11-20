@@ -17,8 +17,7 @@ pbservice run-merge-dataset path/to/file.json
 
 This program is largely replaced by the Scala version in 'smrtflow'.
 """
-from __future__ import print_function
-from builtins import object
+
 import argparse
 import json
 
@@ -27,6 +26,7 @@ import pprint
 import sys
 import logging
 import functools
+from functools import cmp_to_key
 import time
 import traceback
 import uuid
@@ -46,7 +46,7 @@ from pbcommand.common_options import add_common_options
 from pbcommand.utils import (is_dataset,
                              walker, setup_log, compose, setup_logger,
                              get_parsed_args_log_level)
-from pbcommand import cmp_to_key, to_ascii
+from pbcommand import to_ascii
 
 __version__ = "0.3.0"
 
@@ -73,7 +73,7 @@ except ImportError:
     list_dict_printer = _list_dict_printer
 
 
-class Constants(object):
+class Constants:
 
     # When running from the commandline, the host and port will default to these
     # values if provided

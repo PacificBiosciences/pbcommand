@@ -3,7 +3,6 @@
 """
 Generate C++ preprocessor defines for PacBio file type IDs.
 """
-from __future__ import print_function
 
 import argparse
 import sys

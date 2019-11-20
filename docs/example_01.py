@@ -1,4 +1,3 @@
-from __future__ import print_function
 import pprint
 
 from pbcommand.models.common import (FileTypes, ResourceTypes, SymbolTypes, TaskTypes)

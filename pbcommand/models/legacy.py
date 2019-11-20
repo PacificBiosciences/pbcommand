@@ -6,7 +6,7 @@ import itertools
 import json
 
 
-class Pipeline(object):
+class Pipeline:
 
     def __init__(self, idx, display_name, version, description, bindings, entry_bindings, parent_pipeline_ids=None, tags=(), task_options=None):
         """
@@ -68,7 +68,7 @@ class Pipeline(object):
         f("Name       : {}".format(self.display_name))
         f("Description: {}".format(self.description))
         f("EntryPoints: {}".format(len(self.entry_bindings)))
-        _printer(self.entry_bindings)
+        _printer(sorted(self.entry_bindings, key=lambda x: x[0]))
         if self.tags:
             f("Tags       : {} ".format(", ".join(list(set(self.tags)))))
         if len(self.task_options) > 0:

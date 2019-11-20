@@ -1,5 +1,3 @@
-#from builtins import next
-from builtins import range
 import os
 import logging
 import functools

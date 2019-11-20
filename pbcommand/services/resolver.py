@@ -5,7 +5,6 @@ Utility to obtain paths to important analysis files from SMRT Link jobs,
 compatible with multiple applications and versions.
 """
 
-from __future__ import print_function
 import logging
 import os.path as op
 import os
@@ -24,7 +23,7 @@ class ResolverFailure(Exception):
     pass
 
 
-class ResourceTypes(object):
+class ResourceTypes:
     JOB_PATH = "path"
     ALIGNMENTS = "alignments"
     PREASSEMBLY = "preassembly"
@@ -80,7 +79,7 @@ def _find_alignments(datastore):
     raise ResolverFailure("Can't find alignments output for job")
 
 
-class Resolver(object):
+class Resolver:
     def __init__(self,
                  host,
                  port,

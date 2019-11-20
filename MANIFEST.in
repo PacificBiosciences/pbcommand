@@ -1,2 +1,3 @@
 include *.txt *.md
 recursive-include examples *.txt *.py
+include pbcommand/schemas/*.avsc

@@ -4,9 +4,6 @@
 Author: Johann Miller and Michael Kocher
 """
 
-from builtins import range
-from past.builtins import basestring
-from builtins import object
 from collections import defaultdict, OrderedDict
 import warnings
 import csv
@@ -20,7 +17,6 @@ from pprint import pformat
 import datetime
 
 import pbcommand
-from future.utils import with_metaclass
 
 
 log = logging.getLogger(__name__)
@@ -90,9 +86,9 @@ class PbReportError(Exception):
     pass
 
 
-class BaseReportElement(with_metaclass(abc.ABCMeta, object)):
+class BaseReportElement(metaclass=abc.ABCMeta):
     def __init__(self, id_):
-        if not isinstance(id_, basestring):
+        if not isinstance(id_, str):
             raise PbReportError(
                 "Type error. id '{i}' cannot be {t}.".format(i=id_, t=type(id_)))
 
@@ -215,9 +211,6 @@ class Attribute(BaseReportElement):
             if self.name == other.name and self.value == other.value and self.id == other.id:
                 return True
         return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __repr__(self):
         n = "" if self.name is None else self.name[:10]
@@ -952,12 +945,12 @@ DATA_TYPES = {
     "int": int,
     "long": int,
     "float": float,
-    "string": basestring,  # this is hacky too
+    "string": str,
     "boolean": bool
 }
 
 
-class AttributeSpec(object):
+class AttributeSpec:
 
     def __init__(self, id_, name, description, type_, format_=None,
                  is_hidden=False):
@@ -989,7 +982,7 @@ class AttributeSpec(object):
             raise TypeError(msg)
 
 
-class ColumnSpec(object):
+class ColumnSpec:
 
     def __init__(self, id_, header, description, type_, format_=None,
                  is_hidden=False):
@@ -1025,7 +1018,7 @@ class ColumnSpec(object):
                     raise TypeError(msg)
 
 
-class TableSpec(object):
+class TableSpec:
 
     def __init__(self, id_, title, description, columns):
         self.id = id_
@@ -1043,7 +1036,7 @@ class TableSpec(object):
         return self._col_dict.get(id_, None)
 
 
-class PlotSpec(object):
+class PlotSpec:
 
     def __init__(self, id_, description, caption, title, xlabel, ylabel):
         self.id = id_
@@ -1060,7 +1053,7 @@ class PlotSpec(object):
                         d.get('xlabel', None), d.get('ylabel', None))
 
 
-class PlotGroupSpec(object):
+class PlotGroupSpec:
 
     def __init__(self, id_, title, description, legend, plots=()):
         self.id = id_
@@ -1080,7 +1073,7 @@ class PlotGroupSpec(object):
         return self._plot_dict.get(id_, None)
 
 
-class ReportSpec(object):
+class ReportSpec:
     """
     Model for a specification of the expected content of a uniquely
     identified report.  For obvious reasons this mirrors the Report model,

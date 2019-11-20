@@ -1,7 +1,7 @@
-"""Utils for common funcs, such as setting up a log, composing functions."""
-from builtins import map
-from past.builtins import basestring
-from builtins import object
+"""
+Utils for common funcs, such as setting up a log, composing functions.
+"""
+
 import multiprocessing
 import functools
 import os
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())  # suppress the annoying no handlers msg
 
 
-class Constants(object):
+class Constants:
     """Log Level format strings"""
     LOG_FMT_ONLY_MSG = '%(message)s'
     LOG_FMT_ERR = '%(message)s'
@@ -212,7 +212,7 @@ def get_parsed_args_log_level(pargs, default_level=logging.INFO):
                           specify one
     """
     level = default_level
-    if isinstance(level, basestring):
+    if isinstance(level, str):
         level = logging.getLevelName(level)
     verbosity = getattr(pargs, 'verbosity', None)
     if verbosity is not None and verbosity > 0:
@@ -360,7 +360,7 @@ class Singleton(type):
 
     Usage:
 
-    >>> class MyClass(object):
+    >>> class MyClass:
     >>>     __metaclass__ = Singleton
     >>>     def __init__(self):
     >>>         self.name = 'name'

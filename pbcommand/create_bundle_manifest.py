@@ -15,7 +15,7 @@ from xml.dom import minidom
 __version__ = "0.3.0"
 
 
-class Constants(object):
+class Constants:
     # there's an Id versus name issue here
     NAME = "SMRT Link Software Update"
     AUTHOR = "build"
@@ -23,8 +23,7 @@ class Constants(object):
 
 def get_parser():
     desc = "Update the manifest.xml"
-    p = argparse.ArgumentParser(version=__version__,
-                                description=desc,
+    p = argparse.ArgumentParser(description=desc,
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     p.add_argument("bundle_id", help="ID of the software bundle")
     p.add_argument("version_txt", help="Path to Manifest.xml")

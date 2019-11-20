@@ -111,7 +111,7 @@ def main_runner(argv, parser, exe_runner_func, setup_log_func, alog):
     _have_log_setup = False
     if hasattr(args, 'quiet') and args.quiet:
         setup_log_func(alog, level=logging.ERROR)
-    elif hasattr(args, 'verbosity') and args.verbosity > 0:
+    elif getattr(args, 'verbosity', None) is not None and args.verbosity > 0:
         if args.verbosity >= 2:
             setup_log_func(alog, level=logging.DEBUG)
         else:

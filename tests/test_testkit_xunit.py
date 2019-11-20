@@ -1,6 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import zip
 from xml.etree import ElementTree
 import subprocess
 import tempfile
@@ -30,8 +27,8 @@ def _get_and_run_test_suite():
         @unittest.skip("Skipped")
         def test_3(self):
             self.assertTrue(True)
-    tests = unittest.TestLoader().loadTestsFromTestCase(MyTestClass)
-    suite = unittest.TestSuite(tests)
+    suite = unittest.TestLoader().loadTestsFromTestCase(MyTestClass)
+    suite._cleanup = False
     result = unittest.TestResult()
     suite.run(result)
     return suite, result
@@ -43,7 +40,7 @@ def _generate_jenkins_xml(test_name):
         name="pbcommand.tests.test_xunit_output")
     xunit_file = tempfile.NamedTemporaryFile(suffix=".xml").name
     with open(xunit_file, "w") as xml_out:
-        xml_out.write(str(x))
+        xml_out.write(x.toxml())
     return X.xunit_file_to_jenkins(xunit_file, test_name)
 
 
@@ -54,7 +51,7 @@ class TestXunitOutput(unittest.TestCase):
         suite, result = _get_and_run_test_suite()
         x = X.convert_suite_and_result_to_xunit([suite], result,
             name="pbcommand.tests.test_xunit_output")
-        root = ElementTree.fromstring(str(x))
+        root = ElementTree.fromstring(x.toxml())
         self.assertEqual(root.tag, "testsuite")
         self.assertEqual(root.attrib["failures"], "1")
         self.assertEqual(root.attrib["skip"], "1")
@@ -64,24 +61,24 @@ class TestXunitOutput(unittest.TestCase):
         for el in root.findall("properties"):
             for p in el.findall("property"):
                 requirements.append(p.attrib["value"])
-        self.assertEqual(requirements, ["SL-1","SL-2","SL-3","SL-4"])
+        self.assertEqual(sorted(requirements), ["SL-1","SL-2","SL-3","SL-4"])
 
     @skip_unless_avro_installed
     def test_xunit_file_to_jenkins(self):
         j = _generate_jenkins_xml("my_testkit_job")
-        root = ElementTree.fromstring(str(j))
+        root = ElementTree.fromstring(j.toxml())
         requirements = []
         for el in root.findall("properties"):
             for p in el.findall("property"):
                 requirements.append(p.attrib["value"])
-        self.assertEqual(requirements, ["SL-1","SL-2","SL-3","SL-4"])
+        self.assertEqual(sorted(requirements), ["SL-1","SL-2","SL-3","SL-4"])
 
     def _get_junit_files(self):
         x1 = tempfile.NamedTemporaryFile(suffix=".xml").name
         x2 = tempfile.NamedTemporaryFile(suffix=".xml").name
         for file_name, job_name in zip([x1, x2], ["job_1", "job_2"]):
             with open(file_name, "w") as x:
-                x.write(str(_generate_jenkins_xml(job_name)))
+                x.write(_generate_jenkins_xml(job_name).toxml())
         return (x1, x2)
 
     @skip_unless_avro_installed

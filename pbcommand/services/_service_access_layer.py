@@ -1,8 +1,7 @@
-"""Utils for Updating state/progress and results to WebServices
-
-
 """
-from builtins import object
+Utils for Updating state/progress and results to WebServices
+"""
+
 import base64
 import json
 import logging
@@ -44,7 +43,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 __all__ = ['ServiceAccessLayer', 'SmrtLinkAuthClient']
 
 
-class Constants(object):
+class Constants:
     HEADERS = {'Content-type': 'application/json'}
 
 
@@ -281,15 +280,15 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
 # Make this consistent somehow. Maybe defined 'shortname' in the core model?
 # Martin is doing this for the XML file names
 DATASET_METATYPES_TO_ENDPOINTS = {
-    FileTypes.DS_SUBREADS_H5: "hdfsubreads",
-    FileTypes.DS_SUBREADS: "subreads",
-    FileTypes.DS_ALIGN: "alignments",
-    FileTypes.DS_REF: "references",
-    FileTypes.DS_BARCODE: "barcodes",
-    FileTypes.DS_CCS: "ccsreads",
-    FileTypes.DS_CONTIG: "contigs",
-    FileTypes.DS_ALIGN_CCS: "cssalignments",
-    FileTypes.DS_GMAP_REF: "gmapreferences"}
+    FileTypes.DS_SUBREADS_H5.file_type_id: "hdfsubreads",
+    FileTypes.DS_SUBREADS.file_type_id: "subreads",
+    FileTypes.DS_ALIGN.file_type_id: "alignments",
+    FileTypes.DS_REF.file_type_id: "references",
+    FileTypes.DS_BARCODE.file_type_id: "barcodes",
+    FileTypes.DS_CCS.file_type_id: "ccsreads",
+    FileTypes.DS_CONTIG.file_type_id: "contigs",
+    FileTypes.DS_ALIGN_CCS.file_type_id: "cssalignments",
+    FileTypes.DS_GMAP_REF.file_type_id: "gmapreferences"}
 
 
 def _get_endpoint_or_raise(ds_type):
@@ -365,7 +364,7 @@ def _show_deprecation_warning(msg):
         warnings.simplefilter('default', DeprecationWarning)  # reset filte
 
 
-class ServiceAccessLayer(object):  # pragma: no cover
+class ServiceAccessLayer:  # pragma: no cover
     """
     General Client Access Layer for interfacing with the job types on
     SMRT Link Analysis Services.  This API only supports insecure (HTTP)
@@ -1083,7 +1082,7 @@ def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
     return _run_func(f, warn_message, ignore_errors)
 
 
-class CreateJobTaskRecord(object):
+class CreateJobTaskRecord:
 
     def __init__(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
         self.task_uuid = task_uuid
@@ -1115,7 +1114,7 @@ class CreateJobTaskRecord(object):
                     createdAt=self.created_at.isoformat())
 
 
-class UpdateJobTaskRecord(object):
+class UpdateJobTaskRecord:
 
     def __init__(self, task_uuid, state, message, error_message=None):
         """:type error_message: str | None"""
@@ -1152,7 +1151,7 @@ class UpdateJobTaskRecord(object):
         return _d
 
 
-class JobServiceClient(object):  # pragma: no cover
+class JobServiceClient:  # pragma: no cover
     # Keeping this class private. It should only be used from pbsmrtpipe
 
     def __init__(self, job_root_url, ignore_errors=False):
@@ -1252,7 +1251,7 @@ class JobServiceClient(object):  # pragma: no cover
 
 #-----------------------------------------------------------------------
 # SSL stuff
-class Wso2Constants(object):  # pragma: no cover
+class Wso2Constants:  # pragma: no cover
     SECRET = "KMLz5g7fbmx8RVFKKdu0NOrJic4a"
     CONSUMER_KEY = "6NjRXBcFfLZOwHc0Xlidiz4ywcsa"
     SCOPES = ["welcome", "run-design", "run-qc", "openid", "analysis",
@@ -1260,11 +1259,11 @@ class Wso2Constants(object):  # pragma: no cover
 
 
 def _create_auth(secret, consumer_key):  # pragma: no cover
-    return base64.b64encode(":".join([secret, consumer_key]))
+    return base64.b64encode(":".join([secret, consumer_key]).encode("utf-8"))
 
 
 def get_token(url, user, password, scopes, secret, consumer_key):  # pragma: no cover
-    basic_auth = _create_auth(secret, consumer_key)
+    basic_auth = _create_auth(secret, consumer_key).decode("utf-8")
     # To be explicit for pedagogical purposes
     headers = {
         "Authorization": "Basic {}".format(basic_auth),
