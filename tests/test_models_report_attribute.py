@@ -1,26 +1,29 @@
 import logging
-import unittest
+
+import pytest
 
 from pbcommand.models.report import Attribute, PbReportError
 
 log = logging.getLogger(__name__)
 
 
-class TestAttribute(unittest.TestCase):
+class TestAttribute:
 
     def test_attribute_null_id(self):
         """Can't create an attribute without an id."""
         def _test():
             a = Attribute(None, 1)
 
-        self.assertRaises(PbReportError, _test)
+        with pytest.raises(PbReportError):
+            _test()
 
     def test_attribute_int_id(self):
         """Test exception of handling Attribute with int ids"""
         def _test():
             a = Attribute(1, 12345)
 
-        self.assertRaises(PbReportError, _test)
+        with pytest.raises(PbReportError):
+            _test()
 
     def test_to_dict(self):
         """
@@ -28,19 +31,19 @@ class TestAttribute(unittest.TestCase):
         """
         a = Attribute('bob', 123, "Bob is the name")
         d = a.to_dict()
-        self.assertEqual('bob', d['id'])
-        self.assertEqual(123, d['value'])
-        self.assertEqual('Bob is the name', d['name'])
+        assert 'bob' == d['id']
+        assert 123 == d['value']
+        assert 'Bob is the name' == d['name']
 
     def test_eq(self):
         a = Attribute('a', 1234, "My Attribute")
         b = Attribute('b', 1234, "My B Attribute")
         c = Attribute('a', 1234, "My Attribute")
-        self.assertTrue(a == c)
-        self.assertTrue(a != b)
-        self.assertTrue(b != c)
+        assert a == c
+        assert a != b
+        assert b != c
 
     def test_repr(self):
         a = Attribute('a', 1234, "My Attribute")
         log.info(repr(a))
-        self.assertIsNotNone(repr(a))
+        assert repr(a) is not None

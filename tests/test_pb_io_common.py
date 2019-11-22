@@ -1,5 +1,4 @@
 import logging
-import unittest
 
 from base_utils import get_temp_file
 from pbcommand.pb_io import load_pipeline_chunks_from_json, write_pipeline_chunks
@@ -9,7 +8,7 @@ from pbcommand.testkit.base_utils import get_temp_dir
 log = logging.getLogger(__name__)
 
 
-class TestWriteChunk(unittest.TestCase):
+class TestWriteChunk:
 
     def test_write_chunks(self):
 
@@ -29,4 +28,4 @@ class TestWriteChunk(unittest.TestCase):
         write_pipeline_chunks(pipeline_chunks, tmp_name, "Example chunk file")
 
         pchunks = load_pipeline_chunks_from_json(tmp_name)
-        self.assertEqual(len(pchunks), nchunks)
+        assert len(pchunks) == nchunks

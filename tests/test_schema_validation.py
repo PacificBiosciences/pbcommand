@@ -1,7 +1,9 @@
 import json
 import logging
 import os
-import unittest
+
+import avro
+import pytest
 
 from pbcommand.models import PipelinePreset, PipelineDataStoreViewRules
 from pbcommand.models.report import Report, ReportSpec
@@ -13,14 +15,6 @@ from pbcommand.schemas import (validate_presets,
                                validate_report_spec)
 from pbcommand.utils import walker
 from base_utils import DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
-
-try:
-    import avro
-except ImportError:
-    avro = None
-
-skip_unless_avro_installed = unittest.skipUnless(avro is not None,
-                                                 "avro not installed")
 
 log = logging.getLogger(__name__)
 
@@ -42,41 +36,35 @@ def _to_assertion(path, schema_validate_func):
         log.info("Attempting to validate '{}'".format(path))
         is_valid = schema_validate_func(d)
         log.info(" is-valid? {i} {p}".format(i=is_valid, p=path))
-        self.assertTrue(
-            is_valid,
-            "{p} is not valid with the avro schema".format(
-                p=path))
+        if not is_valid:
+            print("{p} is not valid with the avro schema".format(p=path))
+        assert is_valid
     return test_is_validate
 
 
-class ValidatePipelinePreset(unittest.TestCase):
-    @skip_unless_avro_installed
+class ValidatePipelinePreset:
     def test_validate_pipeline_presets(self):
         for path in walker(DATA_DIR_PRESETS, json_filter):
             f = _to_assertion(path, validate_presets)
             f(self)
-            self.assertIsInstance(
-                load_pipeline_presets_from(path),
-                PipelinePreset)
+            assert isinstance(load_pipeline_presets_from(path), PipelinePreset)
 
 
-class ValidateDataStoreViewRules(unittest.TestCase):
-    @skip_unless_avro_installed
+class ValidateDataStoreViewRules:
     def test_validate_pipeline_datastore_view_rules(self):
         for path in walker(DATA_DIR_DSVIEW, json_filter):
             f = _to_assertion(path, validate_datastore_view_rules)
             f(self)
-            self.assertIsInstance(
+            assert isinstance(
                 load_pipeline_datastore_view_rules_from_json(path),
                 PipelineDataStoreViewRules)
 
 
-class ValidateReportSpec(unittest.TestCase):
-    @skip_unless_avro_installed
+class ValidateReportSpec:
     def test_validate_report_spec(self):
         for path in walker(DATA_DIR_REPORT_SPECS, json_filter):
             if os.path.basename(path).startswith("report-specs"):
                 f = _to_assertion(path, validate_report_spec)
                 f(self)
-                self.assertIsInstance(load_report_spec_from_json(path),
-                                      ReportSpec)
+                assert isinstance(load_report_spec_from_json(path),
+                                  ReportSpec)
