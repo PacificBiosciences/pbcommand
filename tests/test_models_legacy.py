@@ -1,10 +1,9 @@
 import tempfile
-import unittest
 
 from pbcommand.models.legacy import Pipeline
 
 
-class TestLegacyModels(unittest.TestCase):
+class TestLegacyModels:
 
     def test_load_pipeline_from_json(self):
         pipeline_json = """
@@ -62,7 +61,5 @@ class TestLegacyModels(unittest.TestCase):
         with open(json_file, "w") as json_out:
             json_out.write(pipeline_json)
         p = Pipeline.load_from_json(json_file)
-        self.assertEqual(
-            p.pipeline_id,
-            "cromwell.workflows.dev_diagnostic_subreads")
+        assert p.pipeline_id == "cromwell.workflows.dev_diagnostic_subreads"
         s = p.summary()

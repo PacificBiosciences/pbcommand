@@ -1,23 +1,25 @@
 import logging
-import unittest
+
+import pytest
 
 from pbcommand.models.report import Column
 
 log = logging.getLogger(__name__)
 
 
-class TestColumn(unittest.TestCase):
+class TestColumn:
 
     def test_column(self):
         """Test: Can't create a Column without an id."""
         def none_col():
             c = Column(None)
 
-        self.assertRaises(Exception, none_col)
+        with pytest.raises(Exception):
+            none_col()
 
     def test_repr(self):
         c = Column('my_column', header="My Column", values=list(range(5)))
-        self.assertIsNotNone(repr(c))
+        assert repr(c) is not None
 
 #    def test_plotgroup_add_duplicate_plot(self):
 #        '''
@@ -47,7 +49,7 @@ class TestColumn(unittest.TestCase):
 #            log.info( TestPlotGroup.test_plotgroup_id_prepend.__doc__ )
 #            pg = PlotGroup('foo')
 #            pg.add_plot( Plot('id', 'i1') )
-#            self.assertEqual( 'foo.id', pg.plots[0].id )
+#            assert 'foo.id' == pg.plots[0].id
 #        except:
 #            log.error(traceback.format_exc())
 #            raise
@@ -63,11 +65,11 @@ class TestColumn(unittest.TestCase):
 #            a.add_plot( Plot('id', 'i1') )
 #
 #            d = a.to_dict()
-#            self.assertEqual( 123, d['id'] )
-#            self.assertEqual( 'foo title', d['title'] )
-#            self.assertEqual( 'foo legend', d['legend'] )
-#            self.assertEqual( 'foo thumbnail', d['thumbnail'] )
-#            self.assertEqual( 1, len(d['plots']) )
+#            assert 123 == d['id']
+#            assert 'foo title' == d['title']
+#            assert 'foo legend' == d['legend']
+#            assert 'foo thumbnail' == d['thumbnail']
+#            assert 1 == len(d['plots'])
 #        except:
 #            log.error(traceback.format_exc())
 #            raise
