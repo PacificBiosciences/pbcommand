@@ -1,34 +1,36 @@
-"""Common PacBio Report model
-
+"""
+Common PacBio Report model
 
 Author: Johann Miller and Michael Kocher
 """
 
-from collections import defaultdict, OrderedDict
-import warnings
-import csv
 import abc
-import logging
+import csv
+import datetime
 import json
+import logging
 import os
 import re
 import uuid as U  # to allow use of uuid as local var
+import warnings
+from collections import defaultdict, OrderedDict
 from pprint import pformat
-import datetime
 
 import pbcommand
 
 
 log = logging.getLogger(__name__)
 
-__all__ = ['PbReportError',
-           'Attribute',
-           'Report',
-           'Plot',
-           'PlotlyPlot',
-           'PlotGroup',
-           'Column',
-           'Table']
+__all__ = [
+    'PbReportError',
+    'Attribute',
+    'Report',
+    'Plot',
+    'PlotlyPlot',
+    'PlotGroup',
+    'Column',
+    'Table',
+]
 
 # If/when the Report datamodel change, this needs to be changed using
 # the semver model
@@ -79,7 +81,8 @@ def _to_json_with_decoder(d):
     if decoder_or_none is None:
         return json.dumps(d, sort_keys=True, indent=4, separators=(',', ': '))
     else:
-        return json.dumps(d, cls=decoder_or_none, sort_keys=True, indent=4, separators=(',', ': '))
+        return json.dumps(d, cls=decoder_or_none, sort_keys=True,
+                          indent=4, separators=(',', ': '))
 
 
 class PbReportError(Exception):
@@ -370,7 +373,7 @@ class PlotlyPlot(Plot):
     def __init__(self, id_, image, caption=None, thumbnail=None, title=None,
                  plotly_version=None):
         self._plotly_version = plotly_version
-        super(PlotlyPlot, self).__init__(id_, image, caption, thumbnail, title)
+        super().__init__(id_, image, caption, thumbnail, title)
 
     @property
     def plotlyVersion(self):
@@ -551,7 +554,10 @@ class Table(BaseReportElement):
                                  i=len(column.values),
                                  j=len(self.columns[0].values)))
         with open(file_name, "w") as csv_out:
-            writer = csv.writer(csv_out, delimiter=delimiter, lineterminator="\n")
+            writer = csv.writer(
+                csv_out,
+                delimiter=delimiter,
+                lineterminator="\n")
             writer.writerow([c.header for c in self.columns])
             for i in range(len(self.columns[0].values)):
                 writer.writerow([str(c.values[i]) for c in self.columns])
@@ -636,7 +642,8 @@ class Report(BaseReportElement):
     It can be serialized to json.
     """
 
-    def __init__(self, id_, title=None, tables=(), attributes=(), plotgroups=(), dataset_uuids=(), uuid=None, tags=()):
+    def __init__(self, id_, title=None, tables=(), attributes=(),
+                 plotgroups=(), dataset_uuids=(), uuid=None, tags=()):
         """
         :param id_: (str) Should be a string that identifies the report, like 'adapter'.
         :param title: Display name of report Defaults to the Report+id if None (added in 0.3.9)
@@ -712,7 +719,8 @@ class Report(BaseReportElement):
                   a=len(self.attributes),
                   p=len(self.plotGroups),
                   t=len(self.tables), u=self.uuid, g=t)
-        return "<{k} id:{i} title:{n} uuid:{u} nattributes:{a} nplot_groups:{p} ntables:{t} tags:{g} >".format(**_d)
+        return "<{k} id:{i} title:{n} uuid:{u} nattributes:{a} nplot_groups:{p} ntables:{t} tags:{g} >".format(
+            **_d)
 
     @property
     def attributes(self):
@@ -771,7 +779,8 @@ class Report(BaseReportElement):
                   t=datetime.datetime.now().isoformat())
 
         d = BaseReportElement.to_dict(self, id_parts=id_parts)
-        d['_comment'] = "Generated with pbcommand version {v} at {t}".format(**_d)
+        d['_comment'] = "Generated with pbcommand version {v} at {t}".format(
+            **_d)
 
         # Required in 1.0.0 of the spec
         d['uuid'] = self.uuid
@@ -978,7 +987,8 @@ class AttributeSpec:
     def validate_attribute(self, attr):
         assert attr.id == self.id
         if attr.value is not None and not isinstance(attr.value, self.type):
-            msg = "Attribute {i} has value of type {v} (expected {t})".format(i=self.id, v=type(attr.value).__name__, t=self.type)
+            msg = "Attribute {i} has value of type {v} (expected {t})".format(
+                i=self.id, v=type(attr.value).__name__, t=self.type)
             raise TypeError(msg)
 
 
@@ -1011,7 +1021,8 @@ class ColumnSpec:
         assert col.id == self.id
         for value in col.values:
             if value is not None and not isinstance(value, self.type):
-                msg = "Column {i} contains value of type {v} (expected {t})".format(i=self.id, v=type(value).__name__, t=self.type)
+                msg = "Column {i} contains value of type {v} (expected {t})".format(
+                    i=self.id, v=type(value).__name__, t=self.type)
                 if isinstance(value, int) and self._type == "float":
                     warnings.warn(msg)
                 else:
@@ -1223,5 +1234,6 @@ class ReportSpec:
                     if force or plot.caption in [None, ""]:
                         plot._caption = plot_spec.caption
                 else:
-                    pass  # warnings.warn("Can't find spec for {i}".format(i=plot.id))
+                    # warnings.warn("Can't find spec for {i}".format(i=plot.id))
+                    pass
         return rpt

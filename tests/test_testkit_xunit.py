@@ -1,8 +1,8 @@
-from xml.etree import ElementTree
+import shutil
 import subprocess
 import tempfile
 import unittest
-import shutil
+from xml.etree import ElementTree
 
 from pbcommand.testkit import pb_requirements
 from pbcommand.testkit import xunit as X
@@ -15,14 +15,17 @@ except ImportError:
 skip_unless_avro_installed = unittest.skipUnless(avro is not None,
                                                  "avro not installed")
 
+
 def _get_and_run_test_suite():
     class MyTestClass(unittest.TestCase):
         @pb_requirements("SL-1")
         def test_1(self):
             self.assertTrue(True)
+
         @pb_requirements("SL-2")
         def test_2(self):
             self.assertTrue(False)
+
         @pb_requirements("SL-3", "SL-4")
         @unittest.skip("Skipped")
         def test_3(self):
@@ -37,7 +40,7 @@ def _get_and_run_test_suite():
 def _generate_jenkins_xml(test_name):
     suite, result = _get_and_run_test_suite()
     x = X.convert_suite_and_result_to_xunit([suite], result,
-        name="pbcommand.tests.test_xunit_output")
+                                            name="pbcommand.tests.test_xunit_output")
     xunit_file = tempfile.NamedTemporaryFile(suffix=".xml").name
     with open(xunit_file, "w") as xml_out:
         xml_out.write(x.toxml())
@@ -50,7 +53,7 @@ class TestXunitOutput(unittest.TestCase):
     def test_convert_to_xunit(self):
         suite, result = _get_and_run_test_suite()
         x = X.convert_suite_and_result_to_xunit([suite], result,
-            name="pbcommand.tests.test_xunit_output")
+                                                name="pbcommand.tests.test_xunit_output")
         root = ElementTree.fromstring(x.toxml())
         self.assertEqual(root.tag, "testsuite")
         self.assertEqual(root.attrib["failures"], "1")
@@ -61,7 +64,9 @@ class TestXunitOutput(unittest.TestCase):
         for el in root.findall("properties"):
             for p in el.findall("property"):
                 requirements.append(p.attrib["value"])
-        self.assertEqual(sorted(requirements), ["SL-1","SL-2","SL-3","SL-4"])
+        self.assertEqual(
+            sorted(requirements), [
+                "SL-1", "SL-2", "SL-3", "SL-4"])
 
     @skip_unless_avro_installed
     def test_xunit_file_to_jenkins(self):
@@ -71,7 +76,9 @@ class TestXunitOutput(unittest.TestCase):
         for el in root.findall("properties"):
             for p in el.findall("property"):
                 requirements.append(p.attrib["value"])
-        self.assertEqual(sorted(requirements), ["SL-1","SL-2","SL-3","SL-4"])
+        self.assertEqual(
+            sorted(requirements), [
+                "SL-1", "SL-2", "SL-3", "SL-4"])
 
     def _get_junit_files(self):
         x1 = tempfile.NamedTemporaryFile(suffix=".xml").name

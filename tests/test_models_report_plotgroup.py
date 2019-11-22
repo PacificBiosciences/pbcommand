@@ -1,6 +1,5 @@
-
-import unittest
 import logging
+import unittest
 from pprint import pformat
 
 from pbcommand.models.report import PlotGroup, Plot, PbReportError

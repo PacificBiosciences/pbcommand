@@ -1,10 +1,10 @@
-
-import unittest
 import logging
+import unittest
 
 from pbcommand.models.report import Attribute, PbReportError
 
 log = logging.getLogger(__name__)
+
 
 class TestAttribute(unittest.TestCase):
 

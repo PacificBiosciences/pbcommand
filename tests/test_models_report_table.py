@@ -1,6 +1,6 @@
 import logging
-import unittest
 import tempfile
+import unittest
 
 from pbcommand.models.report import Table, Column, PbReportError
 
@@ -79,7 +79,9 @@ class TestBasicTable(unittest.TestCase):
         f = tempfile.NamedTemporaryFile(suffix=".csv").name
         self.table.to_csv(f)
         with open(f) as csv_out:
-            self.assertEqual(csv_out.read(), "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n")
+            self.assertEqual(
+                csv_out.read(),
+                "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n")
 
 
 class TestTable(unittest.TestCase):
@@ -87,7 +89,7 @@ class TestTable(unittest.TestCase):
     def test_table(self):
         """Can't create an Table without an id."""
         def none_table():
-                t = Table(None)
+            t = Table(None)
         self.assertRaises(Exception, none_table)
 
     def test_add_column(self):

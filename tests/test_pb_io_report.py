@@ -1,15 +1,15 @@
-import os
-import logging
-import unittest
 import json
+import logging
+import os
+import unittest
 from pprint import pformat
 
+from base_utils import get_data_file_from_subdir
 from pbcommand.pb_io import load_report_from_json
 from pbcommand.models.report import Plot, PlotlyPlot
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from base_utils import get_data_file_from_subdir
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,9 @@ class TestSerializationOverviewReport(unittest.TestCase):
         self.assertEqual(self.report.id, "overview")
 
     def test_uuid(self):
-        self.assertEqual(self.report.uuid, "196136c8-f6fd-11e5-b481-3c15c2cc8f88")
+        self.assertEqual(
+            self.report.uuid,
+            "196136c8-f6fd-11e5-b481-3c15c2cc8f88")
 
     def test_title(self):
         self.assertEqual(self.report.title, "Overview Report")
@@ -60,5 +62,9 @@ class TestSerializationAdapterReport(unittest.TestCase):
     def test_plots(self):
         self.assertEqual(len(self.report.plotGroups[0].plots), 1)
         self.assertEqual(len(self.report.plotGroups[1].plots), 1)
-        self.assertEqual(self.report.plotGroups[0].plots[0].plotType, Plot.PLOT_TYPE)
-        self.assertEqual(self.report.plotGroups[1].plots[0].plotType, PlotlyPlot.PLOT_TYPE)
+        self.assertEqual(
+            self.report.plotGroups[0].plots[0].plotType,
+            Plot.PLOT_TYPE)
+        self.assertEqual(
+            self.report.plotGroups[1].plots[0].plotType,
+            PlotlyPlot.PLOT_TYPE)

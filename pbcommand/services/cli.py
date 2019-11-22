@@ -6,22 +6,23 @@ The old CLI program is largely replaced by the Scala version in 'smrtflow'.
 
 from functools import cmp_to_key
 import functools
-import logging
-import pprint
-import os
-import sys
 import json
+import logging
+import os
+import pprint
+import sys
 import time
 import uuid
 
-from requests import RequestException
 import iso8601
+from requests import RequestException
 
 from pbcommand.models import FileTypes
 from pbcommand.services import (ServiceAccessLayer,
                                 ServiceEntryPoint,
                                 JobExeError)
-from pbcommand.services._service_access_layer import (DATASET_METATYPES_TO_ENDPOINTS, )
+from pbcommand.services._service_access_layer import (
+    DATASET_METATYPES_TO_ENDPOINTS, )
 from pbcommand.validators import validate_file, validate_or
 from pbcommand.utils import (is_dataset, walker, compose)
 from pbcommand import to_ascii
@@ -72,7 +73,12 @@ def _is_xml(path):
 
 def add_max_items_option(default, desc="Max items to return"):
     def f(p):
-        p.add_argument('-m', '--max-items', type=int, default=default, help=desc)
+        p.add_argument(
+            '-m',
+            '--max-items',
+            type=int,
+            default=default,
+            help=desc)
         return p
     return f
 
@@ -168,9 +174,11 @@ def run_import_local_datasets(host, port, xml_or_dir):
     return run_file_or_dir(file_func, dir_func, xml_or_dir)
 
 
-def run_import_fasta(host, port, fasta_path, name, organism, ploidy, block=False):
+def run_import_fasta(host, port, fasta_path, name,
+                     organism, ploidy, block=False):
     sal = ServiceAccessLayer(host, port)
-    log.info("importing ({s:.2f} MB) {f} ".format(s=_get_size_mb(fasta_path), f=fasta_path))
+    log.info("importing ({s:.2f} MB) {f} ".format(
+        s=_get_size_mb(fasta_path), f=fasta_path))
     if block is True:
         result = sal.run_import_fasta(fasta_path, name, organism, ploidy)
         log.info("Successfully imported {f}".format(f=fasta_path))
@@ -190,7 +198,8 @@ def load_analysis_job_json(d):
     return job_name, pipeline_template_id, service_epoints, tags
 
 
-def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=False, time_out=None, task_options=(), tags=()):
+def run_analysis_job(sal, job_name, pipeline_id, service_entry_points,
+                     block=False, time_out=None, task_options=(), tags=()):
     """Run analysis (pbsmrtpipe) job
 
     :rtype ServiceJob:
@@ -198,30 +207,49 @@ def run_analysis_job(sal, job_name, pipeline_id, service_entry_points, block=Fal
     if time_out is None:
         time_out = sal.JOB_DEFAULT_TIMEOUT
     status = sal.get_status()
-    log.info("System:{i} v:{v} Status:{x}".format(x=status['message'], i=status['id'], v=status['version']))
+    log.info(
+        "System:{i} v:{v} Status:{x}".format(
+            x=status['message'],
+            i=status['id'],
+            v=status['version']))
 
     resolved_service_entry_points = []
     for service_entry_point in service_entry_points:
         # Always lookup/resolve the dataset by looking up the id
         ds = sal.get_dataset_by_uuid(service_entry_point.resource)
         if ds is None:
-            raise ValueError("Failed to find DataSet with id {r} {s}".format(s=service_entry_point, r=service_entry_point.resource))
+            raise ValueError(
+                "Failed to find DataSet with id {r} {s}".format(
+                    s=service_entry_point,
+                    r=service_entry_point.resource))
 
         dataset_id = ds['id']
-        ep = ServiceEntryPoint(service_entry_point.entry_id, service_entry_point.dataset_type, dataset_id)
+        ep = ServiceEntryPoint(
+            service_entry_point.entry_id,
+            service_entry_point.dataset_type,
+            dataset_id)
         log.debug("Resolved dataset {e}".format(e=ep))
         resolved_service_entry_points.append(ep)
 
     if block:
-        job_result = sal.run_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, time_out=time_out, task_options=task_options, tags=tags)
+        job_result = sal.run_by_pipeline_template_id(
+            job_name,
+            pipeline_id,
+            resolved_service_entry_points,
+            time_out=time_out,
+            task_options=task_options,
+            tags=tags)
         job_id = job_result.job.id
         # service job
         result = sal.get_analysis_job_by_id(job_id)
         if not result.was_successful():
-            raise JobExeError("Job {i} failed:\n{e}".format(i=job_id, e=job_result.job.error_message))
+            raise JobExeError(
+                "Job {i} failed:\n{e}".format(
+                    i=job_id, e=job_result.job.error_message))
     else:
         # service job or error
-        result = sal.create_by_pipeline_template_id(job_name, pipeline_id, resolved_service_entry_points, tags=tags)
+        result = sal.create_by_pipeline_template_id(
+            job_name, pipeline_id, resolved_service_entry_points, tags=tags)
 
     log.info("Result {r}".format(r=result))
     return result
@@ -233,7 +261,9 @@ def run_get_job_summary(host, port, job_id):
     epoints = sal.get_analysis_job_entry_points(job_id)
 
     if job is None:
-        log.error("Unable to find job {i} from {u}".format(i=job_id, u=sal.uri))
+        log.error(
+            "Unable to find job {i} from {u}".format(
+                i=job_id, u=sal.uri))
     else:
         # this is not awesome, but the scala code should be the fundamental
         # tool
@@ -252,7 +282,8 @@ def run_job_list_summary(host, port, max_items, sort_by=None):
 
     jobs = sal.get_analysis_jobs()
 
-    jobs_list = jobs if sort_by is None else sorted(jobs, key=cmp_to_key(sort_by))
+    jobs_list = jobs if sort_by is None else sorted(
+        jobs, key=cmp_to_key(sort_by))
 
     printer(jobs_list[:max_items])
 
@@ -267,14 +298,18 @@ def run_get_dataset_summary(host, port, dataset_id_or_uuid):
     ds = sal.get_dataset_by_uuid(dataset_id_or_uuid)
 
     if ds is None:
-        log.error("Unable to find DataSet '{i}' on {u}".format(i=dataset_id_or_uuid, u=sal.uri))
+        log.error(
+            "Unable to find DataSet '{i}' on {u}".format(
+                i=dataset_id_or_uuid,
+                u=sal.uri))
     else:
         print(pprint.pformat(ds, indent=2))
 
     return 0
 
 
-def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=None):
+def run_get_dataset_list_summary(
+        host, port, dataset_type, max_items, sort_by=None):
     """
 
     Display a list of Dataset summaries
@@ -291,7 +326,8 @@ def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=No
     def to_ep(file_type):
         return DATASET_METATYPES_TO_ENDPOINTS[file_type]
 
-    # FIXME(mkocher)(2016-3-26) need to centralize this on the dataset "shortname"?
+    # FIXME(mkocher)(2016-3-26) need to centralize this on the dataset
+    # "shortname"?
     fs = {to_ep(FileTypes.DS_SUBREADS): sal.get_subreadsets,
           to_ep(FileTypes.DS_REF): sal.get_referencesets,
           to_ep(FileTypes.DS_ALIGN): sal.get_alignmentsets,
@@ -301,13 +337,20 @@ def run_get_dataset_list_summary(host, port, dataset_type, max_items, sort_by=No
     f = fs.get(dataset_type)
 
     if f is None:
-        raise KeyError("Unsupported dataset type {t} Supported types {s}".format(t=dataset_type, s=list(fs.keys())))
+        raise KeyError(
+            "Unsupported dataset type {t} Supported types {s}".format(
+                t=dataset_type, s=list(
+                    fs.keys())))
     else:
         datasets = f()
         # this needs to be improved
-        sorted_datasets = datasets if sort_by is None else sorted(datasets, key=cmp_to_key(sort_by))
+        sorted_datasets = datasets if sort_by is None else sorted(
+            datasets, key=cmp_to_key(sort_by))
 
-        print("Number of {t} Datasets {n}".format(t=dataset_type, n=len(datasets)))
+        print(
+            "Number of {t} Datasets {n}".format(
+                t=dataset_type,
+                n=len(datasets)))
         list_dict_printer(sorted_datasets[:max_items])
 
     return 0

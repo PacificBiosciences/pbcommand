@@ -1,12 +1,12 @@
-import pytest
+import argparse
 import functools
+import logging
+import pytest
 import tempfile
 import unittest
-import argparse
-import logging
 
 from pbcommand.utils import (Singleton, compose, get_parsed_args_log_level,
-    get_dataset_metadata)
+                             get_dataset_metadata)
 
 
 class TestSingleton(unittest.TestCase):
@@ -24,8 +24,8 @@ class TestSingleton(unittest.TestCase):
 
 class TestCompose(unittest.TestCase):
     def test_simple(self):
-        f = lambda x: x * 2
-        g = lambda y: y + 2
+        def f(x): return x * 2
+        def g(y): return y + 2
 
         h = compose(f, g)
         value = h(7)
@@ -65,6 +65,7 @@ class TestLogging(unittest.TestCase):
         from pbcommand.common_options import (
             add_log_debug_option, add_log_quiet_option, add_log_verbose_option,
             add_log_level_option)
+
         def _get_argparser(level="INFO"):
             p = argparse.ArgumentParser()
             p.add_argument("--version", action="store_true")

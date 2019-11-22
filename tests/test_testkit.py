@@ -1,4 +1,3 @@
-
 import unittest
 
 from pbcommand.testkit.base_utils import pb_requirements
@@ -15,6 +14,7 @@ class TestBaseUtils(unittest.TestCase):
             @pb_requirements("SL-1")
             def test_1(self):
                 self.assertTrue(True)
+
             @pb_requirements("SL-2")
             def test_2(self):
                 self.fail("Fail!")

@@ -1,9 +1,8 @@
-
-import os
-import unittest
 import logging
-import tempfile
+import os
 import subprocess
+import tempfile
+import unittest
 
 from .base_utils import (HAS_PBCORE,
                          pbcore_skip_msg,
@@ -28,7 +27,8 @@ class PbIntegrationBase(unittest.TestCase):
         with open("subprocess.stdout", "w") as stdout:
             with open("subprocess.stderr", "w") as stderr:
                 try:
-                    return subprocess.check_call(args, stdout=stdout, stderr=stderr)
+                    return subprocess.check_call(
+                        args, stdout=stdout, stderr=stderr)
                 except Exception as e:
                     log.error(e)
                     log.error("Console outputs are in %s", self._tmp_dir)

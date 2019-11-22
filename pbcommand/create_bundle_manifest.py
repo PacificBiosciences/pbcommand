@@ -2,15 +2,14 @@
 # Tool to generate the manifest.xml will the correct datetime of bundle
 # creation as well as add git sha and bamboo build metadata
 
-import sys
-import os
 import argparse
-import json
-import subprocess
 import datetime
-
-from xml.etree.ElementTree import Element, SubElement, tostring
+import json
+import os
+import subprocess
+import sys
 from xml.dom import minidom
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 __version__ = "0.3.0"
 
@@ -29,8 +28,16 @@ def get_parser():
     p.add_argument("version_txt", help="Path to Manifest.xml")
     p.add_argument("-o", dest="output_manifest_xml", default="manifest.xml",
                    help="Path to the version.txt file. Must have a single line with Major.Minor.Tiny format")
-    p.add_argument("-j", dest="pacbio_manifest_json", default="pacbio-manifest.json", help="Output path output manifest JSON used by SMRT Link")
-    p.add_argument('--author', dest="author", default=Constants.AUTHOR, help="Bundle creation Author")
+    p.add_argument(
+        "-j",
+        dest="pacbio_manifest_json",
+        default="pacbio-manifest.json",
+        help="Output path output manifest JSON used by SMRT Link")
+    p.add_argument(
+        '--author',
+        dest="author",
+        default=Constants.AUTHOR,
+        help="Bundle creation Author")
     p.add_argument("--name", dest="name", default=Constants.NAME,
                    help="Name of software bundle")
     p.add_argument("--desc", dest="description", default="No Description",
@@ -52,7 +59,8 @@ def get_bamboo_buildnumber(default=0):
     return int(os.environ.get('bamboo_globalBuildNumber', default))
 
 
-def to_semver(major, minor, patch, git_sha, build_number=None, prerelease_tag=None):
+def to_semver(major, minor, patch, git_sha,
+              build_number=None, prerelease_tag=None):
     """Convert to semver format"""
     base = ".".join(str(i) for i in (major, minor, patch))
     prerelease = "" if prerelease_tag is None else "-{}".format(prerelease_tag)
@@ -90,10 +98,12 @@ def to_pacbio_manifest_d(bundle_id, version, name, desc):
 
 
 def prettify(elem):
-    return minidom.parseString(tostring(elem, 'utf-8')).toprettyxml(indent="  ")
+    return minidom.parseString(
+        tostring(elem, 'utf-8')).toprettyxml(indent="  ")
 
 
-def write_manifest_xml(bundle_id, version, name, description, author, manifest_xml):
+def write_manifest_xml(bundle_id, version, name,
+                       description, author, manifest_xml):
 
     root = Element("Manifest")
 
@@ -117,10 +127,18 @@ def write_manifest_xml(bundle_id, version, name, description, author, manifest_x
 
 def write_pacbio_manifest_json(bundle_id, version, name, desc, output_json):
     with open(output_json, 'w') as f:
-        f.write(json.dumps(to_pacbio_manifest_d(bundle_id, version, name, desc), indent=True))
+        f.write(
+            json.dumps(
+                to_pacbio_manifest_d(
+                    bundle_id,
+                    version,
+                    name,
+                    desc),
+                indent=True))
 
 
-def runner(bundle_id, version_txt, output_manifest_xml, pacbio_manifest_json, author, name, desc):
+def runner(bundle_id, version_txt, output_manifest_xml,
+           pacbio_manifest_json, author, name, desc):
 
     major, minor, patch = read_version_txt(version_txt)
     sem_ver = get_version(major, minor, patch)
@@ -128,15 +146,29 @@ def runner(bundle_id, version_txt, output_manifest_xml, pacbio_manifest_json, au
     other = get_bamboo_buildnumber()
     if not (branch.startswith("master") or branch.startswith("release")):
         other = "SNAPSHOT" + str(other)
-    version_str = to_undocumented_pacbio_version_format(major, minor, patch, other)
+    version_str = to_undocumented_pacbio_version_format(
+        major, minor, patch, other)
 
-    # this is to get the git SHA1 and build number propagated to SL services data model
-    author = "User {} created {} bundle {}".format(Constants.AUTHOR, bundle_id, sem_ver)
+    # this is to get the git SHA1 and build number propagated to SL services
+    # data model
+    author = "User {} created {} bundle {}".format(
+        Constants.AUTHOR, bundle_id, sem_ver)
 
     # there's some tragic duplication of models between ICS and Secondary
     # hence this duplication of these very similar ideas
-    write_manifest_xml(bundle_id, version_str, name, desc, author, output_manifest_xml)
-    write_pacbio_manifest_json(bundle_id, version_str, name, desc, pacbio_manifest_json)
+    write_manifest_xml(
+        bundle_id,
+        version_str,
+        name,
+        desc,
+        author,
+        output_manifest_xml)
+    write_pacbio_manifest_json(
+        bundle_id,
+        version_str,
+        name,
+        desc,
+        pacbio_manifest_json)
 
     return 0
 

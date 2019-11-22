@@ -1,9 +1,9 @@
+import json
+import logging
+import os.path
+import shlex
 import tempfile
 import unittest
-import logging
-import shlex
-import json
-import os.path
 
 import pbcommand.common_options as CU
 from pbcommand.cli.core import pacbio_args_runner
@@ -72,6 +72,6 @@ class SimpleTest(unittest.TestCase):
             self.assertEqual(d["severity"], "ERROR")
         with open("task-report.json", "r") as rpt_in:
             d = json.loads(rpt_in.read())
-            a = {a["id"]:a["value"] for a in d["attributes"]}
+            a = {a["id"]: a["value"] for a in d["attributes"]}
             self.assertEqual(a["workflow_task.exit_code"], 2)
             self.assertEqual(a["workflow_task.nproc"], 1)

@@ -1,9 +1,8 @@
 import logging
 import unittest
 
-from pbcommand.engine import run_cmd
-
 from base_utils import get_temp_file, get_temp_dir
+from pbcommand.engine import run_cmd
 
 log = logging.getLogger(__name__)
 

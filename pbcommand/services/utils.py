@@ -9,7 +9,8 @@ from pbcommand.utils import to_ascii
 def _jobs_by_state_gen(sal, job_states):
     """:type sal: ServiceAccessLayer"""
 
-    states = job_states if isinstance(job_states, (tuple, list)) else [job_states]
+    states = job_states if isinstance(
+        job_states, (tuple, list)) else [job_states]
 
     jobs = sal.get_analysis_jobs()
     for job in jobs:
@@ -19,7 +20,8 @@ def _jobs_by_state_gen(sal, job_states):
 
 
 def get_failed_jobs(sal):
-    return sorted(_jobs_by_state_gen(sal, JobStates.FAILED), key=lambda x: x.created_at, reverse=True)
+    return sorted(_jobs_by_state_gen(sal, JobStates.FAILED),
+                  key=lambda x: x.created_at, reverse=True)
 
 
 def jobs_summary(jobs):
