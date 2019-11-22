@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import sys
 import warnings
 
@@ -43,7 +43,10 @@ def write_pipeline_chunks(chunks, output_json_file, comment):
     with open(output_json_file, 'w') as f:
         f.write(json.dumps(_d, indent=4, separators=(',', ': ')))
 
-    log.debug("Write {n} chunks to {o}".format(n=len(chunks), o=output_json_file))
+    log.debug(
+        "Write {n} chunks to {o}".format(
+            n=len(chunks),
+            o=output_json_file))
 
 
 def load_pipeline_chunks_from_json(path):
@@ -110,7 +113,8 @@ def _pacbio_choice_option_from_dict(d):
     return opt
 
 
-def __simple_option_by_type(option_id, name, default, description, option_type_id):
+def __simple_option_by_type(
+        option_id, name, default, description, option_type_id):
 
     option_type = TaskOptionTypes.from_simple_str(option_type_id)
 
@@ -138,7 +142,9 @@ def _pacbio_legacy_option_from_dict(d):
 
     :rtype: PacBioOption
     """
-    warnings.warn("This is obsolete and will disappear soon", DeprecationWarning)
+    warnings.warn(
+        "This is obsolete and will disappear soon",
+        DeprecationWarning)
 
     opt_id = d['pb_option']['option_id']
     name = d['pb_option']['name']
@@ -157,14 +163,19 @@ def _pacbio_option_from_dict(d):
     if "pb_option" in d:
         return _pacbio_legacy_option_from_dict(d)
     else:
-        return __simple_option_by_type(d['id'], d['name'], d['default'], to_utf8(d['description']), d['optionTypeId'])
+        return __simple_option_by_type(
+            d['id'],
+            d['name'],
+            d['default'],
+            to_utf8(d['description']),
+            d['optionTypeId'])
 
 
 def pacbio_option_from_dict(d):
     """Fundamental API for loading any PacBioOption type from a dict """
     # This should probably be pushed into pbcommand/pb_io/* for consistency
-    # Extensions are supported by adding a dispatch method by looking for required
-    # key(s) in the dict.
+    # Extensions are supported by adding a dispatch method by looking for
+    # required key(s) in the dict.
     if "choices" in d and d.get('choices') is not None:
         # the None check is for the TCs that are non-choice based models, but
         # were written with "choices" key

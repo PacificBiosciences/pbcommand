@@ -1,13 +1,12 @@
-import traceback
-import tempfile
-import unittest
 import logging
-import os.path as op
 import os
-
-from pbcommand.validators import *
+import os.path as op
+import tempfile
+import traceback
+import unittest
 
 from base_utils import get_data_file_from_subdir
+from pbcommand.validators import *
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ class TestValidators(unittest.TestCase):
         """
         try:
             validate_output_dir(op.dirname(__file__))
-        except:
+        except BaseException:
             log.error(traceback.format_exc())
             raise Exception("Directory validation failed")
         with self.assertRaises(IOError):
@@ -66,7 +65,7 @@ class TestValidators(unittest.TestCase):
         try:
             # we know this gets made
             validate_report_file('foo')
-        except:
+        except BaseException:
             log.error(traceback.format_exc())
             raise Exception("Filename validation failed")
         with self.assertRaises(ValueError):

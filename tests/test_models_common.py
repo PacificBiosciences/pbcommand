@@ -1,11 +1,11 @@
-import datetime
-import unittest
-import tempfile
-import logging
-import uuid
-import json
 import copy
+import datetime
+import json
+import logging
 import os.path
+import tempfile
+import unittest
+import uuid
 
 from pbcommand.models import FileTypes, DataStore, DataStoreFile, PacBioAlarm
 from pbcommand.models.common import _datetime_to_string
@@ -31,10 +31,17 @@ class TestDataStore(unittest.TestCase):
 
     def test_datastore_file(self):
         tmpfile = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
-        ds = DataStoreFile(str(uuid.uuid4()), "pbcommand.tasks.dev_task", FileTypes.DS_SUBREADS.file_type_id, tmpfile, False, "Subreads", "Subread DataSet XML")
+        ds = DataStoreFile(str(uuid.uuid4()),
+                           "pbcommand.tasks.dev_task",
+                           FileTypes.DS_SUBREADS.file_type_id,
+                           tmpfile,
+                           False,
+                           "Subreads",
+                           "Subread DataSet XML")
         log.info("DataStoreFile: {s}".format(s=ds))
         ds2 = DataStoreFile.from_dict(ds.to_dict())
-        for attr in ["uuid", "file_type_id", "file_id", "path", "is_chunked", "name", "description"]:
+        for attr in ["uuid", "file_type_id", "file_id",
+                     "path", "is_chunked", "name", "description"]:
             self.assertEqual(getattr(ds2, attr), getattr(ds, attr))
         self.assertEqual(ds.file_type, FileTypes.DS_SUBREADS)
 
@@ -42,7 +49,13 @@ class TestDataStore(unittest.TestCase):
         tmpfile = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         base_dir = os.path.dirname(tmpfile)
         tmp_ds = os.path.join(base_dir, "datastore.json")
-        dsf = DataStoreFile(str(uuid.uuid4()), "pbcommand.tasks.dev_task", FileTypes.DS_SUBREADS.file_type_id, os.path.basename(tmpfile), False, "Subreads", "Subread DataSet XML")
+        dsf = DataStoreFile(str(uuid.uuid4()),
+                            "pbcommand.tasks.dev_task",
+                            FileTypes.DS_SUBREADS.file_type_id,
+                            os.path.basename(tmpfile),
+                            False,
+                            "Subreads",
+                            "Subread DataSet XML")
         ds = DataStore([dsf])
         ds.write_json(tmp_ds)
         with open(tmp_ds) as json_in:

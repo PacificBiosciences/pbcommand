@@ -1,11 +1,10 @@
 import json
-import os
 import logging
+import os
 import unittest
 
 from pbcommand.models import PipelinePreset, PipelineDataStoreViewRules
 from pbcommand.models.report import Report, ReportSpec
-
 from pbcommand.pb_io import (load_pipeline_presets_from,
                              load_pipeline_datastore_view_rules_from_json,
                              load_report_spec_from_json)
@@ -13,7 +12,6 @@ from pbcommand.schemas import (validate_presets,
                                validate_datastore_view_rules,
                                validate_report_spec)
 from pbcommand.utils import walker
-
 from base_utils import DATA_DIR_PRESETS, DATA_DIR_DSVIEW, DATA_DIR_REPORT_SPECS
 
 try:
@@ -44,7 +42,10 @@ def _to_assertion(path, schema_validate_func):
         log.info("Attempting to validate '{}'".format(path))
         is_valid = schema_validate_func(d)
         log.info(" is-valid? {i} {p}".format(i=is_valid, p=path))
-        self.assertTrue(is_valid, "{p} is not valid with the avro schema".format(p=path))
+        self.assertTrue(
+            is_valid,
+            "{p} is not valid with the avro schema".format(
+                p=path))
     return test_is_validate
 
 
@@ -54,7 +55,9 @@ class ValidatePipelinePreset(unittest.TestCase):
         for path in walker(DATA_DIR_PRESETS, json_filter):
             f = _to_assertion(path, validate_presets)
             f(self)
-            self.assertIsInstance(load_pipeline_presets_from(path), PipelinePreset)
+            self.assertIsInstance(
+                load_pipeline_presets_from(path),
+                PipelinePreset)
 
 
 class ValidateDataStoreViewRules(unittest.TestCase):

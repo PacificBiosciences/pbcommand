@@ -1,5 +1,5 @@
-import unittest
 import logging
+import unittest
 
 import pbcommand
 from pbcommand.models.common import (PacBioFloatChoiceOption, PacBioIntOption,
@@ -37,7 +37,10 @@ class TestPacBioBasicOptionTest(unittest.TestCase):
         o = self._to_opt()
         log.debug("Created option {o}".format(o=o))
 
-        self.assertEqual(o.option_id, "test.task_options.{}".format(self.OPT_ID))
+        self.assertEqual(
+            o.option_id,
+            "test.task_options.{}".format(
+                self.OPT_ID))
         self.assertEqual(o.name, self.OPT_NAME)
         self.assertEqual(o.default, self.OPT_DEFAULT)
         self.assertEqual(o.description, self.OPT_DESC)

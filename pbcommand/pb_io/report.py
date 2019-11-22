@@ -1,7 +1,9 @@
-"""Loading a report from JSON
+"""
+Loading a report from JSON
 
 This manual marshalling/de-marshalling is not awesome.
 """
+
 import json
 import logging
 import uuid as U
@@ -13,7 +15,11 @@ from pbcommand.schemas import validate_report, validate_report_spec
 
 log = logging.getLogger(__name__)
 
-__all__ = ["load_report_from_json", "load_report_from", "load_report_spec_from_json"]
+__all__ = [
+    "load_report_from_json",
+    "load_report_from",
+    "load_report_spec_from_json",
+]
 
 
 def _to_id(s):
@@ -32,9 +38,11 @@ def _to_plot(d):
     plot_type = d.get("plotType", Plot.PLOT_TYPE)
     plotly_version = d.get("plotlyVersion", None)
     if plot_type == Plot.PLOT_TYPE:
-        return Plot(id_, image, caption=caption, thumbnail=thumbnail, title=title)
+        return Plot(id_, image, caption=caption,
+                    thumbnail=thumbnail, title=title)
     elif plot_type == PlotlyPlot.PLOT_TYPE:
-        return PlotlyPlot(id_, image, caption=caption, thumbnail=thumbnail, title=title, plotly_version=plotly_version)
+        return PlotlyPlot(id_, image, caption=caption, thumbnail=thumbnail,
+                          title=title, plotly_version=plotly_version)
     else:
         raise ValueError("Unrecognized plotType '{t}'".format(t=plot_type))
 

@@ -3,15 +3,14 @@ IO layer for converting a TestResult instance to XUnit and an XUnit.xml
 parser
 """
 
+import copy
+import datetime
+import logging
 import os
 import re
-import copy
-import logging
-import datetime
 import unittest
-
-from xml.etree.ElementTree import Element, ElementTree, ParseError
 from xml.dom import minidom
+from xml.etree.ElementTree import Element, ElementTree, ParseError
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +28,10 @@ class XunitTestSuite:
         self.name = name
         for t in tests:
             if not isinstance(t, XunitTestCase):
-                raise TypeError("Expected {k} got {t}.".format(t=type(t), k=XunitTestCase.__class__.__name__))
+                raise TypeError(
+                    "Expected {k} got {t}.".format(
+                        t=type(t),
+                        k=XunitTestCase.__class__.__name__))
         self._tests = tests
         self._run_time = run_time
         self._pb_requirements = pb_requirements
@@ -51,18 +53,28 @@ class XunitTestSuite:
         if result in _RESULT_STATES:
             return [test for test in self.tests if test.result == result]
         else:
-            raise ValueError("{r} is Invalid state. Supported states {s}.".format(r=result, s=_RESULT_STATES))
+            raise ValueError(
+                "{r} is Invalid state. Supported states {s}.".format(
+                    r=result, s=_RESULT_STATES))
 
     def __len__(self):
         return len(self.tests)
 
     def __repr__(self):
-        return "<{c} tests:{n} successful:{s} failed:{f} errors:{e} skipped:{sk} >".format(c=self.__class__.__name__, n=self.ntests, s=self.nsuccess, f=self.nfailure, e=self.nerrors, sk=self.nskipped)
+        return "<{c} tests:{n} successful:{s} failed:{f} errors:{e} skipped:{sk} >".format(
+            c=self.__class__.__name__, n=self.ntests, s=self.nsuccess, f=self.nfailure, e=self.nerrors, sk=self.nskipped)
 
     def __str__(self):
         outs = list()
         outs.append("TestName : {n}".format(n=self.name))
-        outs.append("{c} tests {n} successful {s} failed {f} errors {e} skipped {sk}".format(c=self.__class__.__name__, n=self.ntests, s=self.nsuccess, f=self.nfailure, e=self.nerrors, sk=self.nskipped))
+        outs.append(
+            "{c} tests {n} successful {s} failed {f} errors {e} skipped {sk}".format(
+                c=self.__class__.__name__,
+                n=self.ntests,
+                s=self.nsuccess,
+                f=self.nfailure,
+                e=self.nerrors,
+                sk=self.nskipped))
         for i, t in enumerate(self.tests):
             outs.append(" : ".join([str(i + 1).rjust(5), str(t)]))
         outs.append("")
@@ -175,7 +187,9 @@ class XunitTestCase:
         if result in XunitTestCase.RESULTS:
             self.result = result
         else:
-            raise ValueError("{r} is Invalid state. Supported states {s}.".format(r=result, s=_RESULT_STATES))
+            raise ValueError(
+                "{r} is Invalid state. Supported states {s}.".format(
+                    r=result, s=_RESULT_STATES))
         self.text = text
         self.etype = etype
         self.message = message
@@ -190,7 +204,8 @@ class XunitTestCase:
         return " ".join(outs)
 
     def __repr__(self):
-        return "<{k} {n} {r}>".format(k=self.classname, n=self.name, r=self.result)
+        return "<{k} {n} {r}>".format(
+            k=self.classname, n=self.name, r=self.result)
 
     def to_dict(self):
         was_successful = self.result == 'success'
@@ -321,7 +336,9 @@ def convert_suite_and_result_to_xunit(suite,
                 m = getattr(tc, tc._testMethodName)
                 requirements.update(getattr(m, "__pb_requirements__", []))
         else:
-            raise TypeError("Unsupported test suite case ({x})".format(x=type(s)))
+            raise TypeError(
+                "Unsupported test suite case ({x})".format(
+                    x=type(s)))
 
     ntests = len(all_test_cases)
 

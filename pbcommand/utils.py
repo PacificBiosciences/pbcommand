@@ -2,20 +2,20 @@
 Utils for common funcs, such as setting up a log, composing functions.
 """
 
-import multiprocessing
+import argparse
 import functools
-import os
 import logging
 import logging.config
-import argparse
+import multiprocessing
+import os
 import pprint
-import traceback
-import time
-import types
 import subprocess
 import sys
-from contextlib import contextmanager
+import time
+import traceback
+import types
 import xml.etree.ElementTree as ET
+from contextlib import contextmanager
 
 from pbcommand.models import FileTypes, DataSetMetaData
 from pbcommand import to_ascii
@@ -49,8 +49,10 @@ def _handler_stream_d(stream, level_str, formatter_id):
     return d
 
 
-_handler_stdout_stream_d = functools.partial(_handler_stream_d, "ext://sys.stdout")
-_handler_stderr_stream_d = functools.partial(_handler_stream_d, "ext://sys.stderr")
+_handler_stdout_stream_d = functools.partial(
+    _handler_stream_d, "ext://sys.stdout")
+_handler_stderr_stream_d = functools.partial(
+    _handler_stream_d, "ext://sys.stderr")
 
 
 def _handler_file(level_str, path, formatter_id):
@@ -85,7 +87,8 @@ def _get_default_logging_config_dict(level, file_name_or_none, formatter):
     else:
         handler_d = _handler_file(level_str, file_name_or_none, formatter_id)
 
-    formatters_d = {fid: {'format': fx} for fid, fx in [(formatter_id, formatter), (error_fmt_id, Constants.LOG_FMT_ERR)]}
+    formatters_d = {fid: {'format': fx} for fid, fx in [
+        (formatter_id, formatter), (error_fmt_id, Constants.LOG_FMT_ERR)]}
 
     handlers_d = {console_handler_id: handler_d,
                   error_handler_id: error_handler_d}
@@ -102,11 +105,12 @@ def _get_default_logging_config_dict(level, file_name_or_none, formatter):
         'root': {'handlers': [error_handler_id, console_handler_id], 'level': logging.NOTSET}
     }
 
-    #print pprint.pformat(d)
+    # print pprint.pformat(d)
     return d
 
 
-def _get_console_and_file_logging_config_dict(console_level, console_formatter, path, path_level, path_formatter):
+def _get_console_and_file_logging_config_dict(
+        console_level, console_formatter, path, path_level, path_formatter):
     """
     Get logging configuration that is both for console and a file.
 
@@ -172,8 +176,10 @@ def setup_logger(file_name_or_none, level, formatter=Constants.LOG_FMT_FULL):
     return _setup_logging_config_d(d)
 
 
-def setup_console_and_file_logger(stdout_level, stdout_formatter, path, path_level, path_formatter):
-    d = _get_console_and_file_logging_config_dict(stdout_level, stdout_formatter, path, path_level, path_formatter)
+def setup_console_and_file_logger(
+        stdout_level, stdout_formatter, path, path_level, path_formatter):
+    d = _get_console_and_file_logging_config_dict(
+        stdout_level, stdout_formatter, path, path_level, path_formatter)
     return _setup_logging_config_d(d)
 
 
@@ -271,7 +277,8 @@ def _simple_validate_type(atype, instance):
     return validate_type_or_raise(instance, atype)
 
 
-_is_argparser_instance = functools.partial(_simple_validate_type, argparse.ArgumentParser)
+_is_argparser_instance = functools.partial(
+    _simple_validate_type, argparse.ArgumentParser)
 
 
 def is_argparser_instance(func):
@@ -348,7 +355,8 @@ def which_or_raise(cmd):
     """Find exe in path or raise ExternalCommandNotFoundError"""
     resolved_cmd = which(cmd)
     if resolved_cmd is None:
-        raise ExternalCommandNotFoundError("Unable to find required cmd '{c}'".format(c=cmd))
+        raise ExternalCommandNotFoundError(
+            "Unable to find required cmd '{c}'".format(c=cmd))
     else:
         return resolved_cmd
 
@@ -368,12 +376,12 @@ class Singleton(type):
     """
 
     def __init__(cls, name, bases, dct):
-        super(Singleton, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
         cls.instance = None
 
     def __call__(cls, *args, **kw):
         if cls.instance is None:
-            cls.instance = super(Singleton, cls).__call__(*args)
+            cls.instance = super().__call__(*args)
         return cls.instance
 
 
@@ -391,7 +399,8 @@ def nfs_exists_check(ff):
     try:
         # All we really need is opendir(), but listdir() is usually fast.
         os.listdir(os.path.dirname(os.path.realpath(ff)))
-        # But is it a file or a directory? We do not know until it actually exists.
+        # But is it a file or a directory? We do not know until it actually
+        # exists.
         if os.path.exists(ff):
             return True
         # Might be a directory, so refresh itself too.
@@ -467,7 +476,8 @@ def get_dataset_metadata(path):
         mt = element.get("MetaType")
         break
     else:
-        raise ValueError('Did not find events=("start",) in XML path={}'.format(path))
+        raise ValueError(
+            'Did not find events=("start",) in XML path={}'.format(path))
     if mt in FileTypes.ALL_DATASET_TYPES().keys():
         return DataSetMetaData(uuid, mt)
     else:

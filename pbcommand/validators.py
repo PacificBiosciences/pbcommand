@@ -1,6 +1,6 @@
-import os
-import logging
 import functools
+import logging
+import os
 
 from pbcommand.utils import nfs_exists_check
 from pbcommand.pb_io import load_report_from_json
@@ -42,7 +42,11 @@ def validate_or(f1, f2, error_msg):
             try:
                 return f2(path)
             except Exception as e:
-                log.error("{m} {p} \n. {e}".format(m=error_msg, p=path, e=repr(e)))
+                log.error(
+                    "{m} {p} \n. {e}".format(
+                        m=error_msg,
+                        p=path,
+                        e=repr(e)))
                 raise
 
     return wrapper
@@ -53,7 +57,9 @@ def validate_report_file(report_file_name):
     Raise ValueError if report contains path seps
     """
     if not os.path.basename(report_file_name) == report_file_name:
-        raise ValueError("Path separators are not allowed: {r}".format(r=report_file_name))
+        raise ValueError(
+            "Path separators are not allowed: {r}".format(
+                r=report_file_name))
     return report_file_name
 
 
@@ -68,7 +74,9 @@ def validate_fofn(fofn):
 
     if os.path.isfile(fofn):
         file_names = fofn_to_files(os.path.abspath(fofn))
-        log.debug("Found {n} files in FOFN {f}.".format(n=len(file_names), f=fofn))
+        log.debug(
+            "Found {n} files in FOFN {f}.".format(
+                n=len(file_names), f=fofn))
         return os.path.abspath(fofn)
     else:
         raise IOError("Unable to find {f}".format(f=fofn))
@@ -94,7 +102,8 @@ def fofn_to_files(fofn):
 
     if os.path.exists(fofn):
         with open(fofn, 'r') as f:
-            files = [line.strip() for line in f.readlines() if len(line.strip()) > 0]
+            files = [line.strip()
+                     for line in f.readlines() if len(line.strip()) > 0]
 
         for _file in files:
             if not os.path.isfile(_file):
@@ -132,7 +141,7 @@ def validate_report(file_name):
             e.append("Plot group {r}.{g} is missing a title".format(
                      r=r.id, g=pg.id))
         for plot in pg.plots:
-            #if plot.caption is None:
+            # if plot.caption is None:
             #    raise ValueError("Plot {r.g.p} is missing a caption".format(
             #                     r=r.id, g=pg.id, p=plot.id))
             if plot.image is None:
@@ -140,19 +149,25 @@ def validate_report(file_name):
                          r=r.id, g=pg.id, p=plot.id))
             img_path = os.path.join(base_path, plot.image)
             if not os.path.exists(img_path):
-                e.append("The plot image {f} does not exist".format(f=img_path))
+                e.append(
+                    "The plot image {f} does not exist".format(
+                        f=img_path))
             if plot.thumbnail is None:
                 pass
-                #raise ValueError("Plot {r.g.p} does not have an thumbnail image".format(
+                # raise ValueError("Plot {r.g.p} does not have an thumbnail image".format(
                 #                 r=r.id, g=pg.id, p=plot.id))
             else:
                 thumbnail = os.path.join(base_path, plot.thumbnail)
                 if not os.path.exists(thumbnail):
-                    e.append("The thumbnail image {f} does not exist".format(f=img_path))
+                    e.append(
+                        "The thumbnail image {f} does not exist".format(
+                            f=img_path))
         if pg.thumbnail is not None:
             thumbnail = os.path.join(base_path, pg.thumbnail)
             if not os.path.exists(thumbnail):
-                e.append("The thumbnail image {f} does not exist".format(f=img_path))
+                e.append(
+                    "The thumbnail image {f} does not exist".format(
+                        f=img_path))
     if len(e) > 0:
         raise ValueError("\n".join(e))
     return r

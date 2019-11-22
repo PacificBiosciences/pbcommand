@@ -1,10 +1,11 @@
 import json
 import logging
-from pprint import pformat
 import os.path
 import re
 import unittest
+from pprint import pformat
 
+from base_utils import get_data_file_from_subdir, DATA_DIR
 from pbcommand.pb_io import load_report_from_json, load_report_from, load_report_spec_from_json
 from pbcommand.models.report import (Report, Attribute, PlotGroup, Plot, Table,
                                      Column, PbReportError, format_metric)
@@ -12,7 +13,6 @@ from pbcommand.schemas import validate_report
 
 _SERIALIZED_JSON_DIR = 'example-reports'
 
-from base_utils import get_data_file_from_subdir, DATA_DIR
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ except ImportError:
 
 skip_unless_avro_installed = unittest.skipUnless(avro is not None,
                                                  "avro not installed")
+
 
 def _to_report(name):
     file_name = get_data_file_from_subdir(_SERIALIZED_JSON_DIR, name)
@@ -404,7 +405,7 @@ class TestReportSpec(unittest.TestCase):
         r = self.spec.validate_report(rpt)
         self.assertTrue(isinstance(r, Report))
         rpt.attributes.append(Attribute("attribute5", value=12345))
-        error_len = lambda e: len(str(e).split("\n"))
+        def error_len(e): return len(str(e).split("\n"))
         try:
             self.spec.validate_report(rpt)
         except ValueError as e:
@@ -443,6 +444,8 @@ class TestReportSpec(unittest.TestCase):
         rpt = self.spec.apply_view(rpt)
         self.assertTrue(all([a.name is not None for a in rpt.attributes]))
         self.assertTrue(all([t.title is not None for t in rpt.tables]))
-        self.assertTrue(all([c.header is not None for c in rpt.tables[0].columns]))
+        self.assertTrue(
+            all([c.header is not None for c in rpt.tables[0].columns]))
         self.assertTrue(all([pg.title is not None for pg in rpt.plotGroups]))
-        self.assertTrue(all([p.title is not None for p in rpt.plotGroups[0].plots]))
+        self.assertTrue(
+            all([p.title is not None for p in rpt.plotGroups[0].plots]))

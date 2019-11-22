@@ -1,10 +1,12 @@
-"""Utils for Running an external process"""
+"""
+Utils for Running an external process
+"""
 
 import logging
-import tempfile
-import shlex
 import platform
+import shlex
 import subprocess
+import tempfile
 import time
 from collections import namedtuple
 
@@ -13,7 +15,8 @@ log = logging.getLogger(__name__)
 ExtCmdResult = namedtuple("ExtCmdResult", "exit_code cmd run_time")
 
 
-def run_cmd(cmd, stdout_fh, stderr_fh, shell=True, time_out=None, env=None, executable="/bin/bash"):
+def run_cmd(cmd, stdout_fh, stderr_fh, shell=True,
+            time_out=None, env=None, executable="/bin/bash"):
     """Run external command
 
 
@@ -60,7 +63,9 @@ def run_cmd(cmd, stdout_fh, stderr_fh, shell=True, time_out=None, env=None, exec
         run_time = time.time() - started_at
         if time_out is not None:
             if run_time > time_out:
-                log.warn("Exceeded TIMEOUT of {t}. Killing cmd '{c}'".format(t=time_out, c=cmd))
+                log.warn(
+                    "Exceeded TIMEOUT of {t}. Killing cmd '{c}'".format(
+                        t=time_out, c=cmd))
                 try:
                     # ask for forgiveness model
                     process.kill()
