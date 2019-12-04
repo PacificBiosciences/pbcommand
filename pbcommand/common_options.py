@@ -1,7 +1,9 @@
-"""Common options and utils that can me used in commandline utils"""
+"""
+Common options and utils that can me used in commandline utils
+"""
 
-import logging
 import argparse
+import logging
 import sys
 
 
@@ -13,13 +15,18 @@ def add_debug_option(p):
 
 def add_log_debug_option(p):
     """This requires the log-level option"""
-    p.add_argument('--debug', action="store_true", default=False, help="Alias for setting log level to DEBUG")
+    p.add_argument('--debug', action="store_true", default=False,
+                   help="Alias for setting log level to DEBUG")
     return p
 
 
 def add_log_quiet_option(p):
     """This requires the log-level option"""
-    p.add_argument('--quiet', action="store_true", default=False, help="Alias for setting log level to CRITICAL to suppress output.")
+    p.add_argument(
+        '--quiet',
+        action="store_true",
+        default=False,
+        help="Alias for setting log level to CRITICAL to suppress output.")
     return p
 
 
@@ -75,7 +82,8 @@ def add_base_options(p, default_level='INFO'):
     my-tool --my-opt=1234 --log-level=DEBUG --log-file=file.log file_in.txt
 
     """
-    # This should automatically/required be added to be added from get_default_argparser
+    # This should automatically/required be added to be added from
+    # get_default_argparser
     add_log_file_option(p)
     p_log = p.add_mutually_exclusive_group()
     add_log_verbose_option(add_log_quiet_option(add_log_debug_option(
@@ -87,7 +95,8 @@ def add_common_options(p, default_level='INFO'):
     """
     New model for 3.1 release. This should replace add_base_options
     """
-    return add_log_quiet_option(add_log_debug_option(add_log_level_option(add_log_file_option(p), default_level=default_level)))
+    return add_log_quiet_option(add_log_debug_option(
+        add_log_level_option(add_log_file_option(p), default_level=default_level)))
 
 
 def _to_print_message_action(msg):
@@ -111,7 +120,8 @@ def add_subcomponent_versions_option(p, subcomponents):
      """
     max_length = max(len(x) for x, _ in subcomponents)
     pad = 2
-    msg = "\n" .join([" : ".join([x.rjust(max_length + pad), y]) for x, y in subcomponents])
+    msg = "\n" .join([" : ".join([x.rjust(max_length + pad), y])
+                      for x, y in subcomponents])
 
     action = _to_print_message_action(msg)
     p.add_argument("--versions",

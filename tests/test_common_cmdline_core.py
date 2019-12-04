@@ -1,9 +1,8 @@
-import tempfile
-import unittest
-import logging
-import shlex
 import json
+import logging
 import os.path
+import shlex
+import tempfile
 
 import pbcommand.common_options as CU
 from pbcommand.cli.core import pacbio_args_runner
@@ -45,33 +44,33 @@ def _example_main_fail(cmdline_args):
     return rcode
 
 
-class SimpleTest(unittest.TestCase):
+class SimpleTest:
 
-    def setUp(self):
+    def setup_method(self, method):
         tmpdir = tempfile.mkdtemp(suffix="cromwell-executions")
         self._cwd = os.getcwd()
         os.chdir(tmpdir)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         os.chdir(self._cwd)
 
     def test_01(self):
         args = "--debug /path/to/my_fake_file.txt"
         rcode = _example_main(args)
-        self.assertEqual(rcode, 0)
-        self.assertTrue(not os.path.isfile("alarms.json"))
+        assert rcode == 0
+        assert not os.path.isfile("alarms.json")
 
     def test_dump_alarm_on_error(self):
         args = "--debug /path/to/my_fake_file.txt"
         os.environ["SMRT_PIPELINE_BUNDLE_DIR"] = "true"
         rcode = _example_main_fail(args)
-        self.assertEqual(rcode, 2)
-        self.assertTrue(os.path.isfile("alarms.json"))
+        assert rcode == 2
+        assert os.path.isfile("alarms.json")
         with open("alarms.json", "r") as json_in:
             d = json.loads(json_in.read())[0]
-            self.assertEqual(d["severity"], "ERROR")
+            assert d["severity"] == "ERROR"
         with open("task-report.json", "r") as rpt_in:
             d = json.loads(rpt_in.read())
-            a = {a["id"]:a["value"] for a in d["attributes"]}
-            self.assertEqual(a["workflow_task.exit_code"], 2)
-            self.assertEqual(a["workflow_task.nproc"], 1)
+            a = {a["id"]: a["value"] for a in d["attributes"]}
+            assert a["workflow_task.exit_code"] == 2
+            assert a["workflow_task.nproc"] == 1

@@ -1,15 +1,15 @@
-import pytest
-import functools
-import tempfile
-import unittest
 import argparse
+import functools
 import logging
+import tempfile
+
+import pytest
 
 from pbcommand.utils import (Singleton, compose, get_parsed_args_log_level,
-    get_dataset_metadata)
+                             get_dataset_metadata)
 
 
-class TestSingleton(unittest.TestCase):
+class TestSingleton:
 
     def test_basic(self):
         class Lithium(metaclass=Singleton):
@@ -19,30 +19,32 @@ class TestSingleton(unittest.TestCase):
 
         a = Lithium()
         b = Lithium()
-        self.assertEqual(id(a), id(b))
+        assert id(a) == id(b)
 
 
-class TestCompose(unittest.TestCase):
+class TestCompose:
     def test_simple(self):
-        f = lambda x: x * 2
-        g = lambda y: y + 2
+        def f(x): return x * 2
+        def g(y): return y + 2
 
         h = compose(f, g)
         value = h(7)
-        self.assertEqual(value, 18)
+        assert value == 18
 
     def test_no_args_list(self):
 
         def _f():
             return compose()
 
-        self.assertRaises(ValueError, _f)
+        with pytest.raises(ValueError):
+            _f()
 
     def test_empty_list(self):
         def _f():
             return compose([])
 
-        self.assertRaises(TypeError, _f)
+        with pytest.raises(TypeError):
+            _f()
 
     def test_partial(self):
 
@@ -54,10 +56,10 @@ class TestCompose(unittest.TestCase):
 
         f = compose(add_five, add_two)
         value = f(5)
-        self.assertEqual(value, 12)
+        assert value == 12
 
 
-class TestLogging(unittest.TestCase):
+class TestLogging:
 
     def test_get_parsed_args_log_level(self):
         # XXX more of an integration test, sorry - we need to ensure that
@@ -65,6 +67,7 @@ class TestLogging(unittest.TestCase):
         from pbcommand.common_options import (
             add_log_debug_option, add_log_quiet_option, add_log_verbose_option,
             add_log_level_option)
+
         def _get_argparser(level="INFO"):
             p = argparse.ArgumentParser()
             p.add_argument("--version", action="store_true")
@@ -73,42 +76,39 @@ class TestLogging(unittest.TestCase):
             return p
         p = _get_argparser().parse_args([])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.INFO)
+        assert l == logging.INFO
         p = _get_argparser().parse_args(["--quiet"])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.ERROR)
+        assert l == logging.ERROR
         p = _get_argparser().parse_args(["--debug"])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.DEBUG)
+        assert l == logging.DEBUG
         p = _get_argparser("ERROR").parse_args(["--verbose"])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.INFO)
+        assert l == logging.INFO
         p = _get_argparser("DEBUG").parse_args(["--log-level=WARNING"])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.WARNING)
+        assert l == logging.WARNING
         p = _get_argparser("NOTSET").parse_args([])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.NOTSET)
+        assert l == logging.NOTSET
         p = _get_argparser(logging.NOTSET).parse_args([])
         l = get_parsed_args_log_level(p)
-        self.assertEqual(l, logging.NOTSET)
+        assert l == logging.NOTSET
 
 
-class TestUtils(unittest.TestCase):
+class TestUtils:
 
+    @pytest.mark.pbcore
+    @pytest.mark.pbtestdata
     def test_get_dataset_metadata(self):
-        try:
-            import pbtestdata
-        except ImportError:
-            raise unittest.SkipTest("pbtestdata not available, skipping")
+        import pbtestdata
         md = get_dataset_metadata(pbtestdata.get_file("subreads-xml"))
-        self.assertEqual(md.metatype, "PacBio.DataSet.SubreadSet")
-        try:
-            from pbcore.io import SubreadSet
-        except ImportError:
-            raise unittest.SkipTest("pbcore not available, skipping")
+        assert md.metatype == "PacBio.DataSet.SubreadSet"
+
+        from pbcore.io import SubreadSet
         ds = SubreadSet(pbtestdata.get_file("subreads-xml"))
-        self.assertEqual(md.uuid, ds.uuid)
+        assert md.uuid == ds.uuid
 
         with pytest.raises(Exception) as e:
             get_dataset_metadata(None)

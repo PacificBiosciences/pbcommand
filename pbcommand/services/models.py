@@ -1,16 +1,23 @@
-"""Services Specific Data Models"""
+"""
+Services Specific Data Models
+"""
 
-from collections import namedtuple
 import json
 import uuid
+from collections import namedtuple
 
 import iso8601
-
 from requests.exceptions import RequestException
 
 from pbcommand.utils import to_ascii
 
-__all__ = ['ServiceJob', 'ServiceEntryPoint', 'JobEntryPoint', 'JobStates', 'JobTypes']
+__all__ = [
+    'ServiceJob',
+    'ServiceEntryPoint',
+    'JobEntryPoint',
+    'JobStates',
+    'JobTypes',
+]
 
 
 # This are mirrored from the BaseSMRTServer
@@ -159,7 +166,8 @@ class ServiceJob:
             else:
                 return "{s:.2f} sec".format(s=n_seconds)
 
-        run_time = "NA" if self.run_time_sec is None else _format_dt(self.run_time_sec)
+        run_time = "NA" if self.run_time_sec is None else _format_dt(
+            self.run_time_sec)
 
         _d = dict(k=self.__class__.__name__,
                   i=ix,
@@ -169,7 +177,8 @@ class ServiceJob:
                   s=state, b=created_by,
                   r=run_time)
 
-        return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} runtime: {r} >".format(**_d)
+        return "<{k} i:{i} state:{s} created:{c} by:{b} name:{n} runtime: {r} >".format(
+            **_d)
 
     @property
     def execution_time_sec(self):
@@ -183,7 +192,8 @@ class ServiceJob:
         """
         if self.job_started_at is not None:
             if self.job_completed_at is not None:
-                return (self.job_completed_at - self.job_started_at).total_seconds()
+                return (self.job_completed_at -
+                        self.job_started_at).total_seconds()
         return None
 
     @property
@@ -309,20 +319,23 @@ class SMRTServiceBaseError(Exception):
         self.http_code = http_code
         self.error_type = error_type
         self.msg = message
-        message = "Http code={h} msg={m} type={t}".format(h=http_code, m=message, t=error_type)
-        super(SMRTServiceBaseError, self).__init__(message)
+        message = "Http code={h} msg={m} type={t}".format(
+            h=http_code, m=message, t=error_type)
+        super().__init__(message)
 
     @staticmethod
     def from_d(d):
         """Convert from SMRT Link Service Error JSON response to `SMRTServiceBaseError` instance"""
-        return SMRTServiceBaseError(d['httpCode'], d['errorType'], d['message'])
+        return SMRTServiceBaseError(
+            d['httpCode'], d['errorType'], d['message'])
 
 
 # "Job" is the raw output from the jobs/1234
 JobResult = namedtuple("JobResult", "job run_time errors")
 
 
-class JobTask(namedtuple("JobTask", "task_uuid job_id task_id task_type name state created_at updated_at error_message")):
+class JobTask(namedtuple(
+        "JobTask", "task_uuid job_id task_id task_type name state created_at updated_at error_message")):
 
     @staticmethod
     def from_d(d):
@@ -338,7 +351,9 @@ def _to_resource_id(x):
         _ = uuid.UUID(x)
         return x
     except ValueError as e:
-        raise ValueError("Resource id '{x}' must be given as int or uuid".format(x=x))
+        raise ValueError(
+            "Resource id '{x}' must be given as int or uuid".format(
+                x=x))
 
 
 class ServiceEntryPoint:
@@ -364,7 +379,8 @@ class ServiceEntryPoint:
     def from_d(d):
         """Convert from Service JSON response to `ServiceEntryPoint` instance"""
         i = _to_resource_id(d['datasetId'])
-        return ServiceEntryPoint(to_ascii(d['entryId']), to_ascii(d['fileTypeId']), i)
+        return ServiceEntryPoint(
+            to_ascii(d['entryId']), to_ascii(d['fileTypeId']), i)
 
     def to_d(self):
         return dict(entryId=self.entry_id,
@@ -372,7 +388,8 @@ class ServiceEntryPoint:
                     datasetId=self.resource)
 
 
-class JobEntryPoint(namedtuple("JobEntryPoint", "job_id dataset_uuid dataset_metatype")):
+class JobEntryPoint(namedtuple("JobEntryPoint",
+                               "job_id dataset_uuid dataset_metatype")):
     """ Returned from the Services /job/1234/entry-points """
     @staticmethod
     def from_d(d):
@@ -399,7 +416,6 @@ class JobTypes:
     IMPORT_DS = "import-dataset"
     IMPORT_DSTORE = "import-datastore"
     MERGE_DS = "merge-datasets"
-    PB_PIPE = "pbsmrtpipe"
     CROMWELL = "cromwell"
     ANALYSIS = "analysis"
     MOCK_PB_PIPE = "mock-pbsmrtpipe"
@@ -409,7 +425,7 @@ class JobTypes:
     def ALL(cls):
         """ALL allowed SL Analysis Job Types"""
         return (cls.IMPORT_DS, cls.IMPORT_DSTORE, cls.MERGE_DS,
-                cls.PB_PIPE, cls.CROMWELL, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
+                cls.CROMWELL, cls.MOCK_PB_PIPE, cls.CONVERT_FASTA)
 
 
 class ServiceResourceTypes:

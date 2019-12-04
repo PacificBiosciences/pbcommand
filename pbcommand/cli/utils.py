@@ -1,15 +1,14 @@
-
 """
 Additional utilities for running command-line apps - most of these do not apply
 to tool-contract-driven programs.  (Ported from pbsmrtpipe)
 """
 
-import traceback
 import argparse
-import platform
 import logging
-import time
 import os
+import platform
+import time
+import traceback
 
 from pbcommand.validators import validate_file, validate_fofn
 from pbcommand.utils import setup_log
@@ -17,7 +16,8 @@ from pbcommand.utils import setup_log
 log = logging.getLogger(__name__)
 
 
-def subparser_builder(subparser, subparser_id, description, options_func, exe_func):
+def subparser_builder(subparser, subparser_id,
+                      description, options_func, exe_func):
     """
     Util to add subparser options
 
@@ -52,7 +52,12 @@ def _validate_output_dir_or_get_default(value):
 
 
 def add_output_dir_option(p):
-    p.add_argument('-o', '--output-dir', type=_validate_output_dir_or_get_default, default=os.getcwd(), help="Output directory.")
+    p.add_argument(
+        '-o',
+        '--output-dir',
+        type=_validate_output_dir_or_get_default,
+        default=os.getcwd(),
+        help="Output directory.")
     return p
 
 
@@ -63,20 +68,38 @@ def _add_input_file(args_label, type_, help_):
     return _wrapper
 
 
-add_fasta_output = _add_input_file("fasta_out", str, "Path to output Fasta File")
-add_fasta_input = _add_input_file("fasta_in", validate_file, "Path to Input FASTA File")
+add_fasta_output = _add_input_file(
+    "fasta_out", str, "Path to output Fasta File")
+add_fasta_input = _add_input_file(
+    "fasta_in",
+    validate_file,
+    "Path to Input FASTA File")
 
-add_fastq_output = _add_input_file("fastq_out", str, "Path to output Fastq File")
-add_fastq_input = _add_input_file("fastq_in", validate_file, "Path to Input FASTQ File")
+add_fastq_output = _add_input_file(
+    "fastq_out", str, "Path to output Fastq File")
+add_fastq_input = _add_input_file(
+    "fastq_in",
+    validate_file,
+    "Path to Input FASTQ File")
 
-add_fofn_input = _add_input_file("fofn_in", validate_fofn, "Path to Input FOFN (File of file names) File")
+add_fofn_input = _add_input_file(
+    "fofn_in",
+    validate_fofn,
+    "Path to Input FOFN (File of file names) File")
 add_fofn_output = _add_input_file("fofn_out", str, "Path to output FOFN.")
 
-add_report_output = _add_input_file("json_report", str, "Path to PacBio JSON Report")
+add_report_output = _add_input_file(
+    "json_report", str, "Path to PacBio JSON Report")
 
-add_subread_input = _add_input_file("subread_ds", validate_file, "Path to PacBio Subread DataSet XML")
+add_subread_input = _add_input_file(
+    "subread_ds",
+    validate_file,
+    "Path to PacBio Subread DataSet XML")
 
-add_ds_reference_input = _add_input_file("reference_ds", validate_file, "Path to PacBio Subread DataSet XML")
+add_ds_reference_input = _add_input_file(
+    "reference_ds",
+    validate_file,
+    "Path to PacBio Subread DataSet XML")
 
 
 def args_executer(args):

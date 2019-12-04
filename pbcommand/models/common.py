@@ -1,22 +1,21 @@
-"""Core models used in the ToolContract and Resolved ToolContract
-
-
+"""
+Core models used in the ToolContract and Resolved ToolContract
 Large parts of this are pulled from pbsmrtpipe.
 
 Author: Michael Kocher
 """
 
-from collections import namedtuple, OrderedDict
-import traceback
-import functools
 import datetime
-import warnings
-import logging
-import types
+import functools
 import json
-import uuid
+import logging
 import os
 import re
+import traceback
+import types
+import uuid
+import warnings
+from collections import namedtuple, OrderedDict
 
 from pbcommand import to_ascii
 
@@ -30,53 +29,21 @@ DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype')
 
 class PacBioNamespaces:
     # File Types
-    # PBSMRTPIPE_FILE_PREFIX = 'pbsmrtpipe.files'
     # NEW File Type Identifier style Prefix
-    NEW_PBSMRTPIPE_FILE_PREFIX = "PacBio.FileTypes"
+    NEW_FILE_PREFIX = "PacBio.FileTypes"
     # New DataSet Identifier Prefix
     DATASET_FILE_PREFIX = "PacBio.DataSet"
 
     PB_INDEX = "PacBio.Index"
-
-    # Task Ids
-    PBSMRTPIPE_TASK_PREFIX = 'pbsmrtpipe.tasks'
-
-    PB_TASK_TYPES = 'pbsmrtpipe.task_types'
-
-    # Task Options
-    PBSMRTPIPE_TASK_OPTS_PREFIX = 'pbsmrtpipe.task_options'
-    # Workflow Level Options
-    PBSMRTPIPE_OPTS_PREFIX = 'pbsmrtpipe.options'
-    # Constants
-    PBSMRTPIPE_CONSTANTS_PREFIX = 'pbsmrtpipe.constants'
-    # Pipelines
-    PBSMRTPIPE_PIPELINES = "pbsmrtpipe.pipelines"
-    # Option Types
-    PBSMRTPIPE_OPTS_TYPE = "pbsmrtpipe.option_types"
 
 
 def __to_type(prefix, name):
     return ".".join([prefix, name])
 
 
-to_constant_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_CONSTANTS_PREFIX)
-to_file_ns = functools.partial(__to_type, PacBioNamespaces.NEW_PBSMRTPIPE_FILE_PREFIX)
+to_file_ns = functools.partial(__to_type, PacBioNamespaces.NEW_FILE_PREFIX)
 to_ds_ns = functools.partial(__to_type, PacBioNamespaces.DATASET_FILE_PREFIX)
-to_task_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_OPTS_PREFIX)
-to_task_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_TASK_PREFIX)
-to_task_types_ns = functools.partial(__to_type, PacBioNamespaces.PB_TASK_TYPES)
-to_workflow_option_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_PREFIX)
-to_pipeline_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_PIPELINES)
 to_index_ns = functools.partial(__to_type, PacBioNamespaces.PB_INDEX)
-to_opt_type_ns = functools.partial(__to_type, PacBioNamespaces.PBSMRTPIPE_OPTS_TYPE)
-
-
-class TaskTypes:
-    # This is really TC types
-
-    STANDARD = to_task_types_ns("standard")
-    SCATTERED = to_task_types_ns("scattered")
-    GATHERED = to_task_types_ns("gathered")
 
 
 class TaskOptionTypes:
@@ -210,18 +177,20 @@ class ResourceTypes:
 class _RegisteredFileType(type):
 
     def __init__(cls, name, bases, dct):
-        super(_RegisteredFileType, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
         if len(args) != 4:
             log.error(args)
-            raise ValueError("Incorrect initialization for {c}".format(c=cls.__name__))
+            raise ValueError(
+                "Incorrect initialization for {c}".format(
+                    c=cls.__name__))
 
         file_type_id, base_name, file_ext, mime_type = args
         file_type = REGISTERED_FILE_TYPES.get(file_type_id, None)
 
         if file_type is None:
-            file_type = super(_RegisteredFileType, cls).__call__(*args)
+            file_type = super().__call__(*args)
             #log.debug("Registering file type '{i}'".format(i=file_type_id))
             REGISTERED_FILE_TYPES[file_type_id] = file_type
         else:
@@ -233,7 +202,8 @@ class _RegisteredFileType(type):
             for attrs_name, value in attrs_names:
                 v = getattr(file_type, attrs_name)
                 if v != value:
-                    _msg = "Attempting to register a file with a different '{x}' -> {v} (expected {y})".format(x=attrs_name, v=v, y=value)
+                    _msg = "Attempting to register a file with a different '{x}' -> {v} (expected {y})".format(
+                        x=attrs_name, v=v, y=value)
                     log.warn(_msg)
                     warnings.warn(_msg)
 
@@ -319,38 +289,90 @@ class FileTypes:
     # THIS NEEDS TO BE CONSISTENT with scala code. When the datastore
     # is written to disk the file type id's might be translated to
     # the DataSet style file type ids.
-    REPORT = FileType(to_file_ns('JsonReport'), "report", "json", MimeTypes.JSON)
-    DATASTORE = FileType(to_file_ns("Datastore"), "file", "datastore.json", MimeTypes.JSON)
+    REPORT = FileType(
+        to_file_ns('JsonReport'),
+        "report",
+        "json",
+        MimeTypes.JSON)
+    DATASTORE = FileType(
+        to_file_ns("Datastore"),
+        "file",
+        "datastore.json",
+        MimeTypes.JSON)
 
     # this will go away soon in favor of using a more type based model to
     # distinguish between scatter and gather file types
     CHUNK = FileType(to_file_ns("CHUNK"), "chunk", "json", MimeTypes.JSON)
-    GCHUNK = FileType(to_file_ns("GCHUNK"), 'gather_chunk', "json", MimeTypes.JSON)
-    SCHUNK = FileType(to_file_ns("SCHUNK"), "scatter_chunk", "json", MimeTypes.JSON)
+    GCHUNK = FileType(
+        to_file_ns("GCHUNK"),
+        'gather_chunk',
+        "json",
+        MimeTypes.JSON)
+    SCHUNK = FileType(
+        to_file_ns("SCHUNK"),
+        "scatter_chunk",
+        "json",
+        MimeTypes.JSON)
 
     FASTA = FileType(to_file_ns('Fasta'), "file", "fasta", MimeTypes.TXT)
     FASTQ = FileType(to_file_ns('Fastq'), "file", "fastq", MimeTypes.TXT)
 
     # Not sure this should be a special File Type?
-    INPUT_XML = FileType(to_file_ns('input_xml'), "input", "xml", MimeTypes.XML)
-    FOFN = FileType(to_file_ns("generic_fofn"), "generic", "fofn", MimeTypes.TXT)
-    MOVIE_FOFN = FileType(to_file_ns('movie_fofn'), "movie", "fofn", MimeTypes.TXT)
-    RGN_FOFN = FileType(to_file_ns('rgn_fofn'), "region", "fofn", MimeTypes.TXT)
+    INPUT_XML = FileType(
+        to_file_ns('input_xml'),
+        "input",
+        "xml",
+        MimeTypes.XML)
+    FOFN = FileType(
+        to_file_ns("generic_fofn"),
+        "generic",
+        "fofn",
+        MimeTypes.TXT)
+    MOVIE_FOFN = FileType(
+        to_file_ns('movie_fofn'),
+        "movie",
+        "fofn",
+        MimeTypes.TXT)
+    RGN_FOFN = FileType(
+        to_file_ns('rgn_fofn'),
+        "region",
+        "fofn",
+        MimeTypes.TXT)
 
-    RS_MOVIE_XML = FileType(to_file_ns("rs_movie_metadata"), "file", "rs_movie.metadata.xml", MimeTypes.XML)
-    REF_ENTRY_XML = FileType(to_file_ns('reference_info_xml'), "reference.info.xml", "xml", MimeTypes.XML)
+    RS_MOVIE_XML = FileType(
+        to_file_ns("rs_movie_metadata"),
+        "file",
+        "rs_movie.metadata.xml",
+        MimeTypes.XML)
+    REF_ENTRY_XML = FileType(
+        to_file_ns('reference_info_xml'),
+        "reference.info.xml",
+        "xml",
+        MimeTypes.XML)
 
-    ALIGNMENT_CMP_H5 = FileType(to_file_ns('alignment_cmp_h5'), "alignments", "cmp.h5", MimeTypes.BINARY)
+    ALIGNMENT_CMP_H5 = FileType(
+        to_file_ns('alignment_cmp_h5'),
+        "alignments",
+        "cmp.h5",
+        MimeTypes.BINARY)
     # I am not sure this should be a first class file
     BLASR_M4 = FileType(to_file_ns('blasr_file'), 'blasr', 'm4', MimeTypes.TXT)
     BAM = FileType(to_file_ns('bam'), "alignments", "bam", MimeTypes.BINARY)
-    BAMBAI = FileType(to_file_ns('bam_bai'), "alignments", "bam.bai", MimeTypes.BINARY)
+    BAMBAI = FileType(
+        to_file_ns('bam_bai'),
+        "alignments",
+        "bam.bai",
+        MimeTypes.BINARY)
 
     BED = FileType(to_file_ns('bed'), "file", "bed", MimeTypes.TXT)
     SAM = FileType(to_file_ns('sam'), "alignments", "sam", MimeTypes.BINARY)
     VCF = FileType(to_file_ns('vcf'), "file", "vcf", MimeTypes.TXT)
     GFF = FileType(to_file_ns('gff'), "file", "gff", MimeTypes.TXT)
-    BIGWIG = FileType(to_file_ns('bigwig'), "annotations", "bw", MimeTypes.BINARY)
+    BIGWIG = FileType(
+        to_file_ns('bigwig'),
+        "annotations",
+        "bw",
+        MimeTypes.BINARY)
     CSV = FileType(to_file_ns('csv'), "file", "csv", MimeTypes.CSV)
     XML = FileType(to_file_ns('xml'), "file", "xml", MimeTypes.XML)
     HTML = FileType(to_file_ns('html'), "file", "html", MimeTypes.HTML)
@@ -369,72 +391,198 @@ class FileTypes:
     # DataSet Types. The default file names should have well-defined agreed
     # upon format. See what Dave did for the bam files.
     # https://github.com/PacificBiosciences/PacBioFileFormats
-    DS_SUBREADS_H5 = DataSetFileType(to_ds_ns("HdfSubreadSet"), "file", "hdfsubreadset.xml", MimeTypes.XML)
-    DS_SUBREADS = DataSetFileType(to_ds_ns("SubreadSet"), "file", "subreadset.xml", MimeTypes.XML)
-    DS_CCS = DataSetFileType(to_ds_ns("ConsensusReadSet"), "file", "consensusreadset.xml", MimeTypes.XML)
-    DS_REF = DataSetFileType(to_ds_ns("ReferenceSet"), "file", "referenceset.xml", MimeTypes.XML)
-    DS_ALIGN = DataSetFileType(to_ds_ns("AlignmentSet"), "file", "alignmentset.xml", MimeTypes.XML)
-    DS_CONTIG = DataSetFileType(to_ds_ns("ContigSet"), "file", "contigset.xml", MimeTypes.XML)
-    DS_BARCODE = DataSetFileType(to_ds_ns("BarcodeSet"), "file", "barcodeset.xml", MimeTypes.XML)
+    DS_SUBREADS_H5 = DataSetFileType(
+        to_ds_ns("HdfSubreadSet"),
+        "file",
+        "hdfsubreadset.xml",
+        MimeTypes.XML)
+    DS_SUBREADS = DataSetFileType(
+        to_ds_ns("SubreadSet"),
+        "file",
+        "subreadset.xml",
+        MimeTypes.XML)
+    DS_CCS = DataSetFileType(
+        to_ds_ns("ConsensusReadSet"),
+        "file",
+        "consensusreadset.xml",
+        MimeTypes.XML)
+    DS_REF = DataSetFileType(
+        to_ds_ns("ReferenceSet"),
+        "file",
+        "referenceset.xml",
+        MimeTypes.XML)
+    DS_ALIGN = DataSetFileType(
+        to_ds_ns("AlignmentSet"),
+        "file",
+        "alignmentset.xml",
+        MimeTypes.XML)
+    DS_CONTIG = DataSetFileType(
+        to_ds_ns("ContigSet"),
+        "file",
+        "contigset.xml",
+        MimeTypes.XML)
+    DS_BARCODE = DataSetFileType(
+        to_ds_ns("BarcodeSet"),
+        "file",
+        "barcodeset.xml",
+        MimeTypes.XML)
     DS_ALIGN_CCS = DataSetFileType(to_ds_ns("ConsensusAlignmentSet"), "file",
                                    "consensusalignmentset.xml", MimeTypes.XML)
     DS_GMAP_REF = DataSetFileType(to_ds_ns("GmapReferenceSet"), "file",
                                   "gmapreferenceset.xml", MimeTypes.XML)
     DS_TRANSCRIPT = DataSetFileType(to_ds_ns("TranscriptSet"), "file",
                                     "transcriptset.xml", MimeTypes.XML)
-    DS_ALIGN_TRANSCRIPT = DataSetFileType(to_ds_ns("TranscriptAlignmentSet"), "file", "transcriptalignmentset.xml", MimeTypes.XML)
+    DS_ALIGN_TRANSCRIPT = DataSetFileType(
+        to_ds_ns("TranscriptAlignmentSet"),
+        "file",
+        "transcriptalignmentset.xml",
+        MimeTypes.XML)
 
     # PacBio Defined Formats
     # **** Index Files
 
     # ReferenceSet specific
-    I_SAM = FileType(to_index_ns("SamIndex"), "file", "sam.index", MimeTypes.BINARY)
-    I_SAW = FileType(to_index_ns("SaWriterIndex"), "file", "sa", MimeTypes.BINARY)
+    I_SAM = FileType(
+        to_index_ns("SamIndex"),
+        "file",
+        "sam.index",
+        MimeTypes.BINARY)
+    I_SAW = FileType(
+        to_index_ns("SaWriterIndex"),
+        "file",
+        "sa",
+        MimeTypes.BINARY)
 
     # SMRT VIew specific files
-    I_INDEXER = FileType(to_index_ns("Indexer"), "file", "fasta.index", MimeTypes.TXT)
-    I_FCI = FileType(to_index_ns("FastaContigIndex"), "file", "fasta.contig.index", MimeTypes.TXT)
+    I_INDEXER = FileType(
+        to_index_ns("Indexer"),
+        "file",
+        "fasta.index",
+        MimeTypes.TXT)
+    I_FCI = FileType(
+        to_index_ns("FastaContigIndex"),
+        "file",
+        "fasta.contig.index",
+        MimeTypes.TXT)
 
     # PacBio BAM pbi
-    I_PBI = FileType(to_index_ns("PacBioIndex"), "file", "pbi", MimeTypes.BINARY)
+    I_PBI = FileType(
+        to_index_ns("PacBioIndex"),
+        "file",
+        "pbi",
+        MimeTypes.BINARY)
     # This is duplicated from the old pre-DS era models. see BAMBAI
-    I_BAI = FileType(to_index_ns("BamIndex"), "file", "bam.bai", MimeTypes.BINARY)
+    I_BAI = FileType(
+        to_index_ns("BamIndex"),
+        "file",
+        "bam.bai",
+        MimeTypes.BINARY)
 
     # NGMLR indices
-    I_NGMLR_ENC = FileType(to_index_ns("NgmlrRefEncoded"), "file", ".ngm", MimeTypes.BINARY)
-    I_NGMLR_TAB = FileType(to_index_ns("NgmlrRefTable"), "file", ".ngm", MimeTypes.BINARY)
+    I_NGMLR_ENC = FileType(
+        to_index_ns("NgmlrRefEncoded"),
+        "file",
+        ".ngm",
+        MimeTypes.BINARY)
+    I_NGMLR_TAB = FileType(
+        to_index_ns("NgmlrRefTable"),
+        "file",
+        ".ngm",
+        MimeTypes.BINARY)
 
     # Fasta type files
-    FASTA_BC = FileType("PacBio.BarcodeFile.BarcodeFastaFile", "file", "barcode.fasta", MimeTypes.TXT)
+    FASTA_BC = FileType(
+        "PacBio.BarcodeFile.BarcodeFastaFile",
+        "file",
+        "barcode.fasta",
+        MimeTypes.TXT)
     # No ':' or '"' in the id
-    FASTA_REF = FileType("PacBio.ReferenceFile.ReferenceFastaFile", "file", "pbreference.fasta", MimeTypes.TXT)
-    CONTIG_FA = FileType("PacBio.ContigFile.ContigFastaFile", "file", "contig.fasta", MimeTypes.TXT)
+    FASTA_REF = FileType(
+        "PacBio.ReferenceFile.ReferenceFastaFile",
+        "file",
+        "pbreference.fasta",
+        MimeTypes.TXT)
+    CONTIG_FA = FileType(
+        "PacBio.ContigFile.ContigFastaFile",
+        "file",
+        "contig.fasta",
+        MimeTypes.TXT)
 
     # Adapter Fasta File From PPA
-    FASTA_ADAPTER = FileType("PacBio.SubreadFile.AdapterFastaFile", "file", "adapters.fasta", MimeTypes.TXT)
-    FASTA_CONTROL = FileType("PacBio.SubreadFile.ControlFastaFile", "file", "control.fasta", MimeTypes.TXT)
+    FASTA_ADAPTER = FileType(
+        "PacBio.SubreadFile.AdapterFastaFile",
+        "file",
+        "adapters.fasta",
+        MimeTypes.TXT)
+    FASTA_CONTROL = FileType(
+        "PacBio.SubreadFile.ControlFastaFile",
+        "file",
+        "control.fasta",
+        MimeTypes.TXT)
 
     # BAM dialects
-    BAM_ALN = FileType("PacBio.AlignmentFile.AlignmentBamFile", "file", "alignment.bam", MimeTypes.BINARY)
-    BAM_SUB = FileType("PacBio.SubreadFile.SubreadBamFile", "file", "subread.bam", MimeTypes.BINARY)
-    BAM_CCS = FileType("PacBio.ConsensusReadFile.ConsensusReadBamFile", "file", "ccs.bam", MimeTypes.BINARY)
-    BAM_CCS_ALN = FileType("PacBio.AlignmentFile.ConsensusAlignmentBamFile", "file", "ccs_align.bam", MimeTypes.BINARY)
-    BAM_TRANSCRIPT = FileType("PacBio.TranscriptFile.TranscriptBamFile", "file", "transcripts.bam", MimeTypes.BINARY)
-    BAM_TRANSCRIPT_ALN = FileType("PacBio.AlignmentFile.TranscriptAlignmentBamFile", "file", "transcripts_align.bam", MimeTypes.BINARY)
+    BAM_ALN = FileType(
+        "PacBio.AlignmentFile.AlignmentBamFile",
+        "file",
+        "alignment.bam",
+        MimeTypes.BINARY)
+    BAM_SUB = FileType(
+        "PacBio.SubreadFile.SubreadBamFile",
+        "file",
+        "subread.bam",
+        MimeTypes.BINARY)
+    BAM_CCS = FileType(
+        "PacBio.ConsensusReadFile.ConsensusReadBamFile",
+        "file",
+        "ccs.bam",
+        MimeTypes.BINARY)
+    BAM_CCS_ALN = FileType(
+        "PacBio.AlignmentFile.ConsensusAlignmentBamFile",
+        "file",
+        "ccs_align.bam",
+        MimeTypes.BINARY)
+    BAM_TRANSCRIPT = FileType(
+        "PacBio.TranscriptFile.TranscriptBamFile",
+        "file",
+        "transcripts.bam",
+        MimeTypes.BINARY)
+    BAM_TRANSCRIPT_ALN = FileType(
+        "PacBio.AlignmentFile.TranscriptAlignmentBamFile",
+        "file",
+        "transcripts_align.bam",
+        MimeTypes.BINARY)
     # MK TODO. Add remaining SubreadSet files types, Scraps, HqRegion, etc..
 
     BAZ = FileType("PacBio.ReadFile.BazFile", "file", "baz", MimeTypes.BINARY)
-    TRC = FileType("PacBio.ReadFile.TraceFile", "file", "trc", MimeTypes.BINARY)
-    PLS = FileType("PacBio.ReadFile.PulseFile", "file", "pls", MimeTypes.BINARY)
+    TRC = FileType(
+        "PacBio.ReadFile.TraceFile",
+        "file",
+        "trc",
+        MimeTypes.BINARY)
+    PLS = FileType(
+        "PacBio.ReadFile.PulseFile",
+        "file",
+        "pls",
+        MimeTypes.BINARY)
     # RS era
-    BAX = FileType("PacBio.SubreadFile.BaxFile", "file", "bax.h5", MimeTypes.BINARY)
+    BAX = FileType(
+        "PacBio.SubreadFile.BaxFile",
+        "file",
+        "bax.h5",
+        MimeTypes.BINARY)
 
     # sts.xml
-    STS_XML = FileType("PacBio.SubreadFile.ChipStatsFile", "file", "sts.xml", MimeTypes.XML)
-    STS_H5 = FileType("PacBio.SubreadFile.ChipStatsH5File", "file", "sts.h5", MimeTypes.BINARY)
+    STS_XML = FileType("PacBio.SubreadFile.ChipStatsFile",
+                       "file", "sts.xml", MimeTypes.XML)
+    STS_H5 = FileType("PacBio.SubreadFile.ChipStatsH5File",
+                      "file", "sts.h5", MimeTypes.BINARY)
 
     # Resequencing Conditions File Format
-    COND_RESEQ = FileType(to_file_ns("COND_RESEQ"), "file", "conditions-reseq.json", MimeTypes.JSON)
+    COND_RESEQ = FileType(
+        to_file_ns("COND_RESEQ"),
+        "file",
+        "conditions-reseq.json",
+        MimeTypes.JSON)
 
     @staticmethod
     def is_valid_id(file_type_id):
@@ -442,7 +590,8 @@ class FileTypes:
 
     @staticmethod
     def ALL_DATASET_TYPES():
-        return {i: f for i, f in REGISTERED_FILE_TYPES.items() if isinstance(f, DataSetFileType)}
+        return {i: f for i, f in REGISTERED_FILE_TYPES.items()
+                if isinstance(f, DataSetFileType)}
 
     @staticmethod
     def ALL():
@@ -488,15 +637,20 @@ class DataStoreFile:
         self.uuid = uuid
         # this must globally unique. This is used to provide context to where
         # the file originated from (i.e., the tool author
-        # This should be deprecated. Use source_id to be consistent with the rest of the code base
+        # This should be deprecated. Use source_id to be consistent with the
+        # rest of the code base
         self.file_id = source_id
         # Consistent with a value in FileTypes
         self.file_type_id = type_id
         self.path = path
         # FIXME(mkocher)(2016-2-23): This is probably not the best model
         self.file_size = os.path.getsize(path) if os.path.exists(path) else 0
-        self.created_at = _get_timestamp_or_now(path, lambda px: datetime.datetime.fromtimestamp(os.path.getctime(px)))
-        self.modified_at = _get_timestamp_or_now(path, lambda px: datetime.datetime.fromtimestamp(os.path.getmtime(px)))
+        self.created_at = _get_timestamp_or_now(
+            path, lambda px: datetime.datetime.fromtimestamp(
+                os.path.getctime(px)))
+        self.modified_at = _get_timestamp_or_now(
+            path, lambda px: datetime.datetime.fromtimestamp(
+                os.path.getmtime(px)))
         # Was the file produced by Chunked task
         self.is_chunked = is_chunked
         self.name = name
@@ -535,7 +689,10 @@ class DataStoreFile:
     def from_dict(d, base_path=None):
         # FIXME. This isn't quite right.
         to_a = to_ascii
-        to_k = lambda x: to_a(d[x])
+
+        def to_k(x):
+            return to_a(d[x])
+
         is_chunked = d.get('isChunked', False)
         return DataStoreFile(to_k('uniqueId'),
                              to_k('sourceId'),
@@ -576,7 +733,9 @@ class DataStore:
             self.files[ds_file.uuid] = ds_file
             self.updated_at = datetime.datetime.now()
         else:
-            raise TypeError("DataStoreFile expected. Got type {t} for {d}".format(t=type(ds_file), d=ds_file))
+            raise TypeError(
+                "DataStoreFile expected. Got type {t} for {d}".format(
+                    t=type(ds_file), d=ds_file))
 
     def to_dict(self):
         fs = [f.to_dict() for i, f in self.files.items()]
@@ -637,14 +796,20 @@ class PipelineChunk:
 
         """
         if self.RX_CHUNK_KEY.match(chunk_id) is not None:
-            raise MalformedChunkKeyError("'{c}' expected {p}".format(c=chunk_id, p=self.RX_CHUNK_KEY.pattern))
+            raise MalformedChunkKeyError(
+                "'{c}' expected {p}".format(
+                    c=chunk_id, p=self.RX_CHUNK_KEY.pattern))
 
         self.chunk_id = chunk_id
         # loose key-value pair
         self._datum = kwargs
 
     def __repr__(self):
-        _d = dict(k=self.__class__.__name__, i=self.chunk_id, c=",".join(self.chunk_keys))
+        _d = dict(
+            k=self.__class__.__name__,
+            i=self.chunk_id,
+            c=",".join(
+                self.chunk_keys))
         return "<{k} id='{i}' chunk keys={c} >".format(**_d)
 
     def set_chunk_key(self, chunk_key, value):
@@ -662,7 +827,8 @@ class PipelineChunk:
         metadata key must NOT begin with $chunk. format
         """
         if metadata_key.startswith(PipelineChunk.CHUNK_KEY_PREFIX):
-            raise ValueError("Cannot set chunk-key values. {i}".format(i=metadata_key))
+            raise ValueError(
+                "Cannot set chunk-key values. {i}".format(i=metadata_key))
         self._datum[metadata_key] = value
 
     @property
@@ -771,7 +937,10 @@ def _validate_id(prog, idtype, tid):
     if prog.match(tid):
         return tid
     else:
-        raise ValueError("Invalid format {t}: '{i}' {p}".format(t=idtype, i=tid, p=repr(prog.pattern)))
+        raise ValueError(
+            "Invalid format {t}: '{i}' {p}".format(
+                t=idtype, i=tid, p=repr(
+                    prog.pattern)))
 
 
 validate_task_id = functools.partial(_validate_id, RX_TASK_ID, 'task id')
@@ -833,7 +1002,8 @@ class BasePacBioOption:
         if self.OPTION_TYPE_ID not in TaskOptionTypes.ALL():
             msg = "InValid Task Option type id {t} Subclasses of {c} must " \
                   "override OPTION_TYPE_ID to have a consistent value with " \
-                  "TaskOptionTypes.*".format(t=self.OPTION_TYPE_ID, c=self.__class__.__name__)
+                  "TaskOptionTypes.*".format(t=self.OPTION_TYPE_ID,
+                                             c=self.__class__.__name__)
             raise ValueError(msg)
 
     @property
@@ -861,7 +1031,8 @@ class BasePacBioOption:
 
 
 def _type_error_msg(value, expected_type):
-    return "{v} Expected {t}, got {x}".format(v=value, t=expected_type, x=type(value))
+    return "{v} Expected {t}, got {x}".format(
+        v=value, t=expected_type, x=type(value))
 
 
 def _strict_validate_int_or_raise(value):
@@ -950,23 +1121,34 @@ def _strict_validate_default_and_choices(core_type_validator_func):
             core_type_validator_func(choice)
         v = core_type_validator_func(value)
         if v not in choices:
-            raise ValueError("Default value {v} is not in allowed choices {c}".format(v=value, c=choices))
+            raise ValueError(
+                "Default value {v} is not in allowed choices {c}".format(
+                    v=value, c=choices))
         return v, choices
     return wrap
 
 
-_strict_validate_int_choices = _strict_validate_default_and_choices(_strict_validate_int_or_raise)
-_strict_validate_str_choices = _strict_validate_default_and_choices(_strict_validate_string_or_raise)
-_strict_validate_bool_choices = _strict_validate_default_and_choices(_strict_validate_bool_or_raise)
-_strict_validate_float_choices = _strict_validate_default_and_choices(_strict_validate_float_or_raise)
+_strict_validate_int_choices = _strict_validate_default_and_choices(
+    _strict_validate_int_or_raise)
+_strict_validate_str_choices = _strict_validate_default_and_choices(
+    _strict_validate_string_or_raise)
+_strict_validate_bool_choices = _strict_validate_default_and_choices(
+    _strict_validate_bool_or_raise)
+_strict_validate_float_choices = _strict_validate_default_and_choices(
+    _strict_validate_float_or_raise)
 
 
 class BaseChoiceType(BasePacBioOption):
 
     # This really should be Abstract
     def __init__(self, option_id, name, default, description, choices):
-        super(BaseChoiceType, self).__init__(option_id, name, default, description)
-        _, validated_choices = self.validate_core_type_with_choices(default, choices)
+        super().__init__(
+            option_id,
+            name,
+            default,
+            description)
+        _, validated_choices = self.validate_core_type_with_choices(
+            default, choices)
         self.choices = validated_choices
 
     @classmethod
@@ -978,7 +1160,7 @@ class BaseChoiceType(BasePacBioOption):
         return v
 
     def to_dict(self):
-        d = super(BaseChoiceType, self).to_dict()
+        d = super().to_dict()
         d['choices'] = self.choices
         return d
 
@@ -1042,6 +1224,7 @@ class PacBioAlarm:
     created by the same task, but we mostly only need to work with one at a
     time.
     """
+
     def __init__(self,
                  name,
                  message,

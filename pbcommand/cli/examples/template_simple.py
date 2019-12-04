@@ -1,7 +1,10 @@
-"""Simple Example Template for creating a CLI tool"""
+"""
+Simple Example Template for creating a CLI tool
+"""
+
+import logging
 import os
 import sys
-import logging
 
 from pbcommand.validators import validate_file
 from pbcommand.utils import setup_log
@@ -10,7 +13,6 @@ from pbcommand.cli import get_default_argparser_with_base_opts, pacbio_args_runn
 log = logging.getLogger(__name__)
 
 __version__ = "0.1.0"
-# __author__ = "Add-your-name"
 
 
 def get_parser():

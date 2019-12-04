@@ -6,8 +6,8 @@ compatible with multiple applications and versions.
 """
 
 import logging
-import os.path as op
 import os
+import os.path as op
 import sys
 
 from pbcommand.models.common import FileTypes
@@ -145,7 +145,9 @@ def run_args(args):
     elif args.resource_type == ResourceTypes.SUBREADS_ENTRY:
         resource = resolver.resolve_input_subreads(args.job_id)
     else:
-        raise NotImplementedError("Can't retrieve resource type '%s'" % args.resource_type)
+        raise NotImplementedError(
+            "Can't retrieve resource type '%s'" %
+            args.resource_type)
     print(resource)
     if args.make_symlink is not None:
         if op.exists(args.make_symlink):

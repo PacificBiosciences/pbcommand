@@ -3,16 +3,15 @@ Utils for Updating state/progress and results to WebServices
 """
 
 import base64
+import datetime
 import json
 import logging
+import os
 import pprint
 import time
-import datetime
 import warnings
-import os
 
 import pytz
-
 import requests
 from requests import RequestException
 # To disable the ssl cert check warning
@@ -24,23 +23,25 @@ from pbcommand.models import (FileTypes,
                               DataStore,
                               DataStoreFile)
 from pbcommand.utils import get_dataset_metadata
-
 from .models import (SMRTServiceBaseError,
                      JobResult, JobStates, JobExeError, JobTypes,
                      ServiceResourceTypes, ServiceJob, JobEntryPoint,
                      JobTask)
-
 from pbcommand.pb_io import load_report_from
-
 from .utils import to_sal_summary
+
 
 log = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-# log.addHandler(logging.NullHandler())  # to prevent the annoying 'No handlers .. ' msg
+# log.addHandler(logging.NullHandler())  # to prevent the annoying 'No
+# handlers .. ' msg
 
 # Everything else is considered a non-public
-__all__ = ['ServiceAccessLayer', 'SmrtLinkAuthClient']
+__all__ = [
+    'ServiceAccessLayer',
+    'SmrtLinkAuthClient',
+]
 
 
 class Constants:
@@ -99,7 +100,10 @@ def _process_rget(total_url, ignore_errors=False, headers=None):
     r = _get_requests(__get_headers(headers))(total_url)
     _parse_base_service_error(r)
     if not r.ok and not ignore_errors:
-        log.error("Failed ({s}) GET to {x}".format(x=total_url, s=r.status_code))
+        log.error(
+            "Failed ({s}) GET to {x}".format(
+                x=total_url,
+                s=r.status_code))
     r.raise_for_status()
     j = r.json()
     return j
@@ -108,14 +112,21 @@ def _process_rget(total_url, ignore_errors=False, headers=None):
 def _process_rget_with_transform(func, ignore_errors=False):
     """Post process the JSON result (if successful) with F(json_d) -> T"""
     def wrapper(total_url, headers=None):
-        j = _process_rget(total_url, ignore_errors=ignore_errors, headers=headers)
+        j = _process_rget(
+            total_url,
+            ignore_errors=ignore_errors,
+            headers=headers)
         return func(j)
     return wrapper
 
 
-def _process_rget_with_jobs_transform(total_url, ignore_errors=False, headers=None):
+def _process_rget_with_jobs_transform(
+        total_url, ignore_errors=False, headers=None):
     # defining an internal method, because this used in several places
-    jobs_d = _process_rget(total_url, ignore_errors=ignore_errors, headers=headers)
+    jobs_d = _process_rget(
+        total_url,
+        ignore_errors=ignore_errors,
+        headers=headers)
     # Sort by Id desc so newer jobs show up first
     jobs = [ServiceJob.from_d(job_d) for job_d in jobs_d]
     return sorted(jobs, key=lambda x: x.id, reverse=True)
@@ -130,7 +141,8 @@ def _process_rget_or_none(func, ignore_errors=False):
     """
     def wrapper(total_url, headers):
         try:
-            return _process_rget_with_transform(func, ignore_errors)(total_url, headers)
+            return _process_rget_with_transform(
+                func, ignore_errors)(total_url, headers)
         except (RequestException, SMRTServiceBaseError):
             # FIXME
             # this should be a tighter exception case
@@ -150,7 +162,10 @@ def __process_creatable_to_json(f):
         _parse_base_service_error(r)
         # FIXME This should be strict to only return a 201
         if r.status_code not in (200, 201, 202, 204):
-            log.error("Failed ({s} to call {u}".format(u=total_url, s=r.status_code))
+            log.error(
+                "Failed ({s} to call {u}".format(
+                    u=total_url,
+                    s=r.status_code))
             log.error("payload")
             log.error("\n" + pprint.pformat(payload_d))
         r.raise_for_status()
@@ -201,12 +216,14 @@ def _import_dataset_by_type(dataset_type_or_id):
         _d = dict(datasetType=ds_type_id,
                   path=path,
                   avoidDuplicateImport=avoid_duplicate_import)
-        return _process_rpost_with_transform(ServiceJob.from_d)(total_url, _d, headers)
+        return _process_rpost_with_transform(
+            ServiceJob.from_d)(total_url, _d, headers)
 
     return wrapper
 
 
-def _get_job_by_id_or_raise(sal, job_id, error_klass, error_messge_extras=None):
+def _get_job_by_id_or_raise(sal, job_id, error_klass,
+                            error_messge_extras=None):
     job = sal.get_job_by_id(job_id)
 
     if job is None:
@@ -258,17 +275,21 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
             i += 1
             time.sleep(sleep_time)
 
-            msg = "Running pipeline {n} (job {j}) state: {s} runtime:{r:.2f} sec {i} iteration".format(n=job.name, j=job.id, s=job.state, r=run_time, i=i)
+            msg = "Running pipeline {n} (job {j}) state: {s} runtime:{r:.2f} sec {i} iteration".format(
+                n=job.name, j=job.id, s=job.state, r=run_time, i=i)
             log.debug(msg)
             # making the exceptions different to distinguish between an initial
             # error and a "polling" error. Adding some msg details
-            job = _get_job_by_id_or_raise(sal, job_id, JobExeError, error_messge_extras=msg)
+            job = _get_job_by_id_or_raise(
+                sal, job_id, JobExeError, error_messge_extras=msg)
 
             # FIXME, there's currently not a good way to get errors for jobs
             job_result = JobResult(job, run_time, "")
             if time_out is not None:
                 if run_time > time_out:
-                    raise JobExeError("Exceeded runtime {r} of {t}. {m}".format(r=run_time, t=time_out, m=msg))
+                    raise JobExeError(
+                        "Exceeded runtime {r} of {t}. {m}".format(
+                            r=run_time, t=time_out, m=msg))
 
         return job_result
     except KeyboardInterrupt:
@@ -294,7 +315,8 @@ DATASET_METATYPES_TO_ENDPOINTS = {
 def _get_endpoint_or_raise(ds_type):
     if ds_type in DATASET_METATYPES_TO_ENDPOINTS:
         return DATASET_METATYPES_TO_ENDPOINTS[ds_type]
-    raise KeyError("Unsupported datasettype {t}. Supported values {v}".format(t=ds_type, v=list(DATASET_METATYPES_TO_ENDPOINTS.keys())))
+    raise KeyError("Unsupported datasettype {t}. Supported values {v}".format(
+        t=ds_type, v=list(DATASET_METATYPES_TO_ENDPOINTS.keys())))
 
 
 def _job_id_or_error(job_or_error, custom_err_msg=None):
@@ -310,12 +332,15 @@ def _job_id_or_error(job_or_error, custom_err_msg=None):
         emsg = job_or_error.get('message', "Unknown")
         if custom_err_msg is not None:
             emsg += " {f}".format(f=custom_err_msg)
-        raise JobExeError("Failed to create job. {e}. Raw Response {x}".format(e=emsg, x=job_or_error))
+        raise JobExeError(
+            "Failed to create job. {e}. Raw Response {x}".format(
+                e=emsg, x=job_or_error))
 
 
 def _to_ds_file(d):
     # is_chunk this isn't exposed at the service level
-    return DataStoreFile(d['uuid'], d['sourceId'], d['fileTypeId'], d['path'], is_chunked=False, name=d.get("name", ""), description=d.get("description", ""))
+    return DataStoreFile(d['uuid'], d['sourceId'], d['fileTypeId'], d['path'],
+                         is_chunked=False, name=d.get("name", ""), description=d.get("description", ""))
 
 
 def _to_datastore(dx):
@@ -333,7 +358,8 @@ def _to_entry_points(d):
     return [JobEntryPoint.from_d(i) for i in d]
 
 
-def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_func, job_id):
+def _get_all_report_attributes(
+        sal_get_reports_func, sal_get_reports_details_func, job_id):
     """Util func for getting report Attributes
 
     Note, this assumes that only one report type has been created. This is
@@ -341,7 +367,10 @@ def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_fun
     """
     report_datafiles = sal_get_reports_func(job_id)
     report_uuids = [list(r.values())[0].uuid for r in report_datafiles]
-    reports = [sal_get_reports_details_func(job_id, r_uuid) for r_uuid in report_uuids]
+    reports = [
+        sal_get_reports_details_func(
+            job_id,
+            r_uuid) for r_uuid in report_uuids]
     all_report_attributes = {}
 
     for r in reports:
@@ -353,7 +382,8 @@ def _get_all_report_attributes(sal_get_reports_func, sal_get_reports_details_fun
 
 def _to_relative_tasks_url(job_type):
     def wrapper(job_id_or_uuid):
-        return "/".join([ServiceAccessLayer.ROOT_JOBS, job_type, str(job_id_or_uuid), "tasks"])
+        return "/".join([ServiceAccessLayer.ROOT_JOBS,
+                         job_type, str(job_id_or_uuid), "tasks"])
     return wrapper
 
 
@@ -401,14 +431,16 @@ class ServiceAccessLayer:  # pragma: no cover
         self._sleep_time = sleep_time
 
         if self.__class__.__name__ == "ServiceAccessLayer":
-            _show_deprecation_warning("Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported")
+            _show_deprecation_warning(
+                "Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported")
 
     def _get_headers(self):
         return Constants.HEADERS
 
     def _to_base_url(self, h):
         if h not in {"http://localhost", "localhost"}:
-            raise NotImplementedError("This API only supports HTTP connections to localhost")
+            raise NotImplementedError(
+                "This API only supports HTTP connections to localhost")
         prefix = "http://"
         return h if h.startswith(prefix) else prefix + h
 
@@ -440,21 +472,35 @@ class ServiceAccessLayer:  # pragma: no cover
                              headers=self._get_headers())
 
     def get_job_by_type_and_id(self, job_type, job_id):
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(
+            i=job_id, t=job_type, p=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
 
     def get_job_by_id(self, job_id):
         """Get a Job by int id"""
-        # FIXME. Make this an internal method It's ambiguous which job type type you're asking for
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
+        # FIXME. Make this an internal method It's ambiguous which job type
+        # type you're asking for
+        return _process_rget_with_job_transform_or_none(_to_url(
+            self.uri, "{r}/{i}".format(i=job_id, r=ServiceAccessLayer.ROOT_JOBS)), headers=self._get_headers())
 
     def _get_job_resource_type(self, job_type, job_id, resource_type_id):
         # grab the datastore or the reports
-        _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
+        _d = dict(
+            t=job_type,
+            i=job_id,
+            r=resource_type_id,
+            p=ServiceAccessLayer.ROOT_JOBS)
+        return _process_rget_with_job_transform_or_none(
+            _to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
-    def _get_job_resource_type_with_transform(self, job_type, job_id, resource_type_id, transform_func):
-        _d = dict(t=job_type, i=job_id, r=resource_type_id, p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget_or_none(transform_func)(_to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
+    def _get_job_resource_type_with_transform(
+            self, job_type, job_id, resource_type_id, transform_func):
+        _d = dict(
+            t=job_type,
+            i=job_id,
+            r=resource_type_id,
+            p=ServiceAccessLayer.ROOT_JOBS)
+        return _process_rget_or_none(transform_func)(
+            _to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
     def _get_jobs_by_job_type(self, job_type, query=None):
         base_url = "{p}/{t}".format(t=job_type, p=ServiceAccessLayer.ROOT_JOBS)
@@ -464,14 +510,19 @@ class ServiceAccessLayer:  # pragma: no cover
                                                  headers=self._get_headers())
 
     def get_multi_analysis_jobs(self):
-        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
+        return _process_rget_with_jobs_transform(_to_url(self.uri, "{p}/{t}".format(
+            t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS)), headers=self._get_headers())
 
     def get_multi_analysis_job_by_id(self, int_or_uuid):
-        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=int_or_uuid)), headers=self._get_headers())
+        return _process_rget_with_job_transform_or_none(_to_url(self.uri, "{p}/{t}/{i}".format(
+            t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=int_or_uuid)), headers=self._get_headers())
 
     def get_multi_analysis_job_children_by_id(self, multi_job_int_or_uuid):
         return _process_rget_with_jobs_transform(
-            _to_url(self.uri, "{p}/{t}/{i}/jobs".format(t="multi-analysis", p=ServiceAccessLayer.ROOT_MJOBS, i=multi_job_int_or_uuid)),
+            _to_url(self.uri,
+                    "{p}/{t}/{i}/jobs".format(t="multi-analysis",
+                                              p=ServiceAccessLayer.ROOT_MJOBS,
+                                              i=multi_job_int_or_uuid)),
             headers=self._get_headers())
 
     def get_all_analysis_jobs(self):
@@ -517,16 +568,20 @@ class ServiceAccessLayer:  # pragma: no cover
     def get_analysis_job_datastore(self, job_id):
         """Get DataStore output from (pbsmrtpipe) analysis job"""
         # this doesn't work the list is sli
-        return self._get_job_resource_type_with_transform("pbsmrtpipe", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+        return self._get_job_resource_type_with_transform(
+            "pbsmrtpipe", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def _to_dsf_id_url(self, job_id, dsf_uuid):
-        u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe", str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
+        u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe",
+                      str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
         return _to_url(self.uri, u)
 
     def get_analysis_job_datastore_file(self, job_id, dsf_uuid):
-        return _process_rget_or_none(_to_ds_file)(self._to_dsf_id_url(job_id, dsf_uuid), headers=self._get_headers())
+        return _process_rget_or_none(_to_ds_file)(
+            self._to_dsf_id_url(job_id, dsf_uuid), headers=self._get_headers())
 
-    def get_analysis_job_datastore_file_download(self, job_id, dsf_uuid, output_file=None):
+    def get_analysis_job_datastore_file_download(
+            self, job_id, dsf_uuid, output_file=None):
         """
         Download an DataStore file to an output file
 
@@ -541,12 +596,17 @@ class ServiceAccessLayer:  # pragma: no cover
         default_name = "download-job-{}-dsf-{}".format(job_id, dsf_uuid)
 
         if dsf is not None:
-            r = requests.get(url, stream=True, verify=False, headers=self._get_headers())
+            r = requests.get(
+                url,
+                stream=True,
+                verify=False,
+                headers=self._get_headers())
             if output_file is None:
                 try:
                     # 'attachment; filename="job-106-be2b5106-91dc-4ef9-b199-f1481f88b7e4-file-024.subreadset.xml'
                     raw_header = r.headers.get('content-disposition')
-                    local_filename = raw_header.split("filename=")[-1].replace('"', '')
+                    local_filename = raw_header.split(
+                        "filename=")[-1].replace('"', '')
                 except (TypeError, IndexError, KeyError, AttributeError):
                     local_filename = default_name
 
@@ -560,12 +620,16 @@ class ServiceAccessLayer:  # pragma: no cover
             r.close()
             return local_filename
         else:
-            # This should probably return None to be consistent with the current API
-            raise KeyError("Unable to get DataStore file {} from Job {}".format(dsf_uuid, job_id))
+            # This should probably return None to be consistent with the
+            # current API
+            raise KeyError(
+                "Unable to get DataStore file {} from Job {}".format(
+                    dsf_uuid, job_id))
 
     def get_analysis_job_reports(self, job_id):
         """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
-        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
+        return self._get_job_resource_type_with_transform(
+            JobTypes.ANALYSIS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
     def get_analysis_job_reports_objs(self, job_id):
         """
@@ -576,13 +640,15 @@ class ServiceAccessLayer:  # pragma: no cover
         :return: List of Reports
         """
         job_reports = self.get_analysis_job_reports(job_id)
-        return [self.get_analysis_job_report_obj(job_id, x['dataStoreFile'].uuid) for x in job_reports]
+        return [self.get_analysis_job_report_obj(
+            job_id, x['dataStoreFile'].uuid) for x in job_reports]
 
     def __get_report_d(self, job_id, report_uuid, processor_func):
         _d = dict(t=JobTypes.ANALYSIS, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS,
                   u=report_uuid)
         u = "{p}/{t}/{i}/{r}/{u}".format(**_d)
-        return _process_rget_or_none(processor_func)(_to_url(self.uri, u), headers=self._get_headers())
+        return _process_rget_or_none(processor_func)(
+            _to_url(self.uri, u), headers=self._get_headers())
 
     def get_analysis_job_report_details(self, job_id, report_uuid):
         return self.__get_report_d(job_id, report_uuid, lambda x: x)
@@ -598,34 +664,49 @@ class ServiceAccessLayer:  # pragma: no cover
 
     def get_analysis_job_report_attrs(self, job_id):
         """Return a dict of all the Report Attributes"""
-        return _get_all_report_attributes(self.get_analysis_job_reports, self.get_analysis_job_report_details, job_id)
+        return _get_all_report_attributes(
+            self.get_analysis_job_reports, self.get_analysis_job_report_details, job_id)
 
     def get_import_job_reports(self, job_id):
-        return self._get_job_resource_type_with_transform(JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
+        return self._get_job_resource_type_with_transform(
+            JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
     def get_import_job_report_details(self, job_id, report_uuid):
         # It would have been better to return a Report instance, not raw json
-        _d = dict(t=JobTypes.IMPORT_DS, i=job_id, r=ServiceResourceTypes.REPORTS, p=ServiceAccessLayer.ROOT_JOBS, u=report_uuid)
-        return _process_rget_or_none(lambda x: x)(_to_url(self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)), headers=self._get_headers())
+        _d = dict(
+            t=JobTypes.IMPORT_DS,
+            i=job_id,
+            r=ServiceResourceTypes.REPORTS,
+            p=ServiceAccessLayer.ROOT_JOBS,
+            u=report_uuid)
+        return _process_rget_or_none(lambda x: x)(_to_url(
+            self.uri, "{p}/{t}/{i}/{r}/{u}".format(**_d)), headers=self._get_headers())
 
     def get_import_job_report_attrs(self, job_id):
         """Return a dict of all the Report Attributes"""
-        return _get_all_report_attributes(self.get_import_job_reports, self.get_import_job_report_details, job_id)
+        return _get_all_report_attributes(
+            self.get_import_job_reports, self.get_import_job_report_details, job_id)
 
     def get_analysis_job_entry_points(self, job_id):
-        return self._get_job_resource_type_with_transform(JobTypes.ANALYSIS, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
+        return self._get_job_resource_type_with_transform(
+            JobTypes.ANALYSIS, job_id, ServiceResourceTypes.ENTRY_POINTS, _to_entry_points)
 
     def get_import_dataset_job_datastore(self, job_id):
         """Get a List of Service DataStore files from an import DataSet job"""
-        return self._get_job_resource_type(JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.DATASTORE)
+        return self._get_job_resource_type(
+            JobTypes.IMPORT_DS, job_id, ServiceResourceTypes.DATASTORE)
 
     def get_merge_dataset_job_datastore(self, job_id):
-        return self._get_job_resource_type(JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
+        return self._get_job_resource_type(
+            JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
 
-    def _import_dataset(self, dataset_type, path, avoid_duplicate_import=False):
+    def _import_dataset(self, dataset_type, path,
+                        avoid_duplicate_import=False):
         # This returns a job resource
-        url = self._to_url("{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
-        return _import_dataset_by_type(dataset_type)(url, path, headers=self._get_headers(), avoid_duplicate_import=avoid_duplicate_import)
+        url = self._to_url(
+            "{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
+        return _import_dataset_by_type(dataset_type)(
+            url, path, headers=self._get_headers(), avoid_duplicate_import=avoid_duplicate_import)
 
     def run_import_dataset_by_type(self, dataset_type, path_to_xml,
                                    avoid_duplicate_import=False):
@@ -635,7 +716,8 @@ class ServiceAccessLayer:  # pragma: no cover
             avoid_duplicate_import=avoid_duplicate_import)
         custom_err_msg = "Import {d} {p}".format(p=path_to_xml, d=dataset_type)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id, sleep_time=self._sleep_time)
+        return _block_for_job_to_complete(
+            self, job_id, sleep_time=self._sleep_time)
 
     def _run_import_and_block(self, func, path, time_out=None):
         # func while be self.import_dataset_X
@@ -649,25 +731,29 @@ class ServiceAccessLayer:  # pragma: no cover
         return self._import_dataset(FileTypes.DS_SUBREADS, path)
 
     def run_import_dataset_subread(self, path, time_out=10):
-        return self._run_import_and_block(self.import_dataset_subread, path, time_out=time_out)
+        return self._run_import_and_block(
+            self.import_dataset_subread, path, time_out=time_out)
 
     def import_dataset_hdfsubread(self, path):
         return self._import_dataset(FileTypes.DS_SUBREADS_H5, path)
 
     def run_import_dataset_hdfsubread(self, path, time_out=10):
-        return self._run_import_and_block(self.import_dataset_hdfsubread, path, time_out=time_out)
+        return self._run_import_and_block(
+            self.import_dataset_hdfsubread, path, time_out=time_out)
 
     def import_dataset_reference(self, path):
         return self._import_dataset(FileTypes.DS_REF, path)
 
     def run_import_dataset_reference(self, path, time_out=10):
-        return self._run_import_and_block(self.import_dataset_reference, path, time_out=time_out)
+        return self._run_import_and_block(
+            self.import_dataset_reference, path, time_out=time_out)
 
     def import_dataset_barcode(self, path):
         return self._import_dataset(FileTypes.DS_BARCODE, path)
 
     def run_import_dataset_barcode(self, path, time_out=10):
-        return self._run_import_and_block(self.import_dataset_barcode, path, time_out=time_out)
+        return self._run_import_and_block(
+            self.import_dataset_barcode, path, time_out=time_out)
 
     def run_import_local_dataset(self, path, avoid_duplicate_import=False):
         """Import a file from FS that is local to where the services are running
@@ -682,7 +768,8 @@ class ServiceAccessLayer:  # pragma: no cover
                                           ignore_errors=True)
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
-            job_result = self.run_import_dataset_by_type(dataset_meta_type.metatype, path, avoid_duplicate_import=avoid_duplicate_import)
+            job_result = self.run_import_dataset_by_type(
+                dataset_meta_type.metatype, path, avoid_duplicate_import=avoid_duplicate_import)
             log.info("Confirming database update")
             # validation 1: attempt to retrieve dataset info
             result_new = self.get_dataset_by_uuid(dataset_meta_type.uuid)
@@ -693,7 +780,9 @@ class ServiceAccessLayer:  # pragma: no cover
                     u=dataset_meta_type.uuid))
             return job_result
         else:
-            log.info("{f} already imported. Skipping importing. {r}".format(r=result, f=dataset_meta_type.metatype))
+            log.info(
+                "{f} already imported. Skipping importing. {r}".format(
+                    r=result, f=dataset_meta_type.metatype))
             # need to clean this up
             return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
@@ -709,12 +798,15 @@ class ServiceAccessLayer:  # pragma: no cover
             _to_url(self.uri, "{t}/datasets/{i}/jobs".format(t=ServiceAccessLayer.ROOT_SL, i=dataset_id)), headers=self._get_headers())
 
     def get_job_types(self):
-        u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_JM, "job-types"))
+        u = _to_url(
+            self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_JM, "job-types"))
         return _process_rget(u, headers=self._get_headers())
 
     def get_dataset_types(self):
         """Get a List of DataSet Types"""
-        u = _to_url(self.uri, "{}/{}".format(ServiceAccessLayer.ROOT_SL, "dataset-types"))
+        u = _to_url(self.uri,
+                    "{}/{}".format(ServiceAccessLayer.ROOT_SL,
+                                   "dataset-types"))
         return _process_rget(u, headers=self._get_headers())
 
     def get_dataset_by_uuid(self, int_or_uuid, ignore_errors=False):
@@ -730,25 +822,30 @@ class ServiceAccessLayer:  # pragma: no cover
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
         """Get a Dataset using the DataSetMetaType and (int|uuid) of the dataset"""
         ds_endpoint = _get_endpoint_or_raise(dataset_type)
-        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}".format(
+            t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def _get_dataset_details_by_id(self, dataset_type, int_or_uuid):
         """
         Get a Dataset Details (XML converted to JSON via webservices
         using the DataSetMetaType and (int|uuid) of the dataset
         """
-        # FIXME There's some inconsistencies in the interfaces with regards to returning None or raising
+        # FIXME There's some inconsistencies in the interfaces with regards to
+        # returning None or raising
         ds_endpoint = _get_endpoint_or_raise(dataset_type)
-        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/details".format(t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
+        return _process_rget(_to_url(self.uri, "{p}/{t}/{i}/details".format(
+            t=ds_endpoint, i=int_or_uuid, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def _get_datasets_by_type(self, dstype):
-        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=dstype, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
+        return _process_rget(_to_url(self.uri, "{p}/{i}".format(
+            i=dstype, p=ServiceAccessLayer.ROOT_DS)), headers=self._get_headers())
 
     def get_subreadset_by_id(self, int_or_uuid):
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
 
     def get_subreadset_details_by_id(self, int_or_uuid):
-        return self._get_dataset_details_by_id(FileTypes.DS_SUBREADS, int_or_uuid)
+        return self._get_dataset_details_by_id(
+            FileTypes.DS_SUBREADS, int_or_uuid)
 
     def get_subreadsets(self):
         return self._get_datasets_by_type("subreads")
@@ -757,7 +854,8 @@ class ServiceAccessLayer:  # pragma: no cover
         return self.get_dataset_by_id(FileTypes.DS_SUBREADS_H5, int_or_uuid)
 
     def get_hdfsubreadset_details_by_id(self, int_or_uuid):
-        return self._get_dataset_details_by_id(FileTypes.DS_SUBREADS_H5, int_or_uuid)
+        return self._get_dataset_details_by_id(
+            FileTypes.DS_SUBREADS_H5, int_or_uuid)
 
     def get_hdfsubreadsets(self):
         return self._get_datasets_by_type("hdfsubreads")
@@ -775,7 +873,8 @@ class ServiceAccessLayer:  # pragma: no cover
         return self.get_dataset_by_id(FileTypes.DS_BARCODE, int_or_uuid)
 
     def get_barcodeset_details_by_id(self, int_or_uuid):
-        return self._get_dataset_details_by_id(FileTypes.DS_BARCODE, int_or_uuid)
+        return self._get_dataset_details_by_id(
+            FileTypes.DS_BARCODE, int_or_uuid)
 
     def get_barcodesets(self):
         return self._get_datasets_by_type("barcodes")
@@ -804,28 +903,35 @@ class ServiceAccessLayer:  # pragma: no cover
                  name=name,
                  organism=organism,
                  ploidy=ploidy)
-        return _process_rpost_with_transform(ServiceJob.from_d)(self._to_url("{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d, headers=self._get_headers())
+        return _process_rpost_with_transform(ServiceJob.from_d)(self._to_url(
+            "{p}/{t}".format(p=ServiceAccessLayer.ROOT_JOBS, t=JobTypes.CONVERT_FASTA)), d, headers=self._get_headers())
 
-    def run_import_fasta(self, fasta_path, name, organism, ploidy, time_out=JOB_DEFAULT_TIMEOUT):
+    def run_import_fasta(self, fasta_path, name, organism,
+                         ploidy, time_out=JOB_DEFAULT_TIMEOUT):
         """Import a Reference into a Block"""""
         job_or_error = self.import_fasta(fasta_path, name, organism, ploidy)
         _d = dict(f=fasta_path, n=name, o=organism, p=ploidy)
-        custom_err_msg = "Fasta-convert path:{f} name:{n} organism:{o} ploidy:{p}".format(**_d)
+        custom_err_msg = "Fasta-convert path:{f} name:{n} organism:{o} ploidy:{p}".format(
+            **_d)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(self, job_id, time_out=time_out,
                                           sleep_time=self._sleep_time)
 
     def create_logger_resource(self, idx, name, description):
         _d = dict(id=idx, name=name, description=description)
-        return _process_rpost(_to_url(self.uri, "/smrt-base/loggers"), _d, headers=self._get_headers())
+        return _process_rpost(
+            _to_url(self.uri, "/smrt-base/loggers"), _d, headers=self._get_headers())
 
-    def log_progress_update(self, job_type_id, job_id, message, level, source_id):
+    def log_progress_update(self, job_type_id, job_id,
+                            message, level, source_id):
         """This is the generic job logging mechanism"""
         _d = dict(message=message, level=level, sourceId=source_id)
-        return _process_rpost(_to_url(self.uri, "{p}/{t}/{i}/log".format(t=job_type_id, i=job_id, p=ServiceAccessLayer.ROOT_JOBS)), _d, headers=self._get_headers())
+        return _process_rpost(_to_url(self.uri, "{p}/{t}/{i}/log".format(
+            t=job_type_id, i=job_id, p=ServiceAccessLayer.ROOT_JOBS)), _d, headers=self._get_headers())
 
     def get_pipeline_template_by_id(self, pipeline_template_id):
-        return _process_rget(_to_url(self.uri, "{p}/{i}".format(i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
+        return _process_rget(_to_url(self.uri, "{p}/{i}".format(
+            i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
 
     def create_by_pipeline_template_id(self,
                                        name,
@@ -845,10 +951,15 @@ class ServiceAccessLayer:  # pragma: no cover
         # sanity checking to see if pipeline is valid
         _ = self.get_pipeline_template_by_id(pipeline_template_id)
 
-        seps = [dict(entryId=e.entry_id, fileTypeId=e.dataset_type, datasetId=e.resource) for e in epoints]
+        seps = [
+            dict(
+                entryId=e.entry_id,
+                fileTypeId=e.dataset_type,
+                datasetId=e.resource) for e in epoints]
 
         def _to_o(opt_id, opt_value, option_type_id):
-            return dict(optionId=opt_id, value=opt_value, optionTypeId=option_type_id)
+            return dict(optionId=opt_id, value=opt_value,
+                        optionTypeId=option_type_id)
 
         task_options = list(task_options)
         d = dict(name=name,
@@ -862,7 +973,11 @@ class ServiceAccessLayer:  # pragma: no cover
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
         job_type = JobTypes.ANALYSIS
-        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
+        raw_d = _process_rpost(_to_url(self.uri,
+                                       "{r}/{p}".format(p=job_type,
+                                                        r=ServiceAccessLayer.ROOT_JOBS)),
+                               d,
+                               headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
     def run_by_pipeline_template_id(self,
@@ -910,7 +1025,11 @@ class ServiceAccessLayer:  # pragma: no cover
         if tags:
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
-        raw_d = _process_rpost(_to_url(self.uri, "{r}/{p}".format(p=JobTypes.CROMWELL, r=ServiceAccessLayer.ROOT_JOBS)), d, headers=self._get_headers())
+        raw_d = _process_rpost(_to_url(self.uri,
+                                       "{r}/{p}".format(p=JobTypes.CROMWELL,
+                                                        r=ServiceAccessLayer.ROOT_JOBS)),
+                               d,
+                               headers=self._get_headers())
         job = ServiceJob.from_d(raw_d)
         return _block_for_job_to_complete(self, job.id, time_out=time_out,
                                           sleep_time=self._sleep_time,
@@ -949,49 +1068,70 @@ class ServiceAccessLayer:  # pragma: no cover
 
     def get_analysis_job_tasks(self, job_id_or_uuid):
         """Get all the Task associated with a Job by UUID or Int Id"""
-        job_url = self._to_url(_to_relative_tasks_url(JobTypes.ANALYSIS)(job_id_or_uuid))
-        return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
+        job_url = self._to_url(
+            _to_relative_tasks_url(
+                JobTypes.ANALYSIS)(job_id_or_uuid))
+        return _process_rget_with_transform(_transform_job_tasks)(
+            job_url, headers=self._get_headers())
 
     def get_import_job_tasks(self, job_id_or_uuid):
         # this is more for testing purposes
-        job_url = self._to_url(_to_relative_tasks_url(JobTypes.IMPORT_DS)(job_id_or_uuid))
-        return _process_rget_with_transform(_transform_job_tasks)(job_url, headers=self._get_headers())
+        job_url = self._to_url(
+            _to_relative_tasks_url(
+                JobTypes.IMPORT_DS)(job_id_or_uuid))
+        return _process_rget_with_transform(_transform_job_tasks)(
+            job_url, headers=self._get_headers())
 
     def get_manifests(self):
         u = self._to_url("{}/manifests".format(ServiceAccessLayer.ROOT_SL))
-        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+        return _process_rget_with_transform(
+            _null_func)(u, headers=self._get_headers())
 
     def get_manifest_by_id(self, ix):
-        u = self._to_url("{}/manifests/{}".format(ServiceAccessLayer.ROOT_SL, ix))
-        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+        u = self._to_url(
+            "{}/manifests/{}".format(ServiceAccessLayer.ROOT_SL, ix))
+        return _process_rget_or_none(_null_func)(
+            u, headers=self._get_headers())
 
     def get_runs(self):
         u = self._to_url("{}".format(ServiceAccessLayer.ROOT_RUNS))
-        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+        return _process_rget_with_transform(
+            _null_func)(u, headers=self._get_headers())
 
     def get_run_details(self, run_uuid):
-        u = self._to_url("{}/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
-        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+        u = self._to_url(
+            "{}/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
+        return _process_rget_or_none(_null_func)(
+            u, headers=self._get_headers())
 
     def get_run_collections(self, run_uuid):
-        u = self._to_url("{}/{}/collections".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
-        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+        u = self._to_url(
+            "{}/{}/collections".format(ServiceAccessLayer.ROOT_RUNS, run_uuid))
+        return _process_rget_with_transform(
+            _null_func)(u, headers=self._get_headers())
 
     def get_run_collection(self, run_uuid, collection_uuid):
-        u = self._to_url("{}/{}/collections/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid, collection_uuid))
-        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+        u = self._to_url(
+            "{}/{}/collections/{}".format(ServiceAccessLayer.ROOT_RUNS, run_uuid, collection_uuid))
+        return _process_rget_or_none(_null_func)(
+            u, headers=self._get_headers())
 
     def get_samples(self):
         u = self._to_url("{}/samples".format(ServiceAccessLayer.ROOT_SL, ))
-        return _process_rget_with_transform(_null_func)(u, headers=self._get_headers())
+        return _process_rget_with_transform(
+            _null_func)(u, headers=self._get_headers())
 
     def get_sample_by_id(self, sample_uuid):
-        u = self._to_url("{}/samples/{}".format(ServiceAccessLayer.ROOT_SL, sample_uuid))
-        return _process_rget_or_none(_null_func)(u, headers=self._get_headers())
+        u = self._to_url(
+            "{}/samples/{}".format(ServiceAccessLayer.ROOT_SL, sample_uuid))
+        return _process_rget_or_none(_null_func)(
+            u, headers=self._get_headers())
 
     def submit_multi_job(self, job_options):
-        u = self._to_url("{}/multi-analysis".format(ServiceAccessLayer.ROOT_MJOBS))
-        return _process_rpost_with_transform(ServiceJob.from_d)(u, job_options, headers=self._get_headers())
+        u = self._to_url(
+            "{}/multi-analysis".format(ServiceAccessLayer.ROOT_MJOBS))
+        return _process_rpost_with_transform(ServiceJob.from_d)(
+            u, job_options, headers=self._get_headers())
 
 
 def __run_and_ignore_errors(f, warn_message):
@@ -1049,10 +1189,12 @@ def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True, 
     :type create_job_task_record: CreateJobTaskRecord
     :rtype: JobTask
     """
-    warn_message = "Unable to create Task {c}".format(c=repr(create_job_task_record))
+    warn_message = "Unable to create Task {c}".format(
+        c=repr(create_job_task_record))
 
     def f():
-        return _process_rpost_with_transform(JobTask.from_d)(job_tasks_url, create_job_task_record.to_dict(), headers=headers)
+        return _process_rpost_with_transform(JobTask.from_d)(
+            job_tasks_url, create_job_task_record.to_dict(), headers=headers)
 
     return _run_func(f, warn_message, ignore_errors)
 
@@ -1062,10 +1204,12 @@ def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True,
     :type update_job_task_record: UpdateJobTaskRecord
     :rtype: JobTask
     """
-    warn_message = "Unable to update Task {c}".format(c=repr(update_job_task_record))
+    warn_message = "Unable to update Task {c}".format(
+        c=repr(update_job_task_record))
 
     def f():
-        return _process_rput_with_transform(JobTask.from_d)(task_url, update_job_task_record.to_dict(), headers=headers)
+        return _process_rput_with_transform(JobTask.from_d)(
+            task_url, update_job_task_record.to_dict(), headers=headers)
 
     return _run_func(f, warn_message, ignore_errors)
 
@@ -1084,7 +1228,8 @@ def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
 
 class CreateJobTaskRecord:
 
-    def __init__(self, task_uuid, task_id, task_type_id, name, state, created_at=None):
+    def __init__(self, task_uuid, task_id, task_type_id,
+                 name, state, created_at=None):
         self.task_uuid = task_uuid
         self.task_id = task_id
         self.task_type_id = task_type_id
@@ -1095,7 +1240,8 @@ class CreateJobTaskRecord:
         # 2016-02-18T23:24:46.569Z
         # or
         # 2016-02-18T15:24:46.569-08:00
-        self.created_at = datetime.datetime.now(pytz.utc) if created_at is None else created_at
+        self.created_at = datetime.datetime.now(
+            pytz.utc) if created_at is None else created_at
 
     def __repr__(self):
         _d = dict(k=self.__class__.__name__,
@@ -1206,16 +1352,22 @@ class JobServiceClient:  # pragma: no cover
         """
         return self.to_url("tasks/{t}".format(t=task_uuid))
 
-    def log_workflow_progress(self, message, level, source_id, ignore_errors=True):
-        return log_pbsmrtpipe_progress(self.log_url, message, level, source_id, ignore_errors=ignore_errors)
+    def log_workflow_progress(self, message, level,
+                              source_id, ignore_errors=True):
+        return log_pbsmrtpipe_progress(
+            self.log_url, message, level, source_id, ignore_errors=ignore_errors)
 
     def add_datastore_file(self, datastore_file, ignore_errors=True):
-        return add_datastore_file(self.datastore_url, datastore_file, ignore_errors=ignore_errors)
+        return add_datastore_file(
+            self.datastore_url, datastore_file, ignore_errors=ignore_errors)
 
-    def update_datastore_file(self, uuid, file_size=None, path=None, set_is_active=True, ignore_errors=True):
-        return _update_datastore_file(self.datastore_url, uuid, path, file_size, set_is_active, ignore_errors)
+    def update_datastore_file(
+            self, uuid, file_size=None, path=None, set_is_active=True, ignore_errors=True):
+        return _update_datastore_file(
+            self.datastore_url, uuid, path, file_size, set_is_active, ignore_errors)
 
-    def create_task(self, task_uuid, task_id, task_type_id, name, created_at=None):
+    def create_task(self, task_uuid, task_id,
+                    task_type_id, name, created_at=None):
         """
 
         :param task_uuid: Globally unique task id
@@ -1229,15 +1381,22 @@ class JobServiceClient:  # pragma: no cover
 
         return _create_job_task(self.tasks_url, r)
 
-    def update_task_status(self, task_uuid, state, message, error_message=None):
+    def update_task_status(self, task_uuid, state,
+                           message, error_message=None):
 
         task_url = self.get_task_url(task_uuid)
 
-        u = UpdateJobTaskRecord(task_uuid, state, message, error_message=error_message)
+        u = UpdateJobTaskRecord(
+            task_uuid,
+            state,
+            message,
+            error_message=error_message)
 
-        return _update_job_task_state(task_url, u, ignore_errors=self.ignore_errors)
+        return _update_job_task_state(
+            task_url, u, ignore_errors=self.ignore_errors)
 
-    def update_task_to_failed(self, task_uuid, message, detailed_error_message):
+    def update_task_to_failed(self, task_uuid, message,
+                              detailed_error_message):
         task_url = self.get_task_url(task_uuid)
         state = JobStates.FAILED
 
@@ -1249,7 +1408,7 @@ class JobServiceClient:  # pragma: no cover
         return _update_job_task_state(task_url, u)
 
 
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # SSL stuff
 class Wso2Constants:  # pragma: no cover
     SECRET = "KMLz5g7fbmx8RVFKKdu0NOrJic4a"
@@ -1281,7 +1440,13 @@ def get_token(url, user, password, scopes, secret, consumer_key):  # pragma: no 
 
 
 def _get_smrtlink_wso2_token(user, password, url):  # pragma: no cover
-    r = get_token(url, user, password, Wso2Constants.SCOPES, Wso2Constants.SECRET, Wso2Constants.CONSUMER_KEY)
+    r = get_token(
+        url,
+        user,
+        password,
+        Wso2Constants.SCOPES,
+        Wso2Constants.SECRET,
+        Wso2Constants.CONSUMER_KEY)
     j = r.json()
     access_token = j['access_token']
     refresh_token = j['refresh_token']
@@ -1298,22 +1463,29 @@ class SmrtLinkAuthClient(ServiceAccessLayer):  # pragma: no cover
 
     def __init__(self, base_url, user, password, port=8243, debug=False,
                  sleep_time=2, token=None):
-        super(SmrtLinkAuthClient, self).__init__(base_url, port, debug=debug, sleep_time=sleep_time)
+        super().__init__(
+            base_url,
+            port,
+            debug=debug,
+            sleep_time=sleep_time)
         self._user = user
         self._password = password
 
         if token is None:
             if (user is None or password is None):
-                raise ValueError("Both user and password must be defined unless an existing auth token is supplied")
+                raise ValueError(
+                    "Both user and password must be defined unless an existing auth token is supplied")
             self._login()
         else:
-            # assume token is valid. This will fail on the first client request if not valid with an obvious error message
+            # assume token is valid. This will fail on the first client request
+            # if not valid with an obvious error message
             self.auth_token = token
             self.refresh_token = None
 
     def _login(self):
         url = "{u}:{p}/token".format(u=self.base_url, p=self.port)
-        self.auth_token, self.refresh_token, _ = _get_smrtlink_wso2_token(self._user, self._password, url)
+        self.auth_token, self.refresh_token, _ = _get_smrtlink_wso2_token(
+            self._user, self._password, url)
 
     def _get_headers(self):
         return {

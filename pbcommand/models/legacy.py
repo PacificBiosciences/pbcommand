@@ -8,7 +8,8 @@ import json
 
 class Pipeline:
 
-    def __init__(self, idx, display_name, version, description, bindings, entry_bindings, parent_pipeline_ids=None, tags=(), task_options=None):
+    def __init__(self, idx, display_name, version, description, bindings,
+                 entry_bindings, parent_pipeline_ids=None, tags=(), task_options=None):
         """
 
         Both entry_points and bindings are provided as "simple" format (e.g, [("alpha:0", "beta:1"])
@@ -88,7 +89,8 @@ class Pipeline:
         epoints = [(e["entryId"], e["fileTypeId"]) for e in d["entryPoints"]]
         # The pipeline instance only needs to the key-value pair
         task_options = {o["id"]: o["default"] for o in d['taskOptions']}
-        return Pipeline(d['id'], d['name'], d['version'], d['description'], bindings, epoints, tags=d['tags'], task_options=task_options)
+        return Pipeline(d['id'], d['name'], d['version'], d['description'],
+                        bindings, epoints, tags=d['tags'], task_options=task_options)
 
     @staticmethod
     def load_from_json(file_name):

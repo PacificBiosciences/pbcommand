@@ -55,7 +55,7 @@ build-java-classes:
 
 extract-readme-snippets:
 	rm -rf readme-snippet-*.py
-	pandoc -t markdown README.md  | pandoc --filter ./extract-readme-snippets.py
+	pandoc -t markdown README.md  | pandoc --filter ./bin/extract-readme-snippets.py
 
 build-avro-schema-docs:
 	# this requires nodejs + https://github.com/ept/avrodoc
