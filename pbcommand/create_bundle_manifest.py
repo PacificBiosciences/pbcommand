@@ -5,6 +5,7 @@
 import argparse
 import datetime
 import json
+import os.path as op
 import os
 import subprocess
 import sys
@@ -25,7 +26,8 @@ def get_parser():
     p = argparse.ArgumentParser(description=desc,
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     p.add_argument("bundle_id", help="ID of the software bundle")
-    p.add_argument("version_txt", help="Path to Manifest.xml")
+    p.add_argument("version",
+                   help="Version string or path to filename that contains it")
     p.add_argument("-o", dest="output_manifest_xml", default="manifest.xml",
                    help="Path to the version.txt file. Must have a single line with Major.Minor.Tiny format")
     p.add_argument(
@@ -47,12 +49,12 @@ def get_parser():
 
 def git_short_sha():
     args = "git rev-parse --short HEAD".split()
-    return subprocess.check_output(args).strip()
+    return subprocess.check_output(args, encoding="utf-8").strip()
 
 
 def git_branch():
     args = "git rev-parse --abbrev-ref HEAD".split()
-    return subprocess.check_output(args).strip()
+    return subprocess.check_output(args, encoding="utf-8").strip()
 
 
 def get_bamboo_buildnumber(default=0):
@@ -81,10 +83,12 @@ def get_version(major, minor, tiny):
     return to_semver(major, minor, tiny, git_sha, build_number=None)
 
 
-def read_version_txt(path):
-    with open(path, 'r') as f:
-        x = f.readline()
-
+def read_version_txt(version):
+    if op.isfile(version):
+        with open(version, 'r') as f:
+            x = f.readline()
+    else:
+        x = version
     major, minor, patch = [int(i) for i in x.split(".")][:3]
     return major, minor, patch
 
@@ -137,10 +141,10 @@ def write_pacbio_manifest_json(bundle_id, version, name, desc, output_json):
                 indent=True))
 
 
-def runner(bundle_id, version_txt, output_manifest_xml,
+def runner(bundle_id, version, output_manifest_xml,
            pacbio_manifest_json, author, name, desc):
 
-    major, minor, patch = read_version_txt(version_txt)
+    major, minor, patch = read_version_txt(version)
     sem_ver = get_version(major, minor, patch)
     branch = git_branch()
     other = get_bamboo_buildnumber()
@@ -177,7 +181,7 @@ def main(argv_):
     p = get_parser()
     args = p.parse_args(argv_)
     return runner(args.bundle_id,
-                  args.version_txt,
+                  args.version,
                   args.output_manifest_xml,
                   args.pacbio_manifest_json,
                   args.author,
