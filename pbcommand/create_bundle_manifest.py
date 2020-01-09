@@ -89,7 +89,7 @@ def read_version_txt(version):
             x = f.readline()
     else:
         x = version
-    major, minor, patch = [int(i) for i in x.split(".")][:3]
+    major, minor, patch = [int(i) for i in x.split(".")[:3]]
     return major, minor, patch
 
 
