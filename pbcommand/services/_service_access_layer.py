@@ -290,6 +290,7 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
                 if retry_on_failure:
                     log.error(e)
                     log.warn("Polling job {i} failed".format(i=job_id))
+                    continue
                 else:
                     raise
 
@@ -1014,9 +1015,12 @@ class ServiceAccessLayer:  # pragma: no cover
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id, time_out=time_out,
+        return _block_for_job_to_complete(self,
+                                          job_id,
+                                          time_out=time_out,
                                           sleep_time=self._sleep_time,
-                                          abort_on_interrupt=abort_on_interrupt)
+                                          abort_on_interrupt=abort_on_interrupt,
+                                          retry_on_failure=retry_on_failure)
 
     def run_cromwell_workflow(self,
                               name,
