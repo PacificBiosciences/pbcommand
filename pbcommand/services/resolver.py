@@ -5,10 +5,9 @@ Utility to obtain paths to important analysis files from SMRT Link jobs,
 compatible with multiple applications and versions.
 """
 
-from __future__ import print_function
 import logging
-import os.path as op
 import os
+import os.path as op
 import sys
 
 from pbcommand.models.common import FileTypes
@@ -24,7 +23,7 @@ class ResolverFailure(Exception):
     pass
 
 
-class ResourceTypes(object):
+class ResourceTypes:
     JOB_PATH = "path"
     ALIGNMENTS = "alignments"
     PREASSEMBLY = "preassembly"
@@ -80,7 +79,7 @@ def _find_alignments(datastore):
     raise ResolverFailure("Can't find alignments output for job")
 
 
-class Resolver(object):
+class Resolver:
     def __init__(self,
                  host,
                  port,
@@ -146,7 +145,9 @@ def run_args(args):
     elif args.resource_type == ResourceTypes.SUBREADS_ENTRY:
         resource = resolver.resolve_input_subreads(args.job_id)
     else:
-        raise NotImplementedError("Can't retrieve resource type '%s'" % args.resource_type)
+        raise NotImplementedError(
+            "Can't retrieve resource type '%s'" %
+            args.resource_type)
     print(resource)
     if args.make_symlink is not None:
         if op.exists(args.make_symlink):

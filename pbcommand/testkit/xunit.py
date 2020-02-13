@@ -1,26 +1,23 @@
-"""IO layer for converting a TestResult instance to XUnit and an XUnit.xml
-parser"""
+"""
+IO layer for converting a TestResult instance to XUnit and an XUnit.xml
+parser
+"""
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import object
+import copy
+import datetime
+import logging
 import os
 import re
-import copy
-import logging
-import datetime
 import unittest
-
+from xml.dom import minidom
 from xml.etree.ElementTree import Element, ElementTree, ParseError
-
-from xmlbuilder import XMLBuilder
 
 log = logging.getLogger(__name__)
 
 _RESULT_STATES = 'success skipped error failure'.split()
 
 
-class XunitTestSuite(object):
+class XunitTestSuite:
 
     def __init__(self, name, tests, run_time=None, pb_requirements=()):
         """
@@ -31,7 +28,10 @@ class XunitTestSuite(object):
         self.name = name
         for t in tests:
             if not isinstance(t, XunitTestCase):
-                raise TypeError("Expected {k} got {t}.".format(t=type(t), k=XunitTestCase.__class__.__name__))
+                raise TypeError(
+                    "Expected {k} got {t}.".format(
+                        t=type(t),
+                        k=XunitTestCase.__class__.__name__))
         self._tests = tests
         self._run_time = run_time
         self._pb_requirements = pb_requirements
@@ -53,18 +53,28 @@ class XunitTestSuite(object):
         if result in _RESULT_STATES:
             return [test for test in self.tests if test.result == result]
         else:
-            raise ValueError("{r} is Invalid state. Supported states {s}.".format(r=result, s=_RESULT_STATES))
+            raise ValueError(
+                "{r} is Invalid state. Supported states {s}.".format(
+                    r=result, s=_RESULT_STATES))
 
     def __len__(self):
         return len(self.tests)
 
     def __repr__(self):
-        return "<{c} tests:{n} successful:{s} failed:{f} errors:{e} skipped:{sk} >".format(c=self.__class__.__name__, n=self.ntests, s=self.nsuccess, f=self.nfailure, e=self.nerrors, sk=self.nskipped)
+        return "<{c} tests:{n} successful:{s} failed:{f} errors:{e} skipped:{sk} >".format(
+            c=self.__class__.__name__, n=self.ntests, s=self.nsuccess, f=self.nfailure, e=self.nerrors, sk=self.nskipped)
 
     def __str__(self):
         outs = list()
         outs.append("TestName : {n}".format(n=self.name))
-        outs.append("{c} tests {n} successful {s} failed {f} errors {e} skipped {sk}".format(c=self.__class__.__name__, n=self.ntests, s=self.nsuccess, f=self.nfailure, e=self.nerrors, sk=self.nskipped))
+        outs.append(
+            "{c} tests {n} successful {s} failed {f} errors {e} skipped {sk}".format(
+                c=self.__class__.__name__,
+                n=self.ntests,
+                s=self.nsuccess,
+                f=self.nfailure,
+                e=self.nerrors,
+                sk=self.nskipped))
         for i, t in enumerate(self.tests):
             outs.append(" : ".join([str(i + 1).rjust(5), str(t)]))
         outs.append("")
@@ -113,8 +123,14 @@ class XunitTestSuite(object):
 
     def to_xml(self):
         """Return an XML instance of the suite"""
-
-        x = XMLBuilder('testsuite', name=self.name, tests=str(self.ntests), errors=str(self.nerrors), failures=str(self.nfailure), skip=str(self.nskipped))
+        doc = minidom.Document()
+        x = doc.createElement("testsuite")
+        x.setAttribute("name", self.name)
+        x.setAttribute("tests", str(self.ntests))
+        x.setAttribute("errors", str(self.nerrors))
+        x.setAttribute("failures", str(self.nfailure))
+        x.setAttribute("skip", str(self.nskipped))
+        doc.appendChild(x)
 
         for test_case in self.tests:
             classname = test_case.classname
@@ -122,25 +138,34 @@ class XunitTestSuite(object):
             text = "" if test_case.text is None else test_case.text
             etype = "" if test_case.etype is None else test_case.etype
 
-            with x.testcase(classname=classname, name=test_case.name,
-                            result=test_case.result, etype=etype,
-                            text=text):
-
-                if test_case.result in 'failures':
-                    x.error(type=test_case.etype, message=test_case.message)
-                elif test_case.result == 'failure':
-                    x.failure(type=test_case.etype, message=test_case.message)
-                elif test_case.result == 'skipped':
-                    x.skipped(type=test_case.etype, message=test_case.message)
-                elif test_case.result == 'error':
-                    x.error(type=test_case.etype, message=test_case.message)
-                else:
-                    # Successful testcase
-                    pass
+            tc = doc.createElement("testcase")
+            tc.setAttribute("classname", classname)
+            tc.setAttribute("name", test_case.name)
+            tc.setAttribute("result", test_case.result)
+            tc.setAttribute("etype", etype)
+            tc.setAttribute("text", text)
+            x.appendChild(tc)
+            child_tag_name = None
+            if test_case.result in 'failures':
+                child_tag_name = "error"
+            elif test_case.result in {"failure", "skipped", "error"}:
+                child_tag_name = test_case.result
+            else:
+                # Successful testcase
+                pass
+            if child_tag_name is not None:
+                ct = doc.createElement(child_tag_name)
+                ct.setAttribute("type", test_case.etype)
+                ct.setAttribute("message", test_case.message)
+                tc.appendChild(ct)
         if len(self._pb_requirements):
-            with x.properties():
-                for req in self._pb_requirements:
-                    x.property(name="Requirement", value=req)
+            props = doc.createElement("properties")
+            x.appendChild(props)
+            for req in self._pb_requirements:
+                prop = doc.createElement("property")
+                prop.setAttribute("name", "Requirement")
+                prop.setAttribute("value", req)
+                props.appendChild(prop)
         return x
 
     def to_dict(self):
@@ -152,7 +177,7 @@ class XunitTestSuite(object):
         return d
 
 
-class XunitTestCase(object):
+class XunitTestCase:
     RESULTS = 'success skipped error failure'.split()
 
     def __init__(self, classname, name, result, etype=None, text=None,
@@ -162,7 +187,9 @@ class XunitTestCase(object):
         if result in XunitTestCase.RESULTS:
             self.result = result
         else:
-            raise ValueError("{r} is Invalid state. Supported states {s}.".format(r=result, s=_RESULT_STATES))
+            raise ValueError(
+                "{r} is Invalid state. Supported states {s}.".format(
+                    r=result, s=_RESULT_STATES))
         self.text = text
         self.etype = etype
         self.message = message
@@ -177,7 +204,8 @@ class XunitTestCase(object):
         return " ".join(outs)
 
     def __repr__(self):
-        return "<{k} {n} {r}>".format(k=self.classname, n=self.name, r=self.result)
+        return "<{k} {n} {r}>".format(
+            k=self.classname, n=self.name, r=self.result)
 
     def to_dict(self):
         was_successful = self.result == 'success'
@@ -308,7 +336,9 @@ def convert_suite_and_result_to_xunit(suite,
                 m = getattr(tc, tc._testMethodName)
                 requirements.update(getattr(m, "__pb_requirements__", []))
         else:
-            raise TypeError("Unsupported test suite case ({x})".format(x=type(s)))
+            raise TypeError(
+                "Unsupported test suite case ({x})".format(
+                    x=type(s)))
 
     ntests = len(all_test_cases)
 
@@ -323,26 +353,44 @@ def convert_suite_and_result_to_xunit(suite,
     # import ipdb; ipdb.set_trace()
 
     # Create XML
-    x = XMLBuilder('testsuite', name=name, tests=str(ntests),
-                   errors=str(nerrors), failures=str(nfailures),
-                   skip=str(nskipped))
+    doc = minidom.Document()
+    x = doc.createElement("testsuite")
+    x.setAttribute("name", name)
+    x.setAttribute("tests", str(ntests))
+    x.setAttribute("errors", str(nerrors))
+    x.setAttribute("failures", str(nfailures))
+    x.setAttribute("skip", str(nskipped))
+    doc.appendChild(x)
 
     for idx, message in all_test_cases.items():
         test_method = idx.split('.')[-1]
-        with x.testcase(classname=idx, name=test_method, time="1.000"):
-            if idx in klass_results['errors']:
-                x.error(type="exceptions.Exception", message=message)
-            elif idx in klass_results['failures']:
-                x.failure(type="exceptions.Exception", message=message)
-            elif idx in klass_results['skipped']:
-                # print "skipped", idx
-                x.skipped(type="unittest.case.SkipTest", message=message)
-            else:
-                # print "Success", idx
-                pass
-    with x.properties() as p:
-        for req in sorted(list(requirements)):
-            p.property(name="Requirement", value=req)
+        tc = doc.createElement("testcase")
+        tc.setAttribute("classname", idx)
+        tc.setAttribute("name", test_method)
+        tc.setAttribute("time", "1.000")
+        x.appendChild(tc)
+        child_tag_name = error_type = None
+        if idx in klass_results['errors']:
+            child_tag_name, error_type = "error", "exceptions.Exception"
+        elif idx in klass_results['failures']:
+            child_tag_name, error_type = "failure", "exceptions.Exception"
+        elif idx in klass_results['skipped']:
+            child_tag_name, error_type = "skipped", "unittest.case.SkipTest"
+        else:
+            # print "Success", idx
+            pass
+        if child_tag_name is not None:
+            ct = doc.createElement(child_tag_name)
+            ct.setAttribute("type", error_type)
+            ct.setAttribute("message", message)
+            tc.appendChild(ct)
+    props = doc.createElement("properties")
+    x.appendChild(props)
+    for req in requirements:
+        prop = doc.createElement("property")
+        prop.setAttribute("name", "Requirement")
+        prop.setAttribute("value", req)
+        props.appendChild(prop)
     return x
 
 
@@ -384,5 +432,5 @@ def merge_junit_files(output_file, input_files):
             assert root.tag == "testsuites"
             for suite in root.findall("testsuite"):
                 root_out.append(suite)
-    with open(output_file, "w") as x:
+    with open(output_file, "wb") as x:
         xml_out.write(x)

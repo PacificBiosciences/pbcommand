@@ -1,4 +1,5 @@
-""" New Commandline interface that supports ResolvedToolContracts and emitting ToolContracts
+"""
+New Commandline interface that supports ResolvedToolContracts and emitting ToolContracts
 
 There's three use cases.
 
@@ -11,32 +12,23 @@ Going to do this in a new steps.
 - de-serializing of RTC (I believe this should be done via avro, not a new random JSON file. With avro, the java, c++, classes can be generated. Python can load the RTC via a structure dict that has a well defined schema)
 - get loading and running of RTC from commandline to call main func in a report.
 - generate/emit TC from a a common commandline parser interface that builds the TC and the standard argparse instance
-
-
 """
-from __future__ import print_function
-from builtins import object
+
 import argparse
+import errno
 import json
 import logging
+import os
+import shutil
+import sys
 import time
 import traceback
-import shutil
-import os
-import sys
-import errno
 
 import pbcommand
-
-from pbcommand.models import PbParser, ResourceTypes, PacBioAlarm
+from pbcommand.models import ResourceTypes, PacBioAlarm
 from pbcommand.models.report import Report, Attribute
-from pbcommand.common_options import (RESOLVED_TOOL_CONTRACT_OPTION,
-                                      EMIT_TOOL_CONTRACT_OPTION,
-                                      add_resolved_tool_contract_option,
-                                      add_base_options,
-                                      add_nproc_option)
+from pbcommand.common_options import add_base_options, add_nproc_option
 from pbcommand.utils import get_parsed_args_log_level
-from pbcommand.pb_io.tool_contract_io import load_resolved_tool_contract_from
 
 
 def _add_version(p, version):
@@ -65,7 +57,8 @@ def get_default_argparser(version, description):
     return _add_version(p, version)
 
 
-def get_default_argparser_with_base_opts(version, description, default_level="INFO", nproc=None):
+def get_default_argparser_with_base_opts(
+        version, description, default_level="INFO", nproc=None):
     """Return a parser with the default log related options
 
     If you don't want the default log behavior to go to stdout, then set
@@ -87,7 +80,11 @@ def get_default_argparser_with_base_opts(version, description, default_level="IN
     my-tool --my-opt=1234 --log-level=DEBUG --log-file=file.log file_in.txt
 
     """
-    p = add_base_options(get_default_argparser(version, description), default_level=default_level)
+    p = add_base_options(
+        get_default_argparser(
+            version,
+            description),
+        default_level=default_level)
     if nproc is not None:
         p = add_nproc_option(p)
     return p
@@ -139,7 +136,8 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     log_file = getattr(pargs, 'log_file', None)
 
     # Currently, only support to stdout. More customization would require
-    # more required commandline options in base parser (e.g., --log-file, --log-formatter)
+    # more required commandline options in base parser (e.g., --log-file,
+    # --log-formatter)
     log_options = dict(level=level, file_name=log_file)
 
     base_dir = os.getcwd()
@@ -147,7 +145,10 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     dump_alarm_on_error = False
     if "dump_alarm_on_error" in kwargs:
         dump_alarm_on_error = kwargs.pop("dump_alarm_on_error")
-    is_cromwell_environment = bool(os.environ.get("SMRT_PIPELINE_BUNDLE_DIR", None)) and "cromwell-executions" in base_dir
+    is_cromwell_environment = bool(
+        os.environ.get(
+            "SMRT_PIPELINE_BUNDLE_DIR",
+            None)) and "cromwell-executions" in base_dir
     dump_alarm_on_error = dump_alarm_on_error and is_cromwell_environment
 
     # The Setup log func must adhere to the pbcommand.utils.setup_log func
@@ -157,11 +158,14 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
     if setup_log_func is not None and alog is not None:
         setup_log_func(alog, **log_options)
         alog.info("Using pbcommand v{v}".format(v=pbcommand.get_version()))
-        alog.info("completed setting up logger with {f}".format(f=setup_log_func))
+        alog.info(
+            "completed setting up logger with {f}".format(
+                f=setup_log_func))
         alog.info("log opts {d}".format(d=log_options))
 
     if dump_alarm_on_error:
-        alog.info("This command appears to be running as part of a Cromwell workflow")
+        alog.info(
+            "This command appears to be running as part of a Cromwell workflow")
         alog.info("Additional output files may be generated")
 
     try:
@@ -206,112 +210,3 @@ def pacbio_args_runner(argv, parser, args_runner_func, alog, setup_log_func,
     args = parser.parse_args(argv)
     return _pacbio_main_runner(alog, setup_log_func, args_runner_func, args,
                                dump_alarm_on_error=dump_alarm_on_error)
-
-
-class TemporaryResourcesManager(object):
-    """Context manager for creating and destroying temporary resources"""
-
-    def __init__(self, rtc):
-        self.resolved_tool_contract = rtc
-
-    def __enter__(self):
-        for resource in self.resolved_tool_contract.task.resources:
-            if resource.type_id == ResourceTypes.TMP_DIR or resource.type_id == ResourceTypes.TMP_FILE:
-                try:
-                    dirname = os.path.dirname(os.path.realpath(resource.path))
-                    os.makedirs(dirname)
-                except EnvironmentError as e:
-                    # IOError, OSError subclass Environment and add errno
-                    # Note, dirname is not strictly defined here. If there's an
-                    # Env exception caught from the right hand this will raise NameError
-                    # and will still fail, but with a different exception type.
-                    if e.errno == errno.EEXIST and os.path.isdir(dirname):
-                        pass
-                    else:
-                        raise
-            if resource.type_id == ResourceTypes.TMP_DIR:
-                os.makedirs(resource.path)
-
-    def __exit__(self, type, value, traceback):
-        for resource in self.resolved_tool_contract.task.resources:
-            if resource.type_id == ResourceTypes.TMP_DIR:
-                if os.path.exists(resource.path):
-                    shutil.rmtree(resource.path)
-
-
-def pacbio_args_or_contract_runner(argv,
-                                   parser,
-                                   args_runner_func,
-                                   contract_tool_runner_func,
-                                   alog, setup_log_func):
-    """
-    For tools that understand resolved_tool_contracts, but can't emit
-    tool contracts (they may have been written by hand)
-
-    :param parser: argparse Parser
-    :type parser: ArgumentParser
-
-    :param args_runner_func: func(args) => int signature
-
-    :param contract_tool_runner_func: func(tool_contract_instance) should be the signature
-
-    :param alog: a python log instance
-    :param setup_log_func: func(log_instance) => void signature
-
-    :return: int return code
-    :rtype: int
-    """
-    def _log_not_none(msg):
-        if alog is not None:
-            alog.info(msg)
-
-    # circumvent the argparse parsing by inspecting the raw argv, then create
-    # a temporary parser with limited arguments to process the special case of
-    # --resolved-cool-contract (while still respecting verbosity flags).
-    if any(a.startswith(RESOLVED_TOOL_CONTRACT_OPTION) for a in argv):
-        p_tmp = get_default_argparser(version=parser.version,
-                                      description=parser.description)
-        add_resolved_tool_contract_option(add_base_options(p_tmp,
-                                                           default_level="NOTSET"))
-        args_tmp = p_tmp.parse_args(argv)
-        resolved_tool_contract = load_resolved_tool_contract_from(
-            args_tmp.resolved_tool_contract)
-        _log_not_none("Successfully loaded resolved tool contract from {a}".format(a=argv))
-        # XXX if one of the logging flags was specified, that takes precedence,
-        # otherwise use the log level in the resolved tool contract.  note that
-        # this takes advantage of the fact that argparse allows us to use
-        # NOTSET as the default level even though it's not one of the choices.
-        log_level = get_parsed_args_log_level(args_tmp,
-                                              default_level=logging.NOTSET)
-        if log_level == logging.NOTSET:
-            log_level = resolved_tool_contract.task.log_level
-        with TemporaryResourcesManager(resolved_tool_contract) as tmp_mgr:
-            r = _pacbio_main_runner(alog, setup_log_func, contract_tool_runner_func, resolved_tool_contract, level=log_level)
-            _log_not_none("Completed running resolved contract. {c}".format(c=resolved_tool_contract))
-            return r
-    else:
-        # tool was called with the standard commandline invocation
-        return pacbio_args_runner(argv, parser, args_runner_func, alog,
-                                  setup_log_func)
-
-
-def pbparser_runner(argv,
-                    parser,
-                    args_runner_func,
-                    contract_runner_func,
-                    alog,
-                    setup_log_func):
-    """Run a Contract or emit a contract to stdout."""
-    if not isinstance(parser, PbParser):
-        raise TypeError("Only supports PbParser.")
-
-    arg_parser = parser.arg_parser.parser
-    # extract the contract
-    tool_contract = parser.to_contract()
-
-    if EMIT_TOOL_CONTRACT_OPTION in argv:
-        # print tool_contract
-        x = json.dumps(tool_contract.to_dict(), indent=4, separators=(',', ': '))
-        print(x)
-    else:
-        return pacbio_args_or_contract_runner(argv, arg_parser, args_runner_func, contract_runner_func, alog, setup_log_func)

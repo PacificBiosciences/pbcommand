@@ -1,24 +1,25 @@
-
-import unittest
-
 from pbcommand.testkit.base_utils import pb_requirements
 
 
-class TestBaseUtils(unittest.TestCase):
+class TestBaseUtils:
 
     def test_pb_requirements_decorator(self):
         """
         Test that the pb_requirements decorator monkey-patches test methods
         correctly.
         """
-        class MyTestClass(unittest.TestCase):
+        class MyTestClass:
             @pb_requirements("SL-1")
             def test_1(self):
-                self.assertTrue(True)
+                assert True
+
             @pb_requirements("SL-2")
             def test_2(self):
                 self.fail("Fail!")
-        tests = unittest.TestLoader().loadTestsFromTestCase(MyTestClass)
-        methods = [getattr(t, t._testMethodName) for t in tests]
+
+        methods = [
+            MyTestClass.test_1,
+            MyTestClass.test_2,
+        ]
         requirements = [m.__pb_requirements__ for m in methods]
-        self.assertEqual(requirements, [['SL-1'], ['SL-2']])
+        assert requirements == [['SL-1'], ['SL-2']]

@@ -1,6 +1,5 @@
-from __future__ import print_function
-import sys
 import logging
+import sys
 
 from pbcommand.utils import setup_log
 from pbcommand.cli.core import get_default_argparser
@@ -63,10 +62,19 @@ def get_parser():
     sp = p.add_subparsers(help='commands')
 
     def builder(subparser_id, description, options_func, exe_func):
-        subparser_builder(sp, subparser_id, description, options_func, exe_func)
+        subparser_builder(
+            sp,
+            subparser_id,
+            description,
+            options_func,
+            exe_func)
 
     alpha_desc = "Subcommand Parser 1 (Alpha)"
-    builder("alpha", alpha_desc, _alpha_add_options_with_base_options, _alpha_args_runner)
+    builder(
+        "alpha",
+        alpha_desc,
+        _alpha_add_options_with_base_options,
+        _alpha_args_runner)
 
     beta_desc = "Subcommand Parser 2 (Beta)"
     # see above comments concerning adding "base" options.

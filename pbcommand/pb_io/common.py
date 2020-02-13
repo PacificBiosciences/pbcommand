@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import sys
 import warnings
 
@@ -8,11 +8,28 @@ from pbcommand.models import (PipelineChunk, PipelineDataStoreViewRules,
                               PacBioStringChoiceOption,
                               PacBioIntChoiceOption, PacBioStringOption,
                               PacBioFloatOption, PacBioBooleanOption,
-                              PacBioIntOption)
-from pbcommand.schemas import validate_datastore_view_rules
+                              PacBioIntOption, PipelinePreset)
+from pbcommand.schemas import validate_datastore_view_rules, validate_presets
 from pbcommand import to_ascii, to_utf8
 
 log = logging.getLogger(__name__)
+
+
+def json_path_or_d(value):
+    if isinstance(value, dict):
+        return value
+    elif isinstance(value, ("""s""".__class__, u"""s""".__class__)):
+        with open(value, 'r') as f:
+            d = json.loads(f.read())
+        return d
+    else:
+        raise ValueError("Unsupported value. Expected dict, or string")
+
+
+def _json_path_or_d(func):
+    def _wrapper(value):
+        return func(json_path_or_d(value))
+    return _wrapper
 
 
 def write_pipeline_chunks(chunks, output_json_file, comment):
@@ -26,7 +43,10 @@ def write_pipeline_chunks(chunks, output_json_file, comment):
     with open(output_json_file, 'w') as f:
         f.write(json.dumps(_d, indent=4, separators=(',', ': ')))
 
-    log.debug("Write {n} chunks to {o}".format(n=len(chunks), o=output_json_file))
+    log.debug(
+        "Write {n} chunks to {o}".format(
+            n=len(chunks),
+            o=output_json_file))
 
 
 def load_pipeline_chunks_from_json(path):
@@ -93,7 +113,8 @@ def _pacbio_choice_option_from_dict(d):
     return opt
 
 
-def __simple_option_by_type(option_id, name, default, description, option_type_id):
+def __simple_option_by_type(
+        option_id, name, default, description, option_type_id):
 
     option_type = TaskOptionTypes.from_simple_str(option_type_id)
 
@@ -121,7 +142,9 @@ def _pacbio_legacy_option_from_dict(d):
 
     :rtype: PacBioOption
     """
-    warnings.warn("This is obsolete and will disappear soon", DeprecationWarning)
+    warnings.warn(
+        "This is obsolete and will disappear soon",
+        DeprecationWarning)
 
     opt_id = d['pb_option']['option_id']
     name = d['pb_option']['name']
@@ -140,17 +163,47 @@ def _pacbio_option_from_dict(d):
     if "pb_option" in d:
         return _pacbio_legacy_option_from_dict(d)
     else:
-        return __simple_option_by_type(d['id'], d['name'], d['default'], to_utf8(d['description']), d['optionTypeId'])
+        return __simple_option_by_type(
+            d['id'],
+            d['name'],
+            d['default'],
+            to_utf8(d['description']),
+            d['optionTypeId'])
 
 
 def pacbio_option_from_dict(d):
     """Fundamental API for loading any PacBioOption type from a dict """
     # This should probably be pushed into pbcommand/pb_io/* for consistency
-    # Extensions are supported by adding a dispatch method by looking for required
-    # key(s) in the dict.
+    # Extensions are supported by adding a dispatch method by looking for
+    # required key(s) in the dict.
     if "choices" in d and d.get('choices') is not None:
         # the None check is for the TCs that are non-choice based models, but
         # were written with "choices" key
         return _pacbio_choice_option_from_dict(d)
     else:
         return _pacbio_option_from_dict(d)
+
+
+# XXX this could probably be more robust
+@_json_path_or_d
+def load_pipeline_presets_from(d):
+    """
+    Load pipeline presets from dictionary.  This expects a schema where the
+    options are arrays of type (id,value,optionTypeId), but it will also accept
+    a shorthand where the options are dictionaries.
+    """
+    validate_presets(d)
+    options = d['options']
+    if isinstance(options, list):
+        options = {o['id']: o['value'] for o in options}
+    taskOptions = d['taskOptions']
+    if isinstance(taskOptions, list):
+        taskOptions = {o['id']: o['value'] for o in taskOptions}
+    presets = PipelinePreset(
+        options=options,
+        task_options=taskOptions,
+        pipeline_id=d['pipelineId'],
+        preset_id=d['presetId'],
+        name=d.get('name', None),
+        description=d.get('description', None))
+    return presets

@@ -1,18 +1,18 @@
-from builtins import range
 import logging
-import unittest
 import tempfile
+
+import pytest
 
 from pbcommand.models.report import Table, Column, PbReportError
 
 log = logging.getLogger(__name__)
 
 
-class TestEmptyTable(unittest.TestCase):
+class TestEmptyTable:
 
     """Basic Smoke tests"""
 
-    def setUp(self):
+    def setup_method(self, method):
         self.columns = [Column('one', header="One"),
                         Column('two', header="Two"),
                         Column('three', header="Three")]
@@ -22,28 +22,28 @@ class TestEmptyTable(unittest.TestCase):
     def test_str(self):
         """Smoke test for conversion to str"""
         log.info(str(self.table))
-        self.assertIsNotNone(str(self.table))
+        assert str(self.table) is not None
 
     def test_columns(self):
         """Test Columns"""
-        self.assertEqual(len(self.table.columns), 3)
+        assert len(self.table.columns) == 3
 
     def test_column_values(self):
         """Basic check for column values"""
         for column in self.table.columns:
-            self.assertEqual(len(column.values), 0)
+            assert len(column.values) == 0
 
     def test_to_dict(self):
         """Conversion to dictionary"""
-        self.assertTrue(isinstance(self.table.to_dict(), dict))
+        assert isinstance(self.table.to_dict(), dict)
         log.info(self.table.to_dict())
 
 
-class TestBasicTable(unittest.TestCase):
+class TestBasicTable:
 
     """Basic Smoke tests"""
 
-    def setUp(self):
+    def setup_method(self, method):
         self.columns = [Column('one', header="One"),
                         Column('two', header="Two"),
                         Column('three', header="Three")]
@@ -60,36 +60,37 @@ class TestBasicTable(unittest.TestCase):
     def test_str(self):
         """Smoke test for conversion to str"""
         log.info(str(self.table))
-        self.assertIsNotNone(str(self.table))
+        assert str(self.table) is not None
 
     def test_columns(self):
         """Test Columns"""
-        self.assertEqual(len(self.table.columns), 3)
+        assert len(self.table.columns) == 3
 
     def test_column_values(self):
         """Basic check for column values"""
         for column in self.table.columns:
-            self.assertEqual(len(column.values), 3)
+            assert len(column.values) == 3
 
     def test_to_dict(self):
         """Conversion to dictionary"""
-        self.assertTrue(isinstance(self.table.to_dict(), dict))
+        assert isinstance(self.table.to_dict(), dict)
         log.info(self.table.to_dict())
 
     def test_to_csv(self):
         f = tempfile.NamedTemporaryFile(suffix=".csv").name
         self.table.to_csv(f)
         with open(f) as csv_out:
-            self.assertEqual(csv_out.read(), "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n")
+            assert csv_out.read() == "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n"
 
 
-class TestTable(unittest.TestCase):
+class TestTable:
 
     def test_table(self):
         """Can't create an Table without an id."""
         def none_table():
-                t = Table(None)
-        self.assertRaises(Exception, none_table)
+            t = Table(None)
+        with pytest.raises(Exception):
+            none_table()
 
     def test_add_column(self):
         """Cannot add column with duplicate id."""
@@ -99,9 +100,10 @@ class TestTable(unittest.TestCase):
         def add_dupe():
             t.add_column(Column('2'))
 
-        self.assertSequenceEqual(cs, t.columns)
+        assert cs == t.columns
 
-        self.assertRaises(PbReportError, add_dupe)
+        with pytest.raises(PbReportError):
+            add_dupe()
 
     def test_append_data(self):
         """Append data to columns by index."""
@@ -114,8 +116,8 @@ class TestTable(unittest.TestCase):
         t.append_data(1, 'ernie')
         t.append_data(1, 'bert')
 
-        self.assertSequenceEqual(['whatev', 'huh'], t.columns[0].values)
-        self.assertSequenceEqual(['ernie', 'bert'], t.columns[1].values)
+        assert ['whatev', 'huh'] == t.columns[0].values
+        assert ['ernie', 'bert'] == t.columns[1].values
 
     def test_add_data_by_column_id(self):
         """Added data values by column identifier."""
@@ -128,5 +130,5 @@ class TestTable(unittest.TestCase):
         for k, v in datum.items():
             table.add_data_by_column_id(k, v)
 
-        self.assertTrue(12.0 in table.columns[0].values)
-        self.assertTrue(1234.0 in table.columns[1].values)
+        assert 12.0 in table.columns[0].values
+        assert 1234.0 in table.columns[1].values

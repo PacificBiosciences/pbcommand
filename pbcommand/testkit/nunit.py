@@ -6,17 +6,15 @@ for importing into JIRA/X-ray
 """
 
 # NOTE: deliberately avoiding any dependencies outside the standard library!
-from builtins import zip
-from builtins import object
-from xml.dom import minidom
-import logging
 import argparse
+import logging
 import sys
+from xml.dom import minidom
 
 log = logging.getLogger(__name__)
 
 
-class TestCase(object):
+class TestCase:
     """
     Container for the results of an executed test.
     """

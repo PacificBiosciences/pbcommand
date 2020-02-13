@@ -1,27 +1,28 @@
-
-import unittest
 import logging
 from pprint import pformat
+
+import pytest
 
 from pbcommand.models.report import PlotGroup, Plot, PbReportError
 
 log = logging.getLogger(__name__)
 
 
-class TestPlotGroup(unittest.TestCase):
+class TestPlotGroup:
 
     def test_init(self):
         """Test constructor with kwargs"""
         plot = Plot('a_plot', 'path/to/image.png', caption="My Image")
         p = PlotGroup('my_pg', plots=[plot])
-        self.assertIsNotNone(p)
+        assert p is not None
 
     def test_plotgroup_null_id(self):
         """Can't create an plotGroup without an id."""
         def _test():
             p = PlotGroup(None)
 
-        self.assertRaises(PbReportError, _test)
+        with pytest.raises(PbReportError):
+            _test()
 
     def test_plotgroup_add_duplicate_plot(self):
         """Can't add plots with duplicate ids."""
@@ -30,7 +31,8 @@ class TestPlotGroup(unittest.TestCase):
             pg.add_plot(Plot('id', 'i1'))
             pg.add_plot(Plot('id', 'i2'))
 
-        self.assertRaises(PbReportError, _test)
+        with pytest.raises(PbReportError):
+            _test()
 
     def test_to_dict(self):
         """Test plotGroup to_dict function."""
@@ -41,13 +43,13 @@ class TestPlotGroup(unittest.TestCase):
         d = a.to_dict()
         log.debug(pformat(d))
 
-        self.assertEqual('123', d['id'])
-        self.assertEqual('foo title', d['title'])
-        self.assertEqual('foo legend', d['legend'])
-        self.assertEqual('foo thumbnail', d['thumbnail'])
-        self.assertEqual(1, len(d['plots']))
+        assert '123' == d['id']
+        assert 'foo title' == d['title']
+        assert 'foo legend' == d['legend']
+        assert 'foo thumbnail' == d['thumbnail']
+        assert 1 == len(d['plots'])
         log.info(a)
-        self.assertIsNotNone(repr(a))
+        assert repr(a) is not None
 
     def test_adding_incorrect_type(self):
         """Validate type when adding Plots."""
@@ -55,4 +57,5 @@ class TestPlotGroup(unittest.TestCase):
             plots = ['Not a plot instance', 'Another bad plot.']
             p = PlotGroup('my_plotgroup', plots=plots)
 
-        self.assertRaises(TypeError, _test)
+        with pytest.raises(TypeError):
+            _test()

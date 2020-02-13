@@ -2,8 +2,6 @@
 Utility to combine individual JUnit XML files.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import argparse
 import logging
 import os
@@ -12,7 +10,6 @@ import sys
 from pbcommand.cli import (get_default_argparser_with_base_opts,
                            pacbio_args_runner)
 from pbcommand.utils import setup_log
-
 from pbcommand.testkit import xunit
 
 log = logging.getLogger(__name__)

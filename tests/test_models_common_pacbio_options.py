@@ -1,6 +1,6 @@
-from builtins import str
-import unittest
 import logging
+
+import pytest
 
 import pbcommand
 from pbcommand.models.common import (PacBioFloatChoiceOption, PacBioIntOption,
@@ -20,7 +20,7 @@ def get_or(i, value):
     return value if i is None else i
 
 
-class TestPacBioBasicOptionTest(unittest.TestCase):
+class TestPacBioBasicOptionTest:
     OPT_KLASS = PacBioIntOption
     OPT_ID = "alpha"
     OPT_NAME = "Alpha"
@@ -38,24 +38,24 @@ class TestPacBioBasicOptionTest(unittest.TestCase):
         o = self._to_opt()
         log.debug("Created option {o}".format(o=o))
 
-        self.assertEqual(o.option_id, "test.task_options.{}".format(self.OPT_ID))
-        self.assertEqual(o.name, self.OPT_NAME)
-        self.assertEqual(o.default, self.OPT_DEFAULT)
-        self.assertEqual(o.description, self.OPT_DESC)
+        assert o.option_id == "test.task_options.{}".format(self.OPT_ID)
+        assert o.name == self.OPT_NAME
+        assert o.default == self.OPT_DEFAULT
+        assert o.description == self.OPT_DESC
 
 
 class TestPacBioIntOptionTest(TestPacBioBasicOptionTest):
 
     def test_bad_value_string(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v="bad-string")
 
     def test_bad_value_float(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=3.124)
 
     def test_bad_value_boolean(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=True)
 
 
@@ -64,15 +64,15 @@ class TestPacBioBooleanOptionTest(TestPacBioBasicOptionTest):
     OPT_DEFAULT = True
 
     def test_bad_value_int(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=1)
 
     def test_bad_value_float(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=1.10)
 
     def test_bad_value_string(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v="bad-string")
 
 
@@ -82,18 +82,18 @@ class TestPacBioFloatOptionTest(TestPacBioBasicOptionTest):
 
     def test_coerced_value_int(self):
         o = self._to_opt(v=1)
-        self.assertEqual(o.default, 1.0)
+        assert o.default == 1.0
 
     def test_bad_value_boolean(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=True)
 
     def test_bad_value_string(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v="bad-string")
 
     def test_bad_value_float_tuple(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=(1.0, 2.0))
 
 
@@ -102,18 +102,12 @@ class TestPacBioStringOptionTest(TestPacBioBasicOptionTest):
     OPT_DEFAULT = "gamma"
 
     def test_bad_value_int(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=1)
 
     def test_bad_value_float(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(v=1.10)
-
-    def test_bad_not_supported_unicode(self):
-        """Test that unicode values are not Supported"""
-        if pbcommand.python2:
-            with self.assertRaises(TypeError):
-                _ = self._to_opt(v=unicode('abcdef'))
 
 
 class TestPacBioBasicChoiceTest(TestPacBioBasicOptionTest):
@@ -132,10 +126,10 @@ class TestPacBioBasicChoiceTest(TestPacBioBasicOptionTest):
 
     def test_sanity_choice_option(self):
         o = self._to_opt()
-        self.assertEqual(o.choices, self.OPT_CHOICES)
+        assert o.choices == self.OPT_CHOICES
 
     def test_bad_invalid_choice(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _ = self._to_opt(v=self.OPT_BAD_OPTION)
 
 
@@ -164,5 +158,5 @@ class TestPacBioFloatChoiceOptionTest(TestPacBioBasicChoiceTest):
 
     def test_bad_choices(self):
         choices = (1, 2.0, "bad-value")
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             _ = self._to_opt(c=choices)

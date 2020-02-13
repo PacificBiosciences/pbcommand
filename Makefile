@@ -24,7 +24,7 @@ clean:
 test-nose:
 	nosetests -s --verbose --with-xunit --logging-config log_nose.cfg tests/test_*.py
 test-pytest:
-	pytest -v --durations=12 tests/test_*.py
+	pytest -v --durations=12 --junitxml=nosetests.xml --cov=./pbcommand --cov-report=xml:coverage.xml tests/test_*.py
 
 test: test-pytest run-pylint run-pep8
 
@@ -55,7 +55,7 @@ build-java-classes:
 
 extract-readme-snippets:
 	rm -rf readme-snippet-*.py
-	pandoc -t markdown README.md  | pandoc --filter ./extract-readme-snippets.py
+	pandoc -t markdown README.md  | pandoc --filter ./bin/extract-readme-snippets.py
 
 build-avro-schema-docs:
 	# this requires nodejs + https://github.com/ept/avrodoc
