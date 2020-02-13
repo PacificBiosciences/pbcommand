@@ -236,7 +236,8 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass,
 
 
 def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
-                               abort_on_interrupt=True):
+                               abort_on_interrupt=True,
+                               retry_on_failure=False):
     """
     Waits for job to complete
 
@@ -280,8 +281,18 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
             log.debug(msg)
             # making the exceptions different to distinguish between an initial
             # error and a "polling" error. Adding some msg details
-            job = _get_job_by_id_or_raise(
-                sal, job_id, JobExeError, error_messge_extras=msg)
+            # FIXME this should distinguish between failure modes - an HTTP 503
+            # or 401 is different from a 404 in this context
+            try:
+                job = _get_job_by_id_or_raise(
+                    sal, job_id, JobExeError, error_messge_extras=msg)
+            except JobExeError as e:
+                if retry_on_failure:
+                    log.error(e)
+                    log.warn("Polling job {i} failed".format(i=job_id))
+                    continue
+                else:
+                    raise
 
             # FIXME, there's currently not a good way to get errors for jobs
             job_result = JobResult(job, run_time, "")
@@ -988,7 +999,8 @@ class ServiceAccessLayer:  # pragma: no cover
                                     workflow_options=(),
                                     time_out=JOB_DEFAULT_TIMEOUT,
                                     tags=(),
-                                    abort_on_interrupt=True):
+                                    abort_on_interrupt=True,
+                                    retry_on_failure=False):
         """Blocks and runs a job with a timeout"""
 
         job_or_error = self.create_by_pipeline_template_id(
@@ -1003,9 +1015,12 @@ class ServiceAccessLayer:  # pragma: no cover
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
-        return _block_for_job_to_complete(self, job_id, time_out=time_out,
+        return _block_for_job_to_complete(self,
+                                          job_id,
+                                          time_out=time_out,
                                           sleep_time=self._sleep_time,
-                                          abort_on_interrupt=abort_on_interrupt)
+                                          abort_on_interrupt=abort_on_interrupt,
+                                          retry_on_failure=retry_on_failure)
 
     def run_cromwell_workflow(self,
                               name,
