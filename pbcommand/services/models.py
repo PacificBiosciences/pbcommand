@@ -5,6 +5,7 @@ Services Specific Data Models
 import json
 import uuid
 from collections import namedtuple
+import os
 
 import iso8601
 from requests.exceptions import RequestException
@@ -404,11 +405,14 @@ class JobStates:
     RUNNING = "RUNNING"
     FAILED = "FAILED"
     SUCCESSFUL = "SUCCESSFUL"
+    TERMINATED = "TERMINATED"
+    ABORTED = "ABORTED"
 
     ALL = (RUNNING, CREATED, FAILED, SUCCESSFUL, SUBMITTED)
 
     # End points
-    ALL_COMPLETED = (FAILED, SUCCESSFUL)
+    ALL_COMPLETED = (FAILED, SUCCESSFUL, TERMINATED, ABORTED)
+    ALL_FAILED = (FAILED, TERMINATED, ABORTED)
 
 
 class JobTypes:
@@ -432,3 +436,28 @@ class ServiceResourceTypes:
     REPORTS = "reports"
     DATASTORE = "datastore"
     ENTRY_POINTS = "entry-points"
+
+
+def add_smrtlink_server_args(p):
+    DEFAULT_HOST = os.environ.get("PB_SERVICE_HOST", "localhost")
+    DEFAULT_PORT = int(os.environ.get("PB_SERVICE_PORT", 8000))
+    DEFAULT_USER = os.environ.get("PB_SERVICE_AUTH_USER", None)
+    DEFAULT_PASSWORD = os.environ.get("PB_SERVICE_AUTH_PASSWORD", None)
+    p.add_argument("--host",
+                   action="store",
+                   default=DEFAULT_HOST,
+                   help="SL Server Hostname")
+    p.add_argument("--port",
+                   action="store",
+                   type=int,
+                   default=DEFAULT_PORT,
+                   help="SL Server Port")
+    p.add_argument("--user",
+                   action="store",
+                   default=DEFAULT_USER,
+                   help="SL Server User Name")
+    p.add_argument("--password",
+                   action="store",
+                   default=DEFAULT_PASSWORD,
+                   help="SL Server Password")
+    return p
