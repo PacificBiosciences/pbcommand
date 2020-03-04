@@ -9,7 +9,7 @@ import time
 import json
 import sys
 
-from requests import RequestException
+from requests.exceptions import HTTPError
 
 from pbcommand.cli.core import get_default_argparser_with_base_opts, pacbio_args_runner
 from pbcommand.services._service_access_layer import (get_smrtlink_client,
@@ -47,17 +47,19 @@ def poll_for_job_completion(job_id,
             url = _to_url(client.uri, job_uri)
             try:
                 job_json = _process_rget(url, headers=client._get_headers())
-            except RequestException as e:
-                if e.errno == 401:
+            except HTTPError as e:
+                status = e.response.status_code
+                log.info("Got error {e} (code = {c})".format(e=str(e), c=status))
+                if status == 401:
                     auth_errors += 1
                     if auth_errors > 10:
                         raise RuntimeError("10 successive HTTP 401 errors, exiting")
-                    log.warn("Authentication error, will retry with new token")
+                    log.warning("Authentication error, will retry with new token")
                     client = _get_client()
                     continue
-                elif e.errno in retry_on:
-                    log.warn("Got HTTP {c}, will retry in {d}s".format(
-                        c=e.errno, d=retry_time))
+                elif status in retry_on:
+                    log.warning("Got HTTP {c}, will retry in {d}s".format(
+                        c=status, d=retry_time))
                     time.sleep(retry_time)
                     # if a retryable error occurs, we increment the retry time
                     # up to a max of 30 minutes
