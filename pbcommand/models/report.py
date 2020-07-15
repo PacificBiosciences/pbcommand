@@ -361,7 +361,7 @@ class Plot(BaseReportElement):
         return self.PLOT_TYPE
 
     def _get_attrs_simple(self):
-        return ['image', 'caption', 'title', 'plotType']
+        return ['image', 'caption', 'title', 'plotType', 'thumbnail']
 
     def _get_attrs_complex_list(self):
         return []
