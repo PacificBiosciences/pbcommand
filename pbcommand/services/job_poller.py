@@ -9,7 +9,9 @@ import time
 import json
 import sys
 
-from requests.exceptions import HTTPError
+from urllib3.exceptions import ProtocolError
+
+from requests.exceptions import HTTPError, ConnectionError
 
 from pbcommand.cli.core import get_default_argparser_with_base_opts, pacbio_args_runner
 from pbcommand.services._service_access_layer import (get_smrtlink_client,
@@ -67,6 +69,14 @@ def poll_for_job_completion(job_id,
                     continue
                 else:
                     raise
+            except (ConnectionError, ProtocolError) as e:
+                log.warning("Connection error: {e}".format(e=str(e)))
+                log.info("Will retry in {d}s".format(d=retry_time))
+                time.sleep(retry_time)
+                # if a retryable error occurs, we increment the retry time
+                # up to a max of 30 minutes
+                retry_time = max(1800, retry_time + sleep_time)
+                continue
             else:
                 # if request succeeded, reset the retry_time
                 auth_errors = 0
