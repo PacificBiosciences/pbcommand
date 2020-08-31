@@ -122,7 +122,8 @@ def __simple_option_by_type(
     klass_map = {TaskOptionTypes.INT: PacBioIntOption,
                  TaskOptionTypes.FLOAT: PacBioFloatOption,
                  TaskOptionTypes.STR: PacBioStringOption,
-                 TaskOptionTypes.BOOL: PacBioBooleanOption}
+                 TaskOptionTypes.BOOL: PacBioBooleanOption,
+                 TaskOptionTypes.FILE: PacBioStringOption}
 
     k = klass_map[option_type]
 
