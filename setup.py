@@ -10,7 +10,7 @@ test_deps = [
     'pylint',
     'pytest',
     'pytest-cov',
-    'pytest-xdist',
+    'pytest-xdist == 1.34.0',
 ]
 
 setup(
