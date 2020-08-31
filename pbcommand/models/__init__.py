@@ -6,6 +6,6 @@ from .common import (FileType, FileTypes, TaskOptionTypes,
                      BasePacBioOption,
                      PacBioIntOption, PacBioBooleanOption,
                      PacBioStringOption, PacBioFloatOption,
-                     PacBioIntChoiceOption,
+                     PacBioIntChoiceOption, PacBioFileOption,
                      PacBioFloatChoiceOption, PacBioStringChoiceOption,
                      PacBioAlarm, PipelinePreset, EntryPoint)

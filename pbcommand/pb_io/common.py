@@ -5,7 +5,7 @@ import warnings
 
 from pbcommand.models import (PipelineChunk, PipelineDataStoreViewRules,
                               TaskOptionTypes, PacBioFloatChoiceOption,
-                              PacBioStringChoiceOption,
+                              PacBioStringChoiceOption, PacBioFileOption,
                               PacBioIntChoiceOption, PacBioStringOption,
                               PacBioFloatOption, PacBioBooleanOption,
                               PacBioIntOption, PipelinePreset, EntryPoint)
@@ -123,7 +123,7 @@ def __simple_option_by_type(
                  TaskOptionTypes.FLOAT: PacBioFloatOption,
                  TaskOptionTypes.STR: PacBioStringOption,
                  TaskOptionTypes.BOOL: PacBioBooleanOption,
-                 TaskOptionTypes.FILE: PacBioStringOption}
+                 TaskOptionTypes.FILE: PacBioFileOption}
 
     k = klass_map[option_type]
 
