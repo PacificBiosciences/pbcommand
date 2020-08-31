@@ -1076,6 +1076,13 @@ def _strict_validate_string_or_raise(value):
     raise TypeError(_type_error_msg(value, str))
 
 
+def _strict_validate_file_or_raise(value):
+    # Not supporting unicode in python2.
+    if isinstance(value, str) or value is None:
+        return value
+    raise TypeError(_type_error_msg(value, str))
+
+
 class PacBioIntOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.INT
 
@@ -1106,6 +1113,14 @@ class PacBioStringOption(BasePacBioOption):
     @classmethod
     def validate_core_type(cls, value):
         return _strict_validate_string_or_raise(value)
+
+
+class PacBioFileOption(BasePacBioOption):
+    OPTION_TYPE_ID = TaskOptionTypes.FILE
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_file_or_raise(value)
 
 
 def _strict_validate_default_and_choices(core_type_validator_func):
