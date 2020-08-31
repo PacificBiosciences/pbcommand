@@ -930,7 +930,7 @@ def write_dict_to_json(d, file_name, permission="w"):
 
 
 RX_TASK_ID = re.compile(r'^([A-z0-9_]*)\.tasks\.([A-z0-9_]*)$')
-RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_]*)\.task_options\.([A-z0-9_\.]*)')
+RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_\.]*)')
 
 
 def _validate_id(prog, idtype, tid):
@@ -1324,3 +1324,19 @@ class PipelinePreset:
             ("description", self.description),
             ("options", dict(self.options)),
             ("taskOptions", dict(self.task_options))])
+
+
+class EntryPoint(namedtuple("EntryPoint", ["entry_id", "file_type_id", "name", "optional"])):
+
+    @staticmethod
+    def from_dict(d):
+        return EntryPoint(d["entryId"], d["fileTypeId"], d["name"],
+                          d.get("optional", False))
+
+    @property
+    def short_name(self):
+        return self.file_type_id.split(".")[-1] + " XML"
+
+    @property
+    def file_ext(self):
+        return FileTypes.ALL()[self.file_type_id].ext

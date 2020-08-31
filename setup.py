@@ -10,12 +10,12 @@ test_deps = [
     'pylint',
     'pytest',
     'pytest-cov',
-    'pytest-xdist',
+    'pytest-xdist == 1.34.0',
 ]
 
 setup(
     name='pbcommand',
-    version='2.1.2',
+    version='2.2.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='Library and Tools for interfacing with PacBio® data CLI tools',

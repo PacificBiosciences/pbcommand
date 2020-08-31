@@ -8,7 +8,8 @@ from pbcommand.models import (PipelineChunk, PipelineDataStoreViewRules,
                               PacBioStringChoiceOption,
                               PacBioIntChoiceOption, PacBioStringOption,
                               PacBioFloatOption, PacBioBooleanOption,
-                              PacBioIntOption, PipelinePreset)
+                              PacBioIntOption, PipelinePreset, EntryPoint)
+from pbcommand.models.legacy import Pipeline
 from pbcommand.schemas import validate_datastore_view_rules, validate_presets
 from pbcommand import to_ascii, to_utf8
 
@@ -207,3 +208,18 @@ def load_pipeline_presets_from(d):
         name=d.get('name', None),
         description=d.get('description', None))
     return presets
+
+
+@_json_path_or_d
+def load_pipeline_interface_from(d):
+    bindings = {}  # obsolete
+    epts = [EntryPoint.from_dict(d) for d in d["entryPoints"]]
+    opts = [pacbio_option_from_dict(o) for o in d["taskOptions"]]
+    return Pipeline(d['id'],
+                    d['name'],
+                    d['version'],
+                    d['description'],
+                    bindings,
+                    epts,
+                    tags=d['tags'],
+                    task_options=opts)
