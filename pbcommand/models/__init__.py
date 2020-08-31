@@ -8,4 +8,4 @@ from .common import (FileType, FileTypes, TaskOptionTypes,
                      PacBioStringOption, PacBioFloatOption,
                      PacBioIntChoiceOption,
                      PacBioFloatChoiceOption, PacBioStringChoiceOption,
-                     PacBioAlarm, PipelinePreset)
+                     PacBioAlarm, PipelinePreset, EntryPoint)
