@@ -930,7 +930,7 @@ def write_dict_to_json(d, file_name, permission="w"):
 
 
 RX_TASK_ID = re.compile(r'^([A-z0-9_]*)\.tasks\.([A-z0-9_]*)$')
-RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_]*)\.task_options\.([A-z0-9_\.]*)')
+RX_TASK_OPTION_ID = re.compile(r'^([A-z0-9_\.]*)')
 
 
 def _validate_id(prog, idtype, tid):
@@ -1076,6 +1076,13 @@ def _strict_validate_string_or_raise(value):
     raise TypeError(_type_error_msg(value, str))
 
 
+def _strict_validate_file_or_raise(value):
+    # Not supporting unicode in python2.
+    if isinstance(value, str) or value is None:
+        return value
+    raise TypeError(_type_error_msg(value, str))
+
+
 class PacBioIntOption(BasePacBioOption):
     OPTION_TYPE_ID = TaskOptionTypes.INT
 
@@ -1106,6 +1113,14 @@ class PacBioStringOption(BasePacBioOption):
     @classmethod
     def validate_core_type(cls, value):
         return _strict_validate_string_or_raise(value)
+
+
+class PacBioFileOption(BasePacBioOption):
+    OPTION_TYPE_ID = TaskOptionTypes.FILE
+
+    @classmethod
+    def validate_core_type(cls, value):
+        return _strict_validate_file_or_raise(value)
 
 
 def _strict_validate_default_and_choices(core_type_validator_func):
@@ -1324,3 +1339,19 @@ class PipelinePreset:
             ("description", self.description),
             ("options", dict(self.options)),
             ("taskOptions", dict(self.task_options))])
+
+
+class EntryPoint(namedtuple("EntryPoint", ["entry_id", "file_type_id", "name", "optional"])):
+
+    @staticmethod
+    def from_dict(d):
+        return EntryPoint(d["entryId"], d["fileTypeId"], d["name"],
+                          d.get("optional", False))
+
+    @property
+    def short_name(self):
+        return self.file_type_id.split(".")[-1] + " XML"
+
+    @property
+    def file_ext(self):
+        return FileTypes.ALL()[self.file_type_id].ext

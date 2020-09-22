@@ -3,6 +3,8 @@ from .models import (JobExeError, JobResult, LogLevels,
                      ServiceJob, ServiceEntryPoint)
 # this module imports the models, so the model loading
 # must be called first to avoid cyclic-dependencies
-from ._service_access_layer import ServiceAccessLayer, SmrtLinkAuthClient
+from ._service_access_layer import (ServiceAccessLayer,
+                                    SmrtLinkAuthClient,
+                                    get_smrtlink_client)
 # There's some crufty legacy naming. Using a cleaner model here
 SmrtLinkClient = ServiceAccessLayer

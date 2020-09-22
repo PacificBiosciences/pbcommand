@@ -205,23 +205,6 @@ def _transform_job_tasks(j):
     return [JobTask.from_d(d) for d in j]
 
 
-def _import_dataset_by_type(dataset_type_or_id):
-
-    if isinstance(dataset_type_or_id, DataSetFileType):
-        ds_type_id = dataset_type_or_id.file_type_id
-    else:
-        ds_type_id = dataset_type_or_id
-
-    def wrapper(total_url, path, headers, avoid_duplicate_import=False):
-        _d = dict(datasetType=ds_type_id,
-                  path=path,
-                  avoidDuplicateImport=avoid_duplicate_import)
-        return _process_rpost_with_transform(
-            ServiceJob.from_d)(total_url, _d, headers)
-
-    return wrapper
-
-
 def _get_job_by_id_or_raise(sal, job_id, error_klass,
                             error_messge_extras=None):
     job = sal.get_job_by_id(job_id)
@@ -711,24 +694,33 @@ class ServiceAccessLayer:  # pragma: no cover
         return self._get_job_resource_type(
             JobTypes.MERGE_DS, job_id, ServiceResourceTypes.DATASTORE)
 
-    def _import_dataset(self, dataset_type, path,
-                        avoid_duplicate_import=False):
+    def import_dataset(self,
+                       path,
+                       avoid_duplicate_import=False):
         # This returns a job resource
         url = self._to_url(
             "{p}/{x}".format(x=JobTypes.IMPORT_DS, p=ServiceAccessLayer.ROOT_JOBS))
-        return _import_dataset_by_type(dataset_type)(
-            url, path, headers=self._get_headers(), avoid_duplicate_import=avoid_duplicate_import)
+        d = {
+            "path": path,
+            "avoidDuplicateImport": avoid_duplicate_import
+        }
+        return _process_rpost_with_transform(
+            ServiceJob.from_d)(url, d, headers=self._get_headers())
 
-    def run_import_dataset_by_type(self, dataset_type, path_to_xml,
-                                   avoid_duplicate_import=False):
-        job_or_error = self._import_dataset(
-            dataset_type,
+    def run_import_dataset(self,
+                           path_to_xml,
+                           avoid_duplicate_import=False):
+        job_or_error = self.import_dataset(
             path_to_xml,
             avoid_duplicate_import=avoid_duplicate_import)
-        custom_err_msg = "Import {d} {p}".format(p=path_to_xml, d=dataset_type)
+        custom_err_msg = "Import {p}".format(p=path_to_xml)
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
         return _block_for_job_to_complete(
             self, job_id, sleep_time=self._sleep_time)
+
+    def run_import_dataset_by_type(self, dataset_type, path_to_xml,
+                                   avoid_duplicate_import=False):
+        return self.run_import_dataset(path_to_xml, avoid_duplicate_import)
 
     def _run_import_and_block(self, func, path, time_out=None):
         # func while be self.import_dataset_X
@@ -739,28 +731,32 @@ class ServiceAccessLayer:  # pragma: no cover
                                           sleep_time=self._sleep_time)
 
     def import_dataset_subread(self, path):
-        return self._import_dataset(FileTypes.DS_SUBREADS, path)
+        log.warn("DEPRECATED METHOD")
+        return self.import_dataset(path)
 
     def run_import_dataset_subread(self, path, time_out=10):
         return self._run_import_and_block(
             self.import_dataset_subread, path, time_out=time_out)
 
     def import_dataset_hdfsubread(self, path):
-        return self._import_dataset(FileTypes.DS_SUBREADS_H5, path)
+        log.warn("DEPRECATED METHOD")
+        return self.import_dataset(path)
 
     def run_import_dataset_hdfsubread(self, path, time_out=10):
         return self._run_import_and_block(
             self.import_dataset_hdfsubread, path, time_out=time_out)
 
     def import_dataset_reference(self, path):
-        return self._import_dataset(FileTypes.DS_REF, path)
+        log.warn("DEPRECATED METHOD")
+        return self.import_dataset(path)
 
     def run_import_dataset_reference(self, path, time_out=10):
         return self._run_import_and_block(
             self.import_dataset_reference, path, time_out=time_out)
 
     def import_dataset_barcode(self, path):
-        return self._import_dataset(FileTypes.DS_BARCODE, path)
+        log.warn("DEPRECATED METHOD")
+        return self.import_dataset(path)
 
     def run_import_dataset_barcode(self, path, time_out=10):
         return self._run_import_and_block(

@@ -1,6 +1,7 @@
 import tempfile
 
 from pbcommand.models.legacy import Pipeline
+from pbcommand.pb_io.common import load_pipeline_interface_from
 
 
 class TestLegacyModels:
@@ -60,6 +61,6 @@ class TestLegacyModels:
         json_file = tempfile.NamedTemporaryFile(suffix=".json").name
         with open(json_file, "w") as json_out:
             json_out.write(pipeline_json)
-        p = Pipeline.load_from_json(json_file)
+        p = load_pipeline_interface_from(json_file)
         assert p.pipeline_id == "cromwell.workflows.dev_diagnostic_subreads"
         s = p.summary()
