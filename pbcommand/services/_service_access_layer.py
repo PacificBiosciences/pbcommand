@@ -1538,3 +1538,11 @@ def get_smrtlink_client(host, port, user=None, password=None, sleep_time=5):  # 
         return SmrtLinkAuthClient(host, user, password, sleep_time=sleep_time)
     else:
         return ServiceAccessLayer(host, port, sleep_time=sleep_time)
+
+
+def get_smrtlink_client_from_args(args):
+    return get_smrtlink_client(
+        host=args.host,
+        port=args.port,
+        user=args.user,
+        password=args.password)
