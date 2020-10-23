@@ -869,10 +869,15 @@ class Report(BaseReportElement):
             table = Table(table_id, title=title, columns=columns)
             return table
 
+        def _to_sum(values):
+            if len(values) > 0 and isinstance(values[0], str):
+                return ",".join(values)
+            return sum(values)
+
         def _sum_attributes(attributes_list):
             d = _merge_attributes_d(attributes_list)
             labels = _merge_attributes_names(attributes_list)
-            return [Attribute(k, sum(values), name=labels[k])
+            return [Attribute(k, _to_sum(values), name=labels[k])
                     for k, values in d.items()]
 
         def _merge_tables(tables):
