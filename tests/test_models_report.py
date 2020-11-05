@@ -296,26 +296,30 @@ class TestReportModel:
         EXPECTED_VALUES = {
             "n_reads": 300,
             "n_zmws": 60,
+            "sample": "Person1,Person2"
         }
         NAMES = {
             "n_reads": "Number of reads",
-            "n_zmws": "Number of ZMWs"
+            "n_zmws": "Number of ZMWs",
+            "sample": "Sample"
         }
         chunks = [
             Report("pbcommand_test",
                    attributes=[
                        Attribute(id_="n_reads", value=50,
                                  name="Number of reads"),
-                       Attribute(id_="n_zmws", value=10, name="Number of ZMWs")],
+                       Attribute(id_="n_zmws", value=10, name="Number of ZMWs"),
+                       Attribute(id_="sample", value="Person1", name="Sample")],
                    dataset_uuids=["12345"]),
             Report("pbcommand_test",
                    attributes=[
                        Attribute(id_="n_reads", value=250,
                                  name="Number of reads"),
-                       Attribute(id_="n_zmws", value=50, name="Number of ZMWs")]),
+                       Attribute(id_="n_zmws", value=50, name="Number of ZMWs"),
+                       Attribute(id_="sample", value="Person2", name="Sample")]),
         ]
         r = Report.merge(chunks)
-        assert [a.id for a in r.attributes] == ["n_reads", "n_zmws"]
+        assert [a.id for a in r.attributes] == ["n_reads", "n_zmws", "sample"]
         assert r._dataset_uuids == ["12345"]
         for attr in r.attributes:
             assert attr.value == EXPECTED_VALUES[attr.id]
