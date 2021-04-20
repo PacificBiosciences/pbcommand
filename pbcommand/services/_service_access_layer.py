@@ -14,6 +14,8 @@ import warnings
 import pytz
 import requests
 from requests import RequestException
+from requests.exceptions import HTTPError, ConnectionError
+from urllib3.exceptions import ProtocolError
 # To disable the ssl cert check warning
 from requests.packages.urllib3.exceptions import InsecureRequestWarning  # pylint: disable=import-error
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # pylint: disable=no-member
@@ -218,6 +220,7 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass,
     return job
 
 
+# FIXME this overlaps with job_poller.py, which is more fault-tolerant
 def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
                                abort_on_interrupt=True,
                                retry_on_failure=False):
@@ -1546,3 +1549,53 @@ def get_smrtlink_client_from_args(args):
         port=args.port,
         user=args.user,
         password=args.password)
+
+
+def run_client_with_retry(fx, host, port, user, password,
+                          sleep_time=60,
+                          retry_on=(500,503)):
+    """
+    Obtain a services client and run the specified function on it - this can
+    be essentially any services call - and return the result.  If the query
+    fails due to 401 Unauthorized, the call will be retried with a new token.
+    HTTP 500 and 503 errors will be retried without re-authenticating.
+    """
+    def _get_client():
+        return get_smrtlink_client(host, port, user, password)
+    auth_errors = 0
+    started_at = time.time()
+    retry_time = sleep_time
+    client = _get_client()
+    while True:
+        try:
+            result = fx(client)
+        except HTTPError as e:
+            status = e.response.status_code
+            log.info("Got error {e} (code = {c})".format(e=str(e), c=status))
+            if status == 401:
+                auth_errors += 1
+                if auth_errors > 10:
+                    raise RuntimeError("10 successive HTTP 401 errors, exiting")
+                log.warning("Authentication error, will retry with new token")
+                client = _get_client()
+                continue
+            elif status in retry_on:
+                log.warning("Got HTTP {c}, will retry in {d}s".format(
+                    c=status, d=retry_time))
+                time.sleep(retry_time)
+                # if a retryable error occurs, we increment the retry time
+                # up to a max of 30 minutes
+                retry_time = max(1800, retry_time + sleep_time)
+                continue
+            else:
+                raise
+        except (ConnectionError, ProtocolError) as e:
+            log.warning("Connection error: {e}".format(e=str(e)))
+            log.info("Will retry in {d}s".format(d=retry_time))
+            time.sleep(retry_time)
+            # if a retryable error occurs, we increment the retry time
+            # up to a max of 30 minutes
+            retry_time = max(1800, retry_time + sleep_time)
+            continue
+        else:
+            return result

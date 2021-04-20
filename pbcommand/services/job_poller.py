@@ -24,6 +24,8 @@ __version__ = "0.1"
 log = logging.getLogger(__name__)
 
 
+# FIXME this overlaps with run_client_with_retry, can we consolidate the
+# general error handling?
 def poll_for_job_completion(job_id,
                             host,
                             port,

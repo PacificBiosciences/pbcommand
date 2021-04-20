@@ -11,7 +11,7 @@ import os.path as op
 import sys
 
 from pbcommand.models.common import FileTypes
-from pbcommand.services._service_access_layer import get_smrtlink_client
+from pbcommand.services._service_access_layer import get_smrtlink_client, run_client_with_retry
 from pbcommand.utils import setup_log
 from pbcommand.cli import get_default_argparser_with_base_opts, pacbio_args_runner
 
@@ -80,16 +80,8 @@ def _find_alignments(datastore):
 
 
 class Resolver:
-    def __init__(self,
-                 host,
-                 port,
-                 user=None,
-                 password=None):
-        self._host = host
-        self._port = port
-        self._user = user
-        self._password = password
-        self._client = get_smrtlink_client(host, port, user, password)
+    def __init__(self, client):
+        self._client = client
 
     def _get_job_datastore_reports(self, job_id):
         datastore = self._client.get_analysis_job_datastore(job_id)
@@ -130,24 +122,31 @@ class Resolver:
 
 
 def run_args(args):
-    resolver = Resolver(args.host, args.port, args.user, args.password)
-    resource = None
-    if args.resource_type == ResourceTypes.JOB_PATH:
-        resource = resolver.resolve_job(args.job_id)
-    elif args.resource_type == ResourceTypes.ALIGNMENTS:
-        resource = resolver.resolve_alignments(args.job_id)
-    elif args.resource_type == ResourceTypes.PREASSEMBLY:
-        resource = resolver.resolve_preassembly_stats(args.job_id)
-    elif args.resource_type == ResourceTypes.POLISHED_ASSEMBLY:
-        resource = resolver.resolve_polished_assembly_stats(args.job_id)
-    elif args.resource_type == ResourceTypes.MAPPING_STATS:
-        resource = resolver.resolve_mapping_stats(args.job_id)
-    elif args.resource_type == ResourceTypes.SUBREADS_ENTRY:
-        resource = resolver.resolve_input_subreads(args.job_id)
-    else:
-        raise NotImplementedError(
-            "Can't retrieve resource type '%s'" %
-            args.resource_type)
+    def _run_resolver(client):
+        resolver = Resolver(client)
+        resource = None
+        if args.resource_type == ResourceTypes.JOB_PATH:
+            resource = resolver.resolve_job(args.job_id)
+        elif args.resource_type == ResourceTypes.ALIGNMENTS:
+            resource = resolver.resolve_alignments(args.job_id)
+        elif args.resource_type == ResourceTypes.PREASSEMBLY:
+            resource = resolver.resolve_preassembly_stats(args.job_id)
+        elif args.resource_type == ResourceTypes.POLISHED_ASSEMBLY:
+            resource = resolver.resolve_polished_assembly_stats(args.job_id)
+        elif args.resource_type == ResourceTypes.MAPPING_STATS:
+            resource = resolver.resolve_mapping_stats(args.job_id)
+        elif args.resource_type == ResourceTypes.SUBREADS_ENTRY:
+            resource = resolver.resolve_input_subreads(args.job_id)
+        else:
+            raise NotImplementedError(
+                "Can't retrieve resource type '%s'" % args.resource_type)
+        return resource
+
+    resource = run_client_with_retry(_run_resolver,
+                                     args.host,
+                                     args.port,
+                                     args.user,
+                                     args.password)
     print(resource)
     if args.make_symlink is not None:
         if op.exists(args.make_symlink):
