@@ -26,11 +26,10 @@ import pytz
 import requests
 from requests import RequestException
 from requests.exceptions import HTTPError, ConnectionError
-from urllib3.exceptions import ProtocolError
+from urllib3.exceptions import ProtocolError, InsecureRequestWarning  # pylint: disable=import-error
 # To disable the ssl cert check warning
-from requests.packages.urllib3.exceptions import InsecureRequestWarning  # pylint: disable=import-error
-requests.packages.urllib3.disable_warnings(
-    InsecureRequestWarning)  # pylint: disable=no-member
+import urllib3
+urllib3.disable_warnings(InsecureRequestWarning)  # pylint: disable=no-member
 
 
 log = logging.getLogger(__name__)
