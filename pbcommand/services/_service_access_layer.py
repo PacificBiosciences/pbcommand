@@ -2,6 +2,17 @@
 Utils for Updating state/progress and results to WebServices
 """
 
+from .utils import to_sal_summary
+from pbcommand.pb_io import load_report_from
+from .models import (SMRTServiceBaseError,
+                     JobResult, JobStates, JobExeError, JobTypes,
+                     ServiceResourceTypes, ServiceJob, JobEntryPoint,
+                     JobTask)
+from pbcommand.utils import get_dataset_metadata
+from pbcommand.models import (FileTypes,
+                              DataSetFileType,
+                              DataStore,
+                              DataStoreFile)
 import base64
 import datetime
 import json
@@ -18,19 +29,8 @@ from requests.exceptions import HTTPError, ConnectionError
 from urllib3.exceptions import ProtocolError
 # To disable the ssl cert check warning
 from requests.packages.urllib3.exceptions import InsecureRequestWarning  # pylint: disable=import-error
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # pylint: disable=no-member
-
-from pbcommand.models import (FileTypes,
-                              DataSetFileType,
-                              DataStore,
-                              DataStoreFile)
-from pbcommand.utils import get_dataset_metadata
-from .models import (SMRTServiceBaseError,
-                     JobResult, JobStates, JobExeError, JobTypes,
-                     ServiceResourceTypes, ServiceJob, JobEntryPoint,
-                     JobTask)
-from pbcommand.pb_io import load_report_from
-from .utils import to_sal_summary
+requests.packages.urllib3.disable_warnings(
+    InsecureRequestWarning)  # pylint: disable=no-member
 
 
 log = logging.getLogger(__name__)
@@ -1553,7 +1553,7 @@ def get_smrtlink_client_from_args(args):
 
 def run_client_with_retry(fx, host, port, user, password,
                           sleep_time=60,
-                          retry_on=(500,503)):
+                          retry_on=(500, 503)):
     """
     Obtain a services client and run the specified function on it - this can
     be essentially any services call - and return the result.  If the query
@@ -1575,7 +1575,8 @@ def run_client_with_retry(fx, host, port, user, password,
             if status == 401:
                 auth_errors += 1
                 if auth_errors > 10:
-                    raise RuntimeError("10 successive HTTP 401 errors, exiting")
+                    raise RuntimeError(
+                        "10 successive HTTP 401 errors, exiting")
                 log.warning("Authentication error, will retry with new token")
                 client = _get_client()
                 continue
