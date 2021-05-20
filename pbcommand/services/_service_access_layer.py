@@ -383,13 +383,6 @@ def _to_relative_tasks_url(job_type):
     return wrapper
 
 
-def _show_deprecation_warning(msg):
-    if "PB_TEST_MODE" not in os.environ:
-        warnings.simplefilter('once', DeprecationWarning)
-        warnings.warn(msg, DeprecationWarning)
-        warnings.simplefilter('default', DeprecationWarning)  # reset filte
-
-
 class ServiceAccessLayer:  # pragma: no cover
     """
     General Client Access Layer for interfacing with the job types on
@@ -425,10 +418,6 @@ class ServiceAccessLayer:  # pragma: no cover
         # This will display verbose details with respect to the failed request
         self.debug = debug
         self._sleep_time = sleep_time
-
-        if self.__class__.__name__ == "ServiceAccessLayer":
-            _show_deprecation_warning(
-                "Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported")
 
     def _get_headers(self):
         return Constants.HEADERS
