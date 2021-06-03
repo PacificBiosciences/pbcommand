@@ -101,7 +101,7 @@ def _process_rget(total_url, ignore_errors=False, headers=None):
     r = _get_requests(__get_headers(headers))(total_url)
     _parse_base_service_error(r)
     if not r.ok and not ignore_errors:
-        log.error(
+        log.warning(
             "Failed ({s}) GET to {x}".format(
                 x=total_url,
                 s=r.status_code))
@@ -163,12 +163,12 @@ def __process_creatable_to_json(f):
         _parse_base_service_error(r)
         # FIXME This should be strict to only return a 201
         if r.status_code not in (200, 201, 202, 204):
-            log.error(
+            log.warning(
                 "Failed ({s} to call {u}".format(
                     u=total_url,
                     s=r.status_code))
-            log.error("payload")
-            log.error("\n" + pprint.pformat(payload_d))
+            log.warning("payload")
+            log.warning("\n" + pprint.pformat(payload_d))
         r.raise_for_status()
         j = r.json()
         return j
@@ -273,8 +273,8 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
                     sal, job_id, JobExeError, error_messge_extras=msg)
             except JobExeError as e:
                 if retry_on_failure:
-                    log.error(e)
-                    log.warn("Polling job {i} failed".format(i=job_id))
+                    log.warning(e)
+                    log.warning("Polling job {i} failed".format(i=job_id))
                     continue
                 else:
                     raise
