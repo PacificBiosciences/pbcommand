@@ -1130,6 +1130,15 @@ class ServiceAccessLayer:  # pragma: no cover
         return _process_rpost_with_transform(ServiceJob.from_d)(
             u, job_options, headers=self._get_headers())
 
+    def get_sl_api(self, path):
+        service_url = f"{self.uri}{path}"
+        t1 = time.time()
+        r = requests.get(service_url, headers=self._get_headers(), verify=False)
+        t2 = time.time()
+        log.info("Response time: {:.1f}s".format(t2 - t1))
+        r.raise_for_status()
+        return r.json()
+
 
 # -----------------------------------------------------------------------
 # SSL stuff
