@@ -15,7 +15,7 @@ test_deps = [
 
 setup(
     name='pbcommand',
-    version='2.2.3',
+    version='2.3.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='Library and Tools for interfacing with PacBio® data CLI tools',
@@ -45,5 +45,5 @@ setup(
         'interactive': [
             'prompt_toolkit',
         ]},
-    python_requires='>=3.7',
+    python_requires='>=3.9',
 )
