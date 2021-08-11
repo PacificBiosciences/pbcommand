@@ -10,7 +10,7 @@
       "doc": "Fully qualified pipeline id to apply rules to. e.g., pbsmrtpipe.pipelines.dev_01"
     },
     {
-      "name": "smrtlinkVersion",
+      "name": "smrtLinkVersion",
       "type": "string",
       "doc": "Version of SMRTLink to which these rules apply. e.g., '3.2'"
     },
