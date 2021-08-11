@@ -2,6 +2,17 @@
 Utils for Updating state/progress and results to WebServices
 """
 
+from .utils import to_sal_summary
+from pbcommand.pb_io import load_report_from
+from .models import (SMRTServiceBaseError,
+                     JobResult, JobStates, JobExeError, JobTypes,
+                     ServiceResourceTypes, ServiceJob, JobEntryPoint,
+                     JobTask)
+from pbcommand.utils import get_dataset_metadata
+from pbcommand.models import (FileTypes,
+                              DataSetFileType,
+                              DataStore,
+                              DataStoreFile)
 import base64
 import datetime
 import json
@@ -14,21 +25,11 @@ import warnings
 import pytz
 import requests
 from requests import RequestException
+from requests.exceptions import HTTPError, ConnectionError
+from urllib3.exceptions import ProtocolError, InsecureRequestWarning  # pylint: disable=import-error
 # To disable the ssl cert check warning
-from requests.packages.urllib3.exceptions import InsecureRequestWarning  # pylint: disable=import-error
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # pylint: disable=no-member
-
-from pbcommand.models import (FileTypes,
-                              DataSetFileType,
-                              DataStore,
-                              DataStoreFile)
-from pbcommand.utils import get_dataset_metadata
-from .models import (SMRTServiceBaseError,
-                     JobResult, JobStates, JobExeError, JobTypes,
-                     ServiceResourceTypes, ServiceJob, JobEntryPoint,
-                     JobTask)
-from pbcommand.pb_io import load_report_from
-from .utils import to_sal_summary
+import urllib3
+urllib3.disable_warnings(InsecureRequestWarning)  # pylint: disable=no-member
 
 
 log = logging.getLogger(__name__)
@@ -100,7 +101,7 @@ def _process_rget(total_url, ignore_errors=False, headers=None):
     r = _get_requests(__get_headers(headers))(total_url)
     _parse_base_service_error(r)
     if not r.ok and not ignore_errors:
-        log.error(
+        log.warning(
             "Failed ({s}) GET to {x}".format(
                 x=total_url,
                 s=r.status_code))
@@ -162,12 +163,12 @@ def __process_creatable_to_json(f):
         _parse_base_service_error(r)
         # FIXME This should be strict to only return a 201
         if r.status_code not in (200, 201, 202, 204):
-            log.error(
+            log.warning(
                 "Failed ({s} to call {u}".format(
                     u=total_url,
                     s=r.status_code))
-            log.error("payload")
-            log.error("\n" + pprint.pformat(payload_d))
+            log.warning("payload")
+            log.warning("\n" + pprint.pformat(payload_d))
         r.raise_for_status()
         j = r.json()
         return j
@@ -218,6 +219,7 @@ def _get_job_by_id_or_raise(sal, job_id, error_klass,
     return job
 
 
+# FIXME this overlaps with job_poller.py, which is more fault-tolerant
 def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
                                abort_on_interrupt=True,
                                retry_on_failure=False):
@@ -271,8 +273,8 @@ def _block_for_job_to_complete(sal, job_id, time_out=1200, sleep_time=2,
                     sal, job_id, JobExeError, error_messge_extras=msg)
             except JobExeError as e:
                 if retry_on_failure:
-                    log.error(e)
-                    log.warn("Polling job {i} failed".format(i=job_id))
+                    log.warning(e)
+                    log.warning("Polling job {i} failed".format(i=job_id))
                     continue
                 else:
                     raise
@@ -381,13 +383,6 @@ def _to_relative_tasks_url(job_type):
     return wrapper
 
 
-def _show_deprecation_warning(msg):
-    if "PB_TEST_MODE" not in os.environ:
-        warnings.simplefilter('once', DeprecationWarning)
-        warnings.warn(msg, DeprecationWarning)
-        warnings.simplefilter('default', DeprecationWarning)  # reset filte
-
-
 class ServiceAccessLayer:  # pragma: no cover
     """
     General Client Access Layer for interfacing with the job types on
@@ -423,10 +418,6 @@ class ServiceAccessLayer:  # pragma: no cover
         # This will display verbose details with respect to the failed request
         self.debug = debug
         self._sleep_time = sleep_time
-
-        if self.__class__.__name__ == "ServiceAccessLayer":
-            _show_deprecation_warning(
-                "Please use the SmrtLinkAuthClient', direct localhost access is not publicly supported")
 
     def _get_headers(self):
         return Constants.HEADERS
@@ -528,11 +519,6 @@ class ServiceAccessLayer:  # pragma: no cover
     def get_analysis_jobs(self, query=None):
         return self._get_jobs_by_job_type(JobTypes.ANALYSIS, query=query)
 
-    def get_pbsmrtpipe_jobs(self, query=None):
-        """:rtype: list[ServiceJob]"""
-        _show_deprecation_warning("Please use get_analysis_jobs() instead")
-        return self.get_analysis_jobs(query=query)
-
     def get_cromwell_jobs(self):
         """:rtype: list[ServiceJob]"""
         return self._get_jobs_by_job_type(JobTypes.CROMWELL)
@@ -560,13 +546,13 @@ class ServiceAccessLayer:  # pragma: no cover
         return self.get_job_by_type_and_id(JobTypes.IMPORT_DS, job_id)
 
     def get_analysis_job_datastore(self, job_id):
-        """Get DataStore output from (pbsmrtpipe) analysis job"""
+        """Get DataStore output from analysis job"""
         # this doesn't work the list is sli
         return self._get_job_resource_type_with_transform(
-            "pbsmrtpipe", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
+            "analysis", job_id, ServiceResourceTypes.DATASTORE, _to_datastore)
 
     def _to_dsf_id_url(self, job_id, dsf_uuid):
-        u = "/".join([ServiceAccessLayer.ROOT_JOBS, "pbsmrtpipe",
+        u = "/".join([ServiceAccessLayer.ROOT_JOBS, "analysis",
                       str(job_id), ServiceResourceTypes.DATASTORE, dsf_uuid])
         return _to_url(self.uri, u)
 
@@ -621,7 +607,7 @@ class ServiceAccessLayer:  # pragma: no cover
                     dsf_uuid, job_id))
 
     def get_analysis_job_reports(self, job_id):
-        """Get list of DataStore ReportFile types output from (pbsmrtpipe) analysis job"""
+        """Get list of DataStore ReportFile types output from analysis job"""
         return self._get_job_resource_type_with_transform(
             JobTypes.ANALYSIS, job_id, ServiceResourceTypes.REPORTS, _to_job_report_files)
 
@@ -947,7 +933,7 @@ class ServiceAccessLayer:  # pragma: no cover
                                        task_options=(),
                                        workflow_options=(),
                                        tags=()):
-        """Creates and runs a pbsmrtpipe pipeline by pipeline template id
+        """Creates and runs an analysis workflow by pipeline template id
 
 
         :param tags: Tags should be a set of strings
@@ -1049,7 +1035,7 @@ class ServiceAccessLayer:  # pragma: no cover
     def terminate_job(self, job):
         """
         POST a terminate request appropriate to the job type.  Currently only
-        supported for pbsmrtpipe, cromwell, and analysis job types.
+        supported for cromwell, and analysis job types.
         """
         log.warn("Terminating job {i} ({u})".format(i=job.id, u=job.uuid))
         if job.external_job_id is not None:
@@ -1144,279 +1130,14 @@ class ServiceAccessLayer:  # pragma: no cover
         return _process_rpost_with_transform(ServiceJob.from_d)(
             u, job_options, headers=self._get_headers())
 
-
-def __run_and_ignore_errors(f, warn_message):
-    """
-    Black hole ignoring exceptions from a func with no-args and
-    logging the error has a warning.
-    """
-    try:
-        return f()
-    except Exception as e:
-        log.warn(warn_message + " {e}".format(e=e))
-
-
-def _run_func(f, warn_message, ignore_errors=True):
-    if ignore_errors:
-        return __run_and_ignore_errors(f, warn_message)
-    else:
-        return f()
-
-
-def log_pbsmrtpipe_progress(total_url, message, level, source_id, ignore_errors=True, headers=None):  # pragma: no cover
-    """Log the status of a pbsmrtpipe to SMRT Server"""
-    # Keeping this as public to avoid breaking pbsmrtpipe. The
-    # new public interface should be the JobServiceClient
-
-    # Need to clarify the model here. Trying to pass the most minimal
-    # data necessary to pbsmrtpipe.
-    _d = dict(message=message, level=level, sourceId=source_id)
-    warn_message = "Failed Request to {u} data: {d}".format(u=total_url, d=_d)
-
-    def f():
-        return _process_rpost(total_url, _d, headers=headers)
-
-    return _run_func(f, warn_message, ignore_errors=ignore_errors)
-
-
-def add_datastore_file(total_url, datastore_file, ignore_errors=True, headers=None):  # pragma: no cover
-    """Add datastore to SMRT Server
-
-    :type datastore_file: DataStoreFile
-    """
-    # Keeping this as public to avoid breaking pbsmrtpipe. The
-    # new public interface should be the JobServiceClient
-    _d = datastore_file.to_dict()
-    warn_message = "Failed Request to {u} data: {d}.".format(u=total_url, d=_d)
-
-    def f():
-        return _process_rpost(total_url, _d, headers=headers)
-
-    return _run_func(f, warn_message, ignore_errors=ignore_errors)
-
-
-def _create_job_task(job_tasks_url, create_job_task_record, ignore_errors=True, headers=None):  # pragma: no cover
-    """
-    :type create_job_task_record: CreateJobTaskRecord
-    :rtype: JobTask
-    """
-    warn_message = "Unable to create Task {c}".format(
-        c=repr(create_job_task_record))
-
-    def f():
-        return _process_rpost_with_transform(JobTask.from_d)(
-            job_tasks_url, create_job_task_record.to_dict(), headers=headers)
-
-    return _run_func(f, warn_message, ignore_errors)
-
-
-def _update_job_task_state(task_url, update_job_task_record, ignore_errors=True, headers=None):  # pragma: no cover
-    """
-    :type update_job_task_record: UpdateJobTaskRecord
-    :rtype: JobTask
-    """
-    warn_message = "Unable to update Task {c}".format(
-        c=repr(update_job_task_record))
-
-    def f():
-        return _process_rput_with_transform(JobTask.from_d)(
-            task_url, update_job_task_record.to_dict(), headers=headers)
-
-    return _run_func(f, warn_message, ignore_errors)
-
-
-def _update_datastore_file(datastore_url, uuid, path, file_size, set_is_active,
-                           ignore_errors=True, headers=None):  # pragma: no cover
-    warn_message = "Unable to update datastore file {u}".format(u=uuid)
-    total_url = "{b}/{u}".format(b=datastore_url, u=uuid)
-    d = {"fileSize": file_size, "path": path, "isActive": set_is_active}
-
-    def f():
-        return _process_rput(total_url, d, headers=headers)
-
-    return _run_func(f, warn_message, ignore_errors)
-
-
-class CreateJobTaskRecord:
-
-    def __init__(self, task_uuid, task_id, task_type_id,
-                 name, state, created_at=None):
-        self.task_uuid = task_uuid
-        self.task_id = task_id
-        self.task_type_id = task_type_id
-        self.name = name
-        # this must be consistent with the EngineJob states in the scala code
-        self.state = state
-        # Note, the created_at timestamp must have the form
-        # 2016-02-18T23:24:46.569Z
-        # or
-        # 2016-02-18T15:24:46.569-08:00
-        self.created_at = datetime.datetime.now(
-            pytz.utc) if created_at is None else created_at
-
-    def __repr__(self):
-        _d = dict(k=self.__class__.__name__,
-                  u=self.task_uuid,
-                  i=self.task_id,
-                  n=self.name,
-                  s=self.state)
-        return "<{k} uuid:{u} ix:{i} state:{s} name:{n} >".format(**_d)
-
-    def to_dict(self):
-        return dict(uuid=self.task_uuid,
-                    taskId=self.task_id,
-                    taskTypeId=self.task_type_id,
-                    name=self.name,
-                    state=self.state,
-                    createdAt=self.created_at.isoformat())
-
-
-class UpdateJobTaskRecord:
-
-    def __init__(self, task_uuid, state, message, error_message=None):
-        """:type error_message: str | None"""
-        self.task_uuid = task_uuid
-        self.state = state
-        self.message = message
-        # detailed error message (e.g., terse stack trace)
-        self.error_message = error_message
-
-    @staticmethod
-    def from_error(task_uuid, state, message, error_message):
-        # require an detailed error message
-        return UpdateJobTaskRecord(task_uuid, state,
-                                   message,
-                                   error_message=error_message)
-
-    def __repr__(self):
-        _d = dict(k=self.__class__.__name__,
-                  i=self.task_uuid,
-                  s=self.state)
-        return "<{k} i:{i} state:{s} >".format(**_d)
-
-    def to_dict(self):
-        _d = dict(uuid=self.task_uuid,
-                  state=self.state,
-                  message=self.message)
-
-        # spray API is a little odd here. it will complain about
-        # Expected String as JsString, but got null
-        # even though the model is Option[String]
-        if self.error_message is not None:
-            _d['errorMessage'] = self.error_message
-
-        return _d
-
-
-class JobServiceClient:  # pragma: no cover
-    # Keeping this class private. It should only be used from pbsmrtpipe
-
-    def __init__(self, job_root_url, ignore_errors=False):
-        """
-
-        :param job_root_url: Full Root URL to the job
-        :type job_root_url: str
-
-        :param ignore_errors: Only log errors, don't not raise if a request fails. This is intended to be used in a fire-and-forget usecase
-        :type ignore_errors: bool
-
-        This hides the root location of the URL and hides
-        the job id (as an int or uuid)
-
-        The Url has the form:
-
-        http://localhost:8888/smrt-link/job-manager/jobs/pbsmrtpipe/1234
-
-        or
-
-        http://localhost:8888/smrt-link/job-manager/jobs/pbsmrtpipe/5d562c74-e452-11e6-8b96-3c15c2cc8f88
-        """
-        self.job_root_url = job_root_url
-        self.ignore_errors = ignore_errors
-
-    def __repr__(self):
-        _d = dict(k=self.__class__.__name__, u=self.job_root_url)
-        return "<{k} Job URL:{u} >".format(**_d)
-
-    def _get_headers(self):
-        return Constants.HEADERS
-
-    def to_url(self, segment):
-        return "{i}/{s}".format(i=self.job_root_url, s=segment)
-
-    @property
-    def log_url(self):
-        return self.to_url("log")
-
-    @property
-    def datastore_url(self):
-        return self.to_url("datastore")
-
-    @property
-    def tasks_url(self):
-        return self.to_url("tasks")
-
-    def get_task_url(self, task_uuid):
-        """
-        :param task_uuid: Task UUID
-        :return:
-        """
-        return self.to_url("tasks/{t}".format(t=task_uuid))
-
-    def log_workflow_progress(self, message, level,
-                              source_id, ignore_errors=True):
-        return log_pbsmrtpipe_progress(
-            self.log_url, message, level, source_id, ignore_errors=ignore_errors)
-
-    def add_datastore_file(self, datastore_file, ignore_errors=True):
-        return add_datastore_file(
-            self.datastore_url, datastore_file, ignore_errors=ignore_errors)
-
-    def update_datastore_file(
-            self, uuid, file_size=None, path=None, set_is_active=True, ignore_errors=True):
-        return _update_datastore_file(
-            self.datastore_url, uuid, path, file_size, set_is_active, ignore_errors)
-
-    def create_task(self, task_uuid, task_id,
-                    task_type_id, name, created_at=None):
-        """
-
-        :param task_uuid: Globally unique task id
-        :param task_id: Unique within respect to the job
-        :param task_type_id: ToolContract or task id (e.g., pbcommand.tasks.alpha)
-        :param name: Display name of task
-        :param created_at: time task was created at (will be set if current time if None)
-        """
-        r = CreateJobTaskRecord(task_uuid, task_id, task_type_id,
-                                name, JobStates.CREATED, created_at=created_at)
-
-        return _create_job_task(self.tasks_url, r)
-
-    def update_task_status(self, task_uuid, state,
-                           message, error_message=None):
-
-        task_url = self.get_task_url(task_uuid)
-
-        u = UpdateJobTaskRecord(
-            task_uuid,
-            state,
-            message,
-            error_message=error_message)
-
-        return _update_job_task_state(
-            task_url, u, ignore_errors=self.ignore_errors)
-
-    def update_task_to_failed(self, task_uuid, message,
-                              detailed_error_message):
-        task_url = self.get_task_url(task_uuid)
-        state = JobStates.FAILED
-
-        u = UpdateJobTaskRecord(task_uuid,
-                                state,
-                                message,
-                                error_message=detailed_error_message)
-
-        return _update_job_task_state(task_url, u)
+    def get_sl_api(self, path):
+        service_url = f"{self.uri}{path}"
+        t1 = time.time()
+        r = requests.get(service_url, headers=self._get_headers(), verify=False)
+        t2 = time.time()
+        log.info("Response time: {:.1f}s".format(t2 - t1))
+        r.raise_for_status()
+        return r.json()
 
 
 # -----------------------------------------------------------------------
@@ -1546,3 +1267,54 @@ def get_smrtlink_client_from_args(args):
         port=args.port,
         user=args.user,
         password=args.password)
+
+
+def run_client_with_retry(fx, host, port, user, password,
+                          sleep_time=60,
+                          retry_on=(500, 503)):
+    """
+    Obtain a services client and run the specified function on it - this can
+    be essentially any services call - and return the result.  If the query
+    fails due to 401 Unauthorized, the call will be retried with a new token.
+    HTTP 500 and 503 errors will be retried without re-authenticating.
+    """
+    def _get_client():
+        return get_smrtlink_client(host, port, user, password)
+    auth_errors = 0
+    started_at = time.time()
+    retry_time = sleep_time
+    client = _get_client()
+    while True:
+        try:
+            result = fx(client)
+        except HTTPError as e:
+            status = e.response.status_code
+            log.info("Got error {e} (code = {c})".format(e=str(e), c=status))
+            if status == 401:
+                auth_errors += 1
+                if auth_errors > 10:
+                    raise RuntimeError(
+                        "10 successive HTTP 401 errors, exiting")
+                log.warning("Authentication error, will retry with new token")
+                client = _get_client()
+                continue
+            elif status in retry_on:
+                log.warning("Got HTTP {c}, will retry in {d}s".format(
+                    c=status, d=retry_time))
+                time.sleep(retry_time)
+                # if a retryable error occurs, we increment the retry time
+                # up to a max of 30 minutes
+                retry_time = max(1800, retry_time + sleep_time)
+                continue
+            else:
+                raise
+        except (ConnectionError, ProtocolError) as e:
+            log.warning("Connection error: {e}".format(e=str(e)))
+            log.info("Will retry in {d}s".format(d=retry_time))
+            time.sleep(retry_time)
+            # if a retryable error occurs, we increment the retry time
+            # up to a max of 30 minutes
+            retry_time = max(1800, retry_time + sleep_time)
+            continue
+        else:
+            return result

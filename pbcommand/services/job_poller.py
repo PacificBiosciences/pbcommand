@@ -24,6 +24,8 @@ __version__ = "0.1"
 log = logging.getLogger(__name__)
 
 
+# FIXME this overlaps with run_client_with_retry, can we consolidate the
+# general error handling?
 def poll_for_job_completion(job_id,
                             host,
                             port,
@@ -51,12 +53,15 @@ def poll_for_job_completion(job_id,
                 job_json = _process_rget(url, headers=client._get_headers())
             except HTTPError as e:
                 status = e.response.status_code
-                log.info("Got error {e} (code = {c})".format(e=str(e), c=status))
+                log.info("Got error {e} (code = {c})".format(
+                    e=str(e), c=status))
                 if status == 401:
                     auth_errors += 1
                     if auth_errors > 10:
-                        raise RuntimeError("10 successive HTTP 401 errors, exiting")
-                    log.warning("Authentication error, will retry with new token")
+                        raise RuntimeError(
+                            "10 successive HTTP 401 errors, exiting")
+                    log.warning(
+                        "Authentication error, will retry with new token")
                     client = _get_client()
                     continue
                 elif status in retry_on:
