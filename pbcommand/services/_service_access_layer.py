@@ -484,7 +484,7 @@ class ServiceAccessLayer:  # pragma: no cover
             i=job_id,
             r=resource_type_id,
             p=ServiceAccessLayer.ROOT_JOBS)
-        return _process_rget_or_none(transform_func)(
+        return _process_rget_with_transform(transform_func)(
             _to_url(self.uri, "{p}/{t}/{i}/{r}".format(**_d)), headers=self._get_headers())
 
     def _get_jobs_by_job_type(self, job_type, query=None):
