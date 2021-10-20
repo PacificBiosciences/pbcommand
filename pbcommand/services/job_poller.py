@@ -42,6 +42,7 @@ def poll_for_job_completion(job_id,
     auth_errors = 0
     external_job_id = None
     LOG_INTERVAL = 600
+    SLEEP_TIME_MAX = 600
     i = 0
     try:
         client = _get_client()
@@ -105,6 +106,9 @@ def poll_for_job_completion(job_id,
                             "Exceeded runtime {r} of {t}".format(
                                 r=run_time, t=time_out))
                 time.sleep(sleep_time)
+                # after an hour we increase the wait
+                if run_time > 3600:
+                    sleep_time = min(SLEEP_TIME_MAX, sleep_time * 5)
     except KeyboardInterrupt:
         if abort_on_interrupt:
             client.terminate_job_id(job_id)
