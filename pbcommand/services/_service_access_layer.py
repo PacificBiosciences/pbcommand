@@ -777,7 +777,7 @@ class ServiceAccessLayer:  # pragma: no cover
         :rtype: JobResult
         """
         dsmd = get_dataset_metadata(path)
-        result = self.get_dataset_by_uuid(dsmd.uuid)
+        result = self.search_dataset_by_uuid(dsmd.uuid)
 
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
@@ -836,7 +836,7 @@ class ServiceAccessLayer:  # pragma: no cover
         Better alternative to get_dataset_by_uuid, that does not trigger a 404
         """
         return _process_rget_or_empty(
-            _to_url(self.uri, f"{ServiceAccessLayer.ROOT_DS}/{uuid}/query"),
+            _to_url(self.uri, f"{ServiceAccessLayer.ROOT_DS}/search/{uuid}"),
             headers=self._get_headers())
 
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
