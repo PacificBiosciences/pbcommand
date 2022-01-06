@@ -111,7 +111,10 @@ def _process_rget(total_url, ignore_errors=False, headers=None):
 
 
 def _process_rget_or_empty(total_url, ignore_errors=False, headers=None):
-    """Process get request and return JSON response. Raise if not successful"""
+    """
+    Process get request and return JSON response if populated, otherwise None.
+    Raise if not successful
+    """
     r = _get_requests(__get_headers(headers))(total_url)
     if len(r.content) > 0:
         _parse_base_service_error(r)
@@ -122,9 +125,10 @@ def _process_rget_or_empty(total_url, ignore_errors=False, headers=None):
                 s=r.status_code))
     r.raise_for_status()
     if len(r.content) > 0:
-        return r.json()
-    else:
-        return None
+        object_d = r.json()
+        if len(object_d) > 0:
+            return object_d
+    return None
 
 
 def _process_rget_with_transform(func, ignore_errors=False):
@@ -773,7 +777,7 @@ class ServiceAccessLayer:  # pragma: no cover
         :rtype: JobResult
         """
         dsmd = get_dataset_metadata(path)
-        result = self.search_dataset_by_uuid(dsmd.uuid)
+        result = self.get_dataset_by_uuid(dsmd.uuid)
 
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
