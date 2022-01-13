@@ -1,6 +1,6 @@
 {
   "pipelineId": "pbsmrtpipe.pipelines.sa3_sat",
-  "smrtLinkVersion": "3.2",
+  "smrtlinkVersion": "3.2",
   "rules": [
     {
       "sourceId": "pbreports.tasks.sat_report-out-0",

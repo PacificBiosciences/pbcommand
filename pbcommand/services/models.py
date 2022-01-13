@@ -257,7 +257,7 @@ class ServiceJob:
 
         project_id = s_or("projectId", 1)
 
-        smrtlink_version = se_or("smrtLinkVersion")
+        smrtlink_version = se_or("smrtlinkVersion")
         error_message = se_or("errorMessage")
         created_by = se_or("createdBy")
         created_by_email = se_or('createdByEmail')

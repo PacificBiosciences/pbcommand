@@ -110,6 +110,27 @@ def _process_rget(total_url, ignore_errors=False, headers=None):
     return j
 
 
+def _process_rget_or_empty(total_url, ignore_errors=False, headers=None):
+    """
+    Process get request and return JSON response if populated, otherwise None.
+    Raise if not successful
+    """
+    r = _get_requests(__get_headers(headers))(total_url)
+    if len(r.content) > 0:
+        _parse_base_service_error(r)
+    if not r.ok and not ignore_errors:
+        log.warning(
+            "Failed ({s}) GET to {x}".format(
+                x=total_url,
+                s=r.status_code))
+    r.raise_for_status()
+    if len(r.content) > 0:
+        object_d = r.json()
+        if len(object_d) > 0:
+            return object_d
+    return None
+
+
 def _process_rget_with_transform(func, ignore_errors=False):
     """Post process the JSON result (if successful) with F(json_d) -> T"""
     def wrapper(total_url, headers=None):
@@ -519,21 +540,21 @@ class ServiceAccessLayer:  # pragma: no cover
     def get_analysis_jobs(self, query=None):
         return self._get_jobs_by_job_type(JobTypes.ANALYSIS, query=query)
 
-    def get_cromwell_jobs(self):
+    def get_cromwell_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
-        return self._get_jobs_by_job_type(JobTypes.CROMWELL)
+        return self._get_jobs_by_job_type(JobTypes.CROMWELL, query=query)
 
-    def get_import_dataset_jobs(self):
+    def get_import_dataset_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
-        return self._get_jobs_by_job_type(JobTypes.IMPORT_DS)
+        return self._get_jobs_by_job_type(JobTypes.IMPORT_DS, query=query)
 
-    def get_merge_dataset_jobs(self):
+    def get_merge_dataset_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
-        return self._get_jobs_by_job_type(JobTypes.MERGE_DS)
+        return self._get_jobs_by_job_type(JobTypes.MERGE_DS, query=query)
 
-    def get_fasta_convert_jobs(self):
+    def get_fasta_convert_jobs(self, query=None):
         """:rtype: list[ServiceJob]"""
-        self._get_jobs_by_job_type(JobTypes.CONVERT_FASTA)
+        self._get_jobs_by_job_type(JobTypes.CONVERT_FASTA, query=query)
 
     def get_analysis_job_by_id(self, job_id):
         """Get an Analysis job by id or UUID or return None
@@ -755,27 +776,25 @@ class ServiceAccessLayer:  # pragma: no cover
 
         :rtype: JobResult
         """
-        dataset_meta_type = get_dataset_metadata(path)
+        dsmd = get_dataset_metadata(path)
+        result = self.search_dataset_by_uuid(dsmd.uuid)
 
-        result = self.get_dataset_by_uuid(dataset_meta_type.uuid,
-                                          ignore_errors=True)
         if result is None:
             log.info("Importing dataset {p}".format(p=path))
             job_result = self.run_import_dataset_by_type(
-                dataset_meta_type.metatype, path, avoid_duplicate_import=avoid_duplicate_import)
+                dsmd.metatype,
+                path,
+                avoid_duplicate_import=avoid_duplicate_import)
             log.info("Confirming database update")
             # validation 1: attempt to retrieve dataset info
-            result_new = self.get_dataset_by_uuid(dataset_meta_type.uuid)
+            result_new = self.get_dataset_by_uuid(dsmd.uuid)
             if result_new is None:
                 raise JobExeError(("Dataset {u} was imported but could " +
                                    "not be retrieved; this may indicate " +
-                                   "XML schema errors.").format(
-                    u=dataset_meta_type.uuid))
+                                   "XML schema errors.").format(u=dsmd.uuid))
             return job_result
         else:
-            log.info(
-                "{f} already imported. Skipping importing. {r}".format(
-                    r=result, f=dataset_meta_type.metatype))
+            log.info(f"Already imported: {result}")
             # need to clean this up
             return JobResult(self.get_job_by_id(result['jobId']), 0, "")
 
@@ -810,6 +829,14 @@ class ServiceAccessLayer:  # pragma: no cover
         return _process_rget_or_none(_null_func, ignore_errors=ignore_errors)(
             _to_url(self.uri, "{p}/{i}".format(i=int_or_uuid,
                                                p=ServiceAccessLayer.ROOT_DS)),
+            headers=self._get_headers())
+
+    def search_dataset_by_uuid(self, uuid):
+        """
+        Better alternative to get_dataset_by_uuid, that does not trigger a 404
+        """
+        return _process_rget_or_empty(
+            _to_url(self.uri, f"{ServiceAccessLayer.ROOT_DS}/search/{uuid}"),
             headers=self._get_headers())
 
     def get_dataset_by_id(self, dataset_type, int_or_uuid):
