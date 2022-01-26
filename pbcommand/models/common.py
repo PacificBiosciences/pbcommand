@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 REGISTERED_FILE_TYPES = {}
 
 # Light weight Dataset metatadata. Use pbcore for full dataset functionality
-DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype')
+DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype name')
 
 
 class PacBioNamespaces:
@@ -902,14 +902,14 @@ class PipelineDataStoreViewRules:
 
     def to_dict(self):
         return {"pipelineId": self.pipeline_id,
-                "smrtLinkVersion": self.smrtlink_version,
+                "smrtlinkVersion": self.smrtlink_version,
                 "rules": [r.to_dict() for r in self.rules]}
 
     @staticmethod
     def from_dict(d):
         return PipelineDataStoreViewRules(
             pipeline_id=d['pipelineId'],
-            smrtlink_version=d['smrtLinkVersion'],
+            smrtlink_version=d['smrtlinkVersion'],
             rules=[DataStoreViewRule.from_dict(r) for r in d['rules']])
 
     @staticmethod

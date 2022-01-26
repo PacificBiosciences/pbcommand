@@ -470,16 +470,17 @@ def get_dataset_metadata(path):
     :raises: ValueError
     :return: DataSetMetaData
     """
-    uuid = mt = None
+    uuid = mt = name = None
     for event, element in ET.iterparse(path, events=("start",)):
         uuid = element.get("UniqueId")
         mt = element.get("MetaType")
+        name = element.get("Name")
         break
     else:
         raise ValueError(
             'Did not find events=("start",) in XML path={}'.format(path))
     if mt in FileTypes.ALL_DATASET_TYPES().keys():
-        return DataSetMetaData(uuid, mt)
+        return DataSetMetaData(uuid, mt, name)
     else:
         raise ValueError("Unsupported dataset type '{t}'".format(t=mt))
 
