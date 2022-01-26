@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 REGISTERED_FILE_TYPES = {}
 
 # Light weight Dataset metatadata. Use pbcore for full dataset functionality
-DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype')
+DataSetMetaData = namedtuple("DataSetMetaData", 'uuid metatype name')
 
 
 class PacBioNamespaces:

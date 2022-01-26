@@ -105,6 +105,7 @@ class TestUtils:
         import pbtestdata
         md = get_dataset_metadata(pbtestdata.get_file("subreads-xml"))
         assert md.metatype == "PacBio.DataSet.SubreadSet"
+        assert md.name == "subreads-xml"
 
         from pbcore.io import SubreadSet
         ds = SubreadSet(pbtestdata.get_file("subreads-xml"))
