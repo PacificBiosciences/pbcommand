@@ -46,7 +46,10 @@ __all__ = [
 
 
 class Constants:
-    HEADERS = {'Content-type': 'application/json'}
+    HEADERS = {
+        'Content-type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate'
+    }
 
 
 def __jsonable_request(request_method, headers):
