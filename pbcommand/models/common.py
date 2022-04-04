@@ -368,6 +368,7 @@ class FileTypes:
     SAM = FileType(to_file_ns('sam'), "alignments", "sam", MimeTypes.BINARY)
     VCF = FileType(to_file_ns('vcf'), "file", "vcf", MimeTypes.TXT)
     GFF = FileType(to_file_ns('gff'), "file", "gff", MimeTypes.TXT)
+    GTF = FileType(to_file_ns('gtf'), "file", "gtf", MimeTypes.TXT)
     BIGWIG = FileType(
         to_file_ns('bigwig'),
         "annotations",
