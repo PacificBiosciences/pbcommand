@@ -491,6 +491,8 @@ class FileTypes:
         ".ngm",
         MimeTypes.BINARY)
 
+    I_TABIX = FileType(to_index_ns("Tabix"), "file", "tbi", MimeTypes.BINARY)
+
     # Fasta type files
     FASTA_BC = FileType(
         "PacBio.BarcodeFile.BarcodeFastaFile",
