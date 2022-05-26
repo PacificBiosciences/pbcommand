@@ -46,12 +46,14 @@ class TestBasicTable:
     def setup_method(self, method):
         self.columns = [Column('one', header="One"),
                         Column('two', header="Two"),
-                        Column('three', header="Three")]
+                        Column('three', header="Three"),
+                        Column('four', header="Four")]
         self.table = Table('my_table_with_values', columns=self.columns)
         datum = [
             ('one', list(range(3))),
             ('two', list('abc')),
-            ('three', 'file1 file2 file3'.split())
+            ('three', 'file1 file2 file3'.split()),
+            ('four', [3.14159, 2.72, 9.87654321])
         ]
         for k, values in datum:
             for value in values:
@@ -64,7 +66,7 @@ class TestBasicTable:
 
     def test_columns(self):
         """Test Columns"""
-        assert len(self.table.columns) == 3
+        assert len(self.table.columns) == 4
 
     def test_column_values(self):
         """Basic check for column values"""
@@ -80,7 +82,13 @@ class TestBasicTable:
         f = tempfile.NamedTemporaryFile(suffix=".csv").name
         self.table.to_csv(f)
         with open(f) as csv_out:
-            assert csv_out.read() == "One,Two,Three\n0,a,file1\n1,b,file2\n2,c,file3\n"
+            assert csv_out.read() == "One,Two,Three,Four\n0,a,file1,3.14159\n1,b,file2,2.72\n2,c,file3,9.87654321\n"
+        self.table.to_csv(f, float_format="%.4f")
+        with open(f) as csv_out:
+            assert csv_out.read() == "One,Two,Three,Four\n0,a,file1,3.1416\n1,b,file2,2.7200\n2,c,file3,9.8765\n"
+        self.table.to_csv(f, float_format="{:.2f}")
+        with open(f) as csv_out:
+            assert csv_out.read() == "One,Two,Three,Four\n0,a,file1,3.14\n1,b,file2,2.72\n2,c,file3,9.88\n"
 
 
 class TestTable:

@@ -545,7 +545,7 @@ class Table(BaseReportElement):
         columns = [columns[col.id] for col in tables[0].columns]
         return Table(table_id, table_title, columns=columns)
 
-    def to_csv(self, file_name, delimiter=','):
+    def to_csv(self, file_name, delimiter=',', float_format=None):
         if len(self.columns) == 0:
             return ""
         for column in self.columns:
@@ -553,6 +553,14 @@ class Table(BaseReportElement):
                 raise ValueError("Column lengths differ ({i} versus {j}".format(
                                  i=len(column.values),
                                  j=len(self.columns[0].values)))
+
+        def _to_str(x):
+            if not float_format or not isinstance(x, float):
+                return str(x)
+            elif float_format.startswith("%"):
+                return float_format % x
+            elif float_format.startswith("{"):
+                return float_format.format(x)
         with open(file_name, "w") as csv_out:
             writer = csv.writer(
                 csv_out,
@@ -560,7 +568,7 @@ class Table(BaseReportElement):
                 lineterminator="\n")
             writer.writerow([c.header for c in self.columns])
             for i in range(len(self.columns[0].values)):
-                writer.writerow([str(c.values[i]) for c in self.columns])
+                writer.writerow([_to_str(c.values[i]) for c in self.columns])
 
     def to_columns_d(self):
         """
