@@ -493,6 +493,9 @@ class FileTypes:
 
     I_TABIX = FileType(to_index_ns("Tabix"), "file", "tbi", MimeTypes.BINARY)
 
+    # GTF/BED index
+    I_PGI = FileType(to_index_ns("PigeonIndex"), "file", "pgi", MimeTypes.TXT)
+
     # Fasta type files
     FASTA_BC = FileType(
         "PacBio.BarcodeFile.BarcodeFastaFile",
