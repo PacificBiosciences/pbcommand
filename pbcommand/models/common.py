@@ -496,6 +496,23 @@ class FileTypes:
     # GTF/BED index
     I_PGI = FileType(to_index_ns("PigeonIndex"), "file", "pgi", MimeTypes.TXT)
 
+    # Reference transcript annotations
+    POLYA_MOTIF = FileType(
+        "PacBio.ReferenceFile.PolyAMotifFile",
+        "file",
+        "txt",
+        MimeTypes.TXT)
+    BED_POLYA_PEAK = FileType(
+        "PacBio.ReferenceFile.PolyAPeakFile",
+        "file",
+        "bed",
+        MimeTypes.TXT)
+    BED_CAGE_PEAK = FileType(
+        "PacBio.ReferenceFile.CagePeakFile",
+        "file",
+        "bed",
+        MimeTypes.TXT)
+
     # Fasta type files
     FASTA_BC = FileType(
         "PacBio.BarcodeFile.BarcodeFastaFile",
