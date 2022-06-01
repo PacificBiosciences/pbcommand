@@ -497,6 +497,11 @@ class FileTypes:
     I_PGI = FileType(to_index_ns("PigeonIndex"), "file", "pgi", MimeTypes.TXT)
 
     # Reference transcript annotations
+    GTF_ANNOTATION = FileType(
+        "PacBio.ReferenceFile.ReferenceAnnotationFile",
+        "file",
+        "gtf",
+        MimeTypes.TXT)
     POLYA_MOTIF = FileType(
         "PacBio.ReferenceFile.PolyAMotifFile",
         "file",
