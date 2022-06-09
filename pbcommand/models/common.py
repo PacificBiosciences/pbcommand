@@ -517,6 +517,11 @@ class FileTypes:
         "file",
         "bed",
         MimeTypes.TXT)
+    INTROPOLIS = FileType(
+        "PacBio.ReferenceFile.IntropolisFile",
+        "file",
+        "tsv",
+        MimeTypes.TXT)
 
     # Fasta type files
     FASTA_BC = FileType(
