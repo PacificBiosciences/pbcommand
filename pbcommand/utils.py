@@ -7,6 +7,7 @@ import functools
 import logging
 import logging.config
 import multiprocessing
+import resource
 import os
 import pprint
 import subprocess
@@ -537,3 +538,11 @@ def pool_map(func, args, nproc):
         log.debug("computed_nproc=1, running serially")
         result = list(map(func, args))
     return result
+
+
+def get_peak_memory_usage():
+    try:
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    except Exception as e:
+        log.error(f"Failed to get ru_maxrss: {e}")
+        return None
