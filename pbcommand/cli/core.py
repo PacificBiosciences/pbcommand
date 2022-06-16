@@ -28,7 +28,7 @@ import pbcommand
 from pbcommand.models import ResourceTypes, PacBioAlarm
 from pbcommand.models.report import Report, Attribute
 from pbcommand.common_options import add_base_options, add_nproc_option
-from pbcommand.utils import get_parsed_args_log_level
+from pbcommand.utils import get_parsed_args_log_level, get_peak_memory_usage
 
 
 def _add_version(p, version):
@@ -90,13 +90,14 @@ def get_default_argparser_with_base_opts(
     return p
 
 
-def write_task_report(run_time, nproc, exit_code):
+def write_task_report(run_time, nproc, exit_code, maxrss):
     attributes = [
         Attribute("host", value=os.uname()[1]),
         Attribute("system", value=os.uname()[0]),
         Attribute("nproc", value=nproc),
         Attribute("run_time", value=run_time),
-        Attribute("exit_code", value=exit_code)
+        Attribute("exit_code", value=exit_code),
+        Attribute("maxrss", value=maxrss)
     ]
     report = Report("workflow_task",
                     title="Workflow Task Report",
@@ -195,11 +196,14 @@ def _pacbio_main_runner(alog, setup_log_func, exe_main_func, *args, **kwargs):
         else:
             return_code = 2
 
-    _d = dict(r=return_code, s=run_time)
+    maxrss = get_peak_memory_usage()
     if is_cromwell_environment:
         alog.info("Writing task report to task-report.json")
-        write_task_report(run_time, getattr(pargs, "nproc", 1), return_code)
+        nproc = getattr(pargs, "nproc", 1)
+        write_task_report(run_time, nproc, return_code, maxrss)
+    _d = dict(r=return_code, s=run_time)
     if alog is not None:
+        alog.info(f"Max RSS (kB): {maxrss}")
         alog.info("exiting with return code {r} in {s:.2f} sec.".format(**_d))
     return return_code
 
