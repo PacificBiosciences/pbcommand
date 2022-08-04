@@ -375,6 +375,7 @@ class FileTypes:
         "bw",
         MimeTypes.BINARY)
     CSV = FileType(to_file_ns('csv'), "file", "csv", MimeTypes.CSV)
+    TSV = FileType(to_file_ns('tsv'), "file", "tsv", MimeTypes.TXT)
     XML = FileType(to_file_ns('xml'), "file", "xml", MimeTypes.XML)
     HTML = FileType(to_file_ns('html'), "file", "html", MimeTypes.HTML)
     # Generic Json File
