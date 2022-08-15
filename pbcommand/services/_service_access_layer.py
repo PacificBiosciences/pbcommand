@@ -956,74 +956,101 @@ class ServiceAccessLayer:  # pragma: no cover
         return _process_rget(_to_url(self.uri, "{p}/{i}".format(
             i=pipeline_template_id, p=ServiceAccessLayer.ROOT_PT)), headers=self._get_headers())
 
-    def create_by_pipeline_template_id(self,
-                                       name,
-                                       pipeline_template_id,
-                                       epoints,
-                                       task_options=(),
-                                       workflow_options=(),
-                                       tags=()):
-        """Creates and runs an analysis workflow by pipeline template id
+    def get_pipeline_presets(self):
+        return _process_rget(_to_url(self.uri, "/smrt-link/workflow-presets"),
+                             headers=self._get_headers())
 
+    def get_pipeline_preset(self, preset_id):
+        presets = self.get_pipeline_presets()
+        by_id = {p["presetId"]: p for p in presets}
+        by_shortid = {p["presetId"].split(".")[-1]: p for p in presets}
+        by_name = {p["name"]: p for p in presets}
+        return by_id.get(preset_id,
+                         by_name.get(preset_id,
+                                     by_shortid.get(preset_id, None)))
+
+    def create_by_pipeline_template_id(self, *args, **kwds):
+        return self.create_analysis_job(*args, **kwds)
+
+    def create_analysis_job(self,
+                            name,
+                            pipeline_id,
+                            epoints,
+                            task_options=(),
+                            workflow_options=(),
+                            tags=(),
+                            preset_id=None,
+                            description=None,
+                            project_id=1):
+        """Creates and runs an analysis workflow by workflow ID
 
         :param tags: Tags should be a set of strings
         """
-        if pipeline_template_id.startswith("pbsmrtpipe"):
+        if pipeline_id.startswith("pbsmrtpipe"):
             raise NotImplementedError("pbsmrtpipe is no longer supported")
 
         # sanity checking to see if pipeline is valid
-        _ = self.get_pipeline_template_by_id(pipeline_template_id)
+        _ = self.get_pipeline_template_by_id(pipeline_id)
 
-        seps = [
-            dict(
-                entryId=e.entry_id,
-                fileTypeId=e.dataset_type,
-                datasetId=e.resource) for e in epoints]
+        service_eps = [dict(entryId=e.entry_id,
+                            fileTypeId=e.dataset_type,
+                            datasetId=e.resource) for e in epoints]
 
         def _to_o(opt_id, opt_value, option_type_id):
-            return dict(optionId=opt_id, value=opt_value,
+            return dict(optionId=opt_id,
+                        value=opt_value,
                         optionTypeId=option_type_id)
 
         task_options = list(task_options)
         d = dict(name=name,
-                 pipelineId=pipeline_template_id,
-                 entryPoints=seps,
+                 pipelineId=pipeline_id,
+                 entryPoints=service_eps,
                  taskOptions=task_options,
-                 workflowOptions=workflow_options)
+                 workflowOptions=workflow_options,
+                 projectId=project_id)
+        if description:
+            d["description"] = description
+        if preset_id:
+            preset = self.get_pipeline_preset(preset_id)
+            if preset is None:
+                raise KeyError(f"Can't find a compute config for '{preset_id}'")
+            d["presetId"] = preset["presetId"]
 
         # Only add the request if the non empty.
         if tags:
             tags_str = ",".join(list(tags))
             d['tags'] = tags_str
         job_type = JobTypes.ANALYSIS
-        raw_d = _process_rpost(_to_url(self.uri,
-                                       "{r}/{p}".format(p=job_type,
-                                                        r=ServiceAccessLayer.ROOT_JOBS)),
+        path = "{r}/{p}".format(p=job_type, r=ServiceAccessLayer.ROOT_JOBS)
+        raw_d = _process_rpost(_to_url(self.uri, path),
                                d,
                                headers=self._get_headers())
         return ServiceJob.from_d(raw_d)
 
-    def run_by_pipeline_template_id(self,
-                                    name,
-                                    pipeline_template_id,
-                                    epoints,
-                                    task_options=(),
-                                    workflow_options=(),
-                                    time_out=JOB_DEFAULT_TIMEOUT,
-                                    tags=(),
-                                    abort_on_interrupt=True,
-                                    retry_on_failure=False):
+    def run_by_pipeline_template_id(self, *args, **kwds):
+        return self.run_analysis_job(*args, **kwds)
+
+    def run_analysis_job(self,
+                         name,
+                         pipeline_id,
+                         epoints,
+                         task_options=(),
+                         workflow_options=(),
+                         time_out=JOB_DEFAULT_TIMEOUT,
+                         tags=(),
+                         abort_on_interrupt=True,
+                         retry_on_failure=False):
         """Blocks and runs a job with a timeout"""
 
-        job_or_error = self.create_by_pipeline_template_id(
+        job_or_error = self.create_analysis_job(
             name,
-            pipeline_template_id,
+            pipeline_id,
             epoints,
             task_options=task_options,
             workflow_options=workflow_options,
             tags=tags)
 
-        _d = dict(name=name, p=pipeline_template_id, eps=epoints)
+        _d = dict(name=name, p=pipeline_id, eps=epoints)
         custom_err_msg = "Job {n} args: {a}".format(n=name, a=_d)
 
         job_id = _job_id_or_error(job_or_error, custom_err_msg=custom_err_msg)
