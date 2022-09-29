@@ -1004,6 +1004,12 @@ class AttributeSpec:
                 i=self.id, v=type(attr.value).__name__, t=self.type)
             raise TypeError(msg)
 
+    def is_fractional_percentage(self):
+        if self.format_str:
+            m = validate_format(self.format_str)
+            return m.groups()[0] == 'p'
+        return False
+
 
 class ColumnSpec:
 
