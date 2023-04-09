@@ -1279,7 +1279,8 @@ class SmrtLinkAuthClient(ServiceAccessLayer):  # pragma: no cover
     def _get_headers(self):
         return {
             "Authorization": "Bearer {}".format(self.auth_token),
-            "Content-type": "application/json"
+            "Content-type": "application/json",
+            "X-User-ID": self._user
         }
 
     def _to_base_url(self, h):
