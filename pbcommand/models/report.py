@@ -111,7 +111,7 @@ class BaseReportElement(metaclass=abc.ABCMeta):
         :param id_: (int) id of child BaseReportElement
         """
         if id_ in self._ids:
-            msg = "a plot with id '{i}' has already been added to {t}.".format(
+            msg = "an element with id '{i}' has already been added to {t}.".format(
                 i=id_, t=str(type(self)))
             log.error(msg)
             raise PbReportError(msg)
@@ -716,7 +716,7 @@ class Report(BaseReportElement):
         """
         Add a table to the report
         """
-        BaseReportElement.is_unique(self, table.id)
+        #BaseReportElement.is_unique(self, table.id)
         self._tables.append(table)
 
     def __repr__(self):
