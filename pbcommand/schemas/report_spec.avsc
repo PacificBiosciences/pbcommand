@@ -71,6 +71,12 @@
               "type": ["boolean", "null"],
               "default": null,
               "doc": "Flag to hide this attribute"
+            },
+            {
+              "name": "scale",
+              "type": ["int", "float", "null"],
+              "default": null,
+              "doc": "Scale factor to be multiplied times numerical values"
             }
           ]
         }
@@ -147,6 +153,12 @@
                       "type": ["boolean", "null"],
                       "default": null,
                       "doc": "Flag to hide this column"
+                    },
+                    {
+                      "name": "scale",
+                      "type": ["int", "float", "null"],
+                      "default": null,
+                      "doc": "Scale factor to be multiplied times numerical values"
                     }
                   ]
                 }
