@@ -13,5 +13,7 @@ def pytest_runtest_setup(item):
                 import pbtestdata
             except ImportError:
                 pytest.skip("'pbtestdata' not installed")
+        elif mark.name == "skipif":
+            pass
         else:
             raise LookupError("Unknown pytest mark: '{}'".format(mark.name))
