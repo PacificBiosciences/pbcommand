@@ -205,8 +205,7 @@ class RESTClient(ABC):
 
     @abstractmethod
     def refresh(self):
-        raise NotImplementedError(
-            "Refresh not implemented here, override in subclasses")
+        ...
 
     @property
     def headers(self):
@@ -360,8 +359,7 @@ class AuthenticatedClient(RESTClient):
 
     @abstractmethod
     def get_authorization_token(self, username, password):
-        """Placeholder for token request method"""
-        raise NotImplementedError("Implemented in subclasses")
+        ...
 
 
 class SmrtLinkClient(AuthenticatedClient):
