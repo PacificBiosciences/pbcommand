@@ -148,7 +148,7 @@ import requests
 __all__ = [
     "SmrtLinkClient",
     "add_smrtlink_server_args",
-    "get_smrtlink_client_from_args"
+    "get_smrtlink_client_from_args",
 ]
 
 log = logging.getLogger(__name__)
