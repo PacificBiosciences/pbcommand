@@ -71,6 +71,15 @@ Example module usage:
             table_rows = [[c[i] for c in col_data] for i in len(col_data[0])]
             write_csv(csv_file_name, headers, table_rows)
 
+  - Retrieve loading metrics for a run collection and return as a dict::
+
+    reports = client.get_run_collection_reports(run_uuid, collection_uuid)
+    for r in reports:
+        if "loading" in r["reportTypeId"]:
+            report_uuid = r["dataStoreFile"]["uuid"]
+            report = client.load_datastore_report_file(report_uuid)
+            print({attr["id"]:attr["value"] for attr in report["attributes"]})
+
   - Combine a sample split across multiple cells:
 
     DS_TYPE = "PacBio.DataSet.ConsensusReadSet"
