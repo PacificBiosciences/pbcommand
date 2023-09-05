@@ -38,6 +38,8 @@ mkdir -p build/{bin,lib,include,share}
 # https://stackoverflow.com/questions/40732419/how-to-read-avro-files-in-python-3-5-2
 rm -rf ${PYTHONUSERBASE}/lib/python3*/site-packages/avro*
 
+$PIP install urllib3==1.21.1
+$PIP install requests==2.29.0
 pip install --user --no-index --find-link "${WHEELHOUSE}" --no-compile -e '.[test]'
 make test
 ##########################################################################
