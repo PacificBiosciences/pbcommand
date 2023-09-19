@@ -504,6 +504,21 @@ class SmrtLinkClient(AuthenticatedClient):
         """Delete an instrument connection record"""
         return self.delete(f"/smrt-link/instrument-config/connections/{id_name_or_serial}")
 
+    def get_instrument_states(self):
+        """
+        Return a list of instrument states, complex objects that include
+        configuration details and run progress.  Connected instruments should
+        send state updates once per minute.
+        """
+        return self.get("/smrt-link/instruments")
+
+    def get_instrument_state(self, serial):
+        """
+        Return the last recorded state for a specific instrument by serial
+        number.
+        """
+        return self.get(f"/smrt-link/instruments/{serial}")
+
     def delete_instrument_state(self, serial):
         """
         Remove an instrument from the Instruments status page in SMRT Link (but
