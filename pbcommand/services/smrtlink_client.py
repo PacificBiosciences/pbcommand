@@ -413,7 +413,7 @@ class SmrtLinkClient(AuthenticatedClient):
         auth_d = dict(username=username,
                       password=password,
                       grant_type="password")
-        resp = requests.post(self.to_url("/token"),
+        resp = requests.post(f"{self.base_url}/token",
                              data=auth_d,
                              headers={"Content-Type": Constants.H_CT_AUTH},
                              verify=self._verify)
@@ -503,6 +503,21 @@ class SmrtLinkClient(AuthenticatedClient):
     def delete_instrument_connection(self, id_name_or_serial):
         """Delete an instrument connection record"""
         return self.delete(f"/smrt-link/instrument-config/connections/{id_name_or_serial}")
+
+    def get_instrument_states(self):
+        """
+        Return a list of instrument states, complex objects that include
+        configuration details and run progress.  Connected instruments should
+        send state updates once per minute.
+        """
+        return self.get("/smrt-link/instruments")
+
+    def get_instrument_state(self, serial):
+        """
+        Return the last recorded state for a specific instrument by serial
+        number.
+        """
+        return self.get(f"/smrt-link/instruments/{serial}")
 
     def delete_instrument_state(self, serial):
         """
