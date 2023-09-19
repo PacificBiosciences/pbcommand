@@ -413,7 +413,7 @@ class SmrtLinkClient(AuthenticatedClient):
         auth_d = dict(username=username,
                       password=password,
                       grant_type="password")
-        resp = requests.post(self.to_url("/token"),
+        resp = requests.post(f"{self.base_url}/token",
                              data=auth_d,
                              headers={"Content-Type": Constants.H_CT_AUTH},
                              verify=self._verify)
