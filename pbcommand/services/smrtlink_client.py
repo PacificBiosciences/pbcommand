@@ -29,9 +29,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-Official SMRT Link REST API reference client implementation, for version 12.0.0
+SMRT Link REST API reference client implementation, for version 12.0.0
 or newer.  This is written to be self-contained without any
-dependencies on internal libraries, and can be copied, modified, and
+dependencies on internal PacBio libraries, and can be copied, modified, and
 redistributed without limitation (see module comments for license terms).
 
 The SmrtLinkClient does not cover the entire API, but the code is intended to
@@ -40,7 +40,7 @@ readability, the returned objects are weakly typed lists
 and dicts containing basic Python types (str, int, float, bool, None).
 The Swagger documentation in the SMRT Link GUI online help
 (https://servername:8243/sl/docs/services) provides a comprehensive listing
-of endpoints and (incomplete) data models.
+of endpoints and data models.
 
 Software requirements: Python >= 3.9; 'requests' module
 
@@ -48,7 +48,7 @@ Example module usage:
 
   - Creating a client object, including authentication::
 
-    client = SmrtLinkClient.client("localhost", user="pbuser", password="XXX")
+    client = SmrtLinkClient.connect("localhost", user="pbuser", password="XXX")
 
   - Get all analysis jobs associated with a run::
 
@@ -164,6 +164,7 @@ log = logging.getLogger(__name__)
 
 
 class Constants:
+    API_PORT = 8243
     H_CT_AUTH = "application/x-www-form-urlencoded"
     H_CT_JSON = "application/json"
     # XXX because we're so used to calling these servers by hostname instead
@@ -191,6 +192,10 @@ def refresh_on_401(f):
 
 
 def _disable_insecure_warning():
+    """
+    Workaround to silence SSL warnings when the invoker has explicitly
+    requested insecure mode.
+    """
     from urllib3.exceptions import ProtocolError, InsecureRequestWarning  # pylint: disable=import-error
     # To disable the ssl cert check warning
     import urllib3
@@ -244,11 +249,12 @@ class RESTClient(ABC):
                 params = {k: v for k, v in params.items() if v is not None}
         url = self.to_url(path)
         log.info(f"Method: GET {path}")
-        log.debug("Full URL: {url}")
+        log.debug(f"Full URL: {url}")
         response = requests.get(url,
                                 params=params,
                                 headers=self._get_headers(headers),
                                 verify=self._verify)
+        log.debug(response)
         response.raise_for_status()
         return response
 
@@ -257,46 +263,50 @@ class RESTClient(ABC):
         url = self.to_url(path)
         log.info(f"Method: POST {path} {data}")
         log.debug(f"Full URL: {url}")
-        r = requests.post(url,
-                          data=json.dumps(data),
-                          headers=self._get_headers(headers),
-                          verify=self._verify)
-        r.raise_for_status()
-        return r
+        response = requests.post(url,
+                                 data=json.dumps(data),
+                                 headers=self._get_headers(headers),
+                                 verify=self._verify)
+        log.debug(response)
+        response.raise_for_status()
+        return response
 
     @refresh_on_401
     def _http_put(self, path, data, headers={}):
         url = self.to_url(path)
         log.info(f"Method: PUT {path} {data}")
         log.debug(f"Full URL: {url}")
-        r = requests.put(url,
-                         data=json.dumps(data),
-                         headers=self._get_headers(headers),
-                         verify=self._verify)
-        r.raise_for_status()
-        return r
+        response = requests.put(url,
+                                data=json.dumps(data),
+                                headers=self._get_headers(headers),
+                                verify=self._verify)
+        log.debug(response)
+        response.raise_for_status()
+        return response
 
     @refresh_on_401
     def _http_delete(self, path, headers={}):
         url = self.to_url(path)
         log.info(f"Method: DELETE {path}")
         log.debug(f"Full URL: {url}")
-        r = requests.delete(url,
-                            headers=self._get_headers(headers),
-                            verify=self._verify)
-        r.raise_for_status()
-        return r
+        response = requests.delete(url,
+                                   headers=self._get_headers(headers),
+                                   verify=self._verify)
+        log.debug(response)
+        response.raise_for_status()
+        return response
 
     @refresh_on_401
     def _http_options(self, path, headers={}):
         url = self.to_url(path)
         log.info(f"Method: OPTIONS {url}")
         log.debug(f"Full URL: {url}")
-        r = requests.options(url,
-                             headers=self._get_headers(headers),
-                             verify=self._verify)
-        r.raise_for_status()
-        return r
+        response = requests.options(url,
+                                    headers=self._get_headers(headers),
+                                    verify=self._verify)
+        log.debug(response)
+        response.raise_for_status()
+        return response
 
     def get(self, path, params=None, headers={}):
         """Generic JSON GET method handler"""
@@ -390,7 +400,11 @@ class SmrtLinkClient(AuthenticatedClient):
         Convenience method for instantiating a client using the default
         API port 8243
         """
-        return SmrtLinkClient(host, 8243, username, password, verify=verify)
+        return SmrtLinkClient(host=host,
+                              port=Constants.API_PORT,
+                              username=username,
+                              password=password,
+                              verify=verify)
 
     @property
     def headers(self):
@@ -1078,7 +1092,7 @@ def add_smrtlink_server_args(p):
     developers who want to use this client in other CLI programs
     """
     DEFAULT_HOST = os.environ.get("PB_SERVICE_HOST", "localhost")
-    DEFAULT_PORT = int(os.environ.get("PB_SERVICE_PORT", 8243))
+    DEFAULT_PORT = int(os.environ.get("PB_SERVICE_PORT", Constants.API_PORT))
     DEFAULT_USER = os.environ.get("PB_SERVICE_AUTH_USER", None)
     DEFAULT_PASSWORD = os.environ.get("PB_SERVICE_AUTH_PASSWORD", None)
     p.add_argument("--host",
