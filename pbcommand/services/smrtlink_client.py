@@ -58,6 +58,13 @@ Example module usage:
     for collection in collections:
         jobs.extend(client.get_dataset_jobs(collection["ccsId"]))
 
+  - Import a HiFi dataset XML, and fetch a list of all datasets that were
+    loaded (including any demultiplexed children)::
+
+    import_job = client.create_import_dataset_job(xml_file)
+    finished_job = client.poll_for_successful_job(import_job["id"])
+    datasets = client.get_consensusreadsets(jobId=import_job["id"])
+
   - Retrieve barcoded sample metrics for a run collection and dump to CSV::
 
     reports = client.get_run_collection_reports(run_uuid, collection_uuid)
