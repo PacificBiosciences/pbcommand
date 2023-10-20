@@ -652,7 +652,7 @@ class SmrtLinkClient(AuthenticatedClient):
         as an integration mechanism, but is useful for transferring Run QC
         results between servers.
         """
-        self.post("/smrt-link/runs", {"dataModel": open(xml_file).read()})
+        return self.post("/smrt-link/runs", {"dataModel": open(xml_file).read()})
 
     def update_run_xml(self, xml_file, run_id, is_reserved=None):
         """
@@ -664,7 +664,7 @@ class SmrtLinkClient(AuthenticatedClient):
         opts_d = {"dataModel": open(xml_file).read()}
         if is_reserved is not None:
             opts_d["reserved"] = is_reserved
-        self.post(f"/smrt-link/runs/{run_id}", opts_d)
+        return self.post(f"/smrt-link/runs/{run_id}", opts_d)
 
     # -----------------------------------------------------------------
     # CHEMISTRY BUNDLE
@@ -970,7 +970,7 @@ class SmrtLinkClient(AuthenticatedClient):
         # but will become optional in future releases
         if "workflowOptions" not in opts_d:
             opts_d["workflowOptions"] = []
-        self._post_job_by_type("analysis", opts_d)
+        return self._post_job_by_type("analysis", opts_d)
 
     def terminate_analysis_job(self, job_id):
         """Immediately terminate a running analysis job."""
