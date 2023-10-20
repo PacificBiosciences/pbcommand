@@ -652,7 +652,7 @@ class SmrtLinkClient(AuthenticatedClient):
         as an integration mechanism, but is useful for transferring Run QC
         results between servers.
         """
-        self.post("/smrt-link/runs", {"dataModel": open(xml_file).read()})
+        return self.post("/smrt-link/runs", {"dataModel": open(xml_file).read()})
 
     def update_run_xml(self, xml_file, run_id, is_reserved=None):
         """
@@ -664,7 +664,7 @@ class SmrtLinkClient(AuthenticatedClient):
         opts_d = {"dataModel": open(xml_file).read()}
         if is_reserved is not None:
             opts_d["reserved"] = is_reserved
-        self.post(f"/smrt-link/runs/{run_id}", opts_d)
+        return self.post(f"/smrt-link/runs/{run_id}", opts_d)
 
     # -----------------------------------------------------------------
     # CHEMISTRY BUNDLE
@@ -1078,6 +1078,29 @@ class SmrtLinkClient(AuthenticatedClient):
         if state != "SUCCESSFUL":
             raise RuntimeError(f"Job {job_id} exited with state {state}")
         return job
+
+    # -----------------------------------------------------------------
+    # OTHER
+    def upload_file(self, file_path):
+        files_d = {
+            "upload_file": open(file_path, "rb")
+        }
+        url = self.to_url("/smrt-link/uploader")
+        log.info(f"Method: POST /smrt-link/uploader {files_d}")
+        log.debug(f"Full URL: {url}")
+        # XXX the Content-Type header is added automatically by the requests
+        # library - sending application/json results in a 404 response from
+        # the akka-http API backend
+        headers = {
+            "Authorization": f"Bearer {self.auth_token}"
+        }
+        response = requests.post(url,
+                                 files=files_d,
+                                 headers=headers,
+                                 verify=self._verify)
+        log.debug(response)
+        response.raise_for_status()
+        return response.json()
 
 
 ########################################################################
