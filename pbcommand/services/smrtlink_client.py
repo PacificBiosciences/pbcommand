@@ -970,7 +970,7 @@ class SmrtLinkClient(AuthenticatedClient):
         # but will become optional in future releases
         if "workflowOptions" not in opts_d:
             opts_d["workflowOptions"] = []
-        self._post_job_by_type("analysis", opts_d)
+        return self._post_job_by_type("analysis", opts_d)
 
     def terminate_analysis_job(self, job_id):
         """Immediately terminate a running analysis job."""
