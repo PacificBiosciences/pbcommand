@@ -1,9 +1,9 @@
-import pkg_resources
+from importlib.metadata import Distribution, PackageNotFoundError
 import sys
 
 try:
-    __VERSION__ = pkg_resources.get_distribution('pbcommand').version
-except Exception:
+   __VERSION__ = Distribution.from_name('pbcommand').version
+except PackageNotFoundError:
     __VERSION__ = 'unknown'
 
 VERSION = (int(x) for x in __VERSION__.split('.'))
